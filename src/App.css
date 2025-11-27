@@ -1,0 +1,125 @@
+/* Global styles */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+/* Hero section that extends behind status bar */
+.restaurantProfile {
+  /* Extend to edges */
+  width: 100vw;
+  min-height: 100vh;
+  /* or your desired height */
+
+  /* Account for safe areas */
+  padding-top: calc(20px + var(--sat));
+  padding-left: calc(20px + var(--sal));
+  padding-right: calc(20px + var(--sar));
+  padding-bottom: calc(20px + var(--sab));
+
+  /* Background styling */
+  /* background: url("./assets/images/chiken.png") no-repeat center center; */
+  background-size: cover;
+  position: relative;
+}
+
+/* If you want content to NOT go behind the status bar */
+.restaurantProfile-content {
+  margin-top: var(--sat);
+  /* Push content below status bar */
+  /* Rest of your content styles */
+}
+
+
+@keyframes slideIn {
+  from {
+    transform: translateX(calc(100% + var(--viewport-padding)));
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes swipeOut {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+
+  to {
+    transform: translateX(calc(100% + var(--viewport-padding)));
+  }
+}
+
+@keyframes hide {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+* {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  /* border: 1px solid red; */
+  scrollbar-width: 6px;
+}
+
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+}
+
+#root {
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Loading fallback */
+#loading-fallback {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF7A00;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  z-index: 9999;
+}
+
+.app-loaded #loading-fallback {
+  display: none;
+}
+
+/* Prevent flash of unstyled content */
+.font-loading {
+  visibility: hidden;
+}
+
+.fonts-loaded .font-loading {
+  visibility: visible;
+}
+
+*:focus {
+  outline: none !important;
+}

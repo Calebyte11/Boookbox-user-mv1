@@ -1,0 +1,197 @@
+import { useCartStore } from "@/store/cartStore";
+import { ChevronLeft } from "lucide-react";
+import Quantity from "../components/sponsor/Quantity";
+import {
+  useNavigate,
+  Link,
+  useSearchParams,
+  useParams,
+} from "react-router-dom";
+import OrderForm from "../components/sponsor/OrderForm";
+import type { OrderFormValues } from "../features/sponsor/types";
+import Button from "@/components/Button";
+import { useRestaurantDetailQuery } from "@/hooks/useRestaurantQueries";
+import { useBookingDetailQuery } from "@/hooks/useUserQueries";
+import { useEffect, useMemo } from "react";
+import { formatCurrency } from "@/utils/formatCurrency";
+import LoadingSpinner from "@/components/LoadingSpinner";
+// import { useCreateBooking } from "@/hooks/useUserQueries";
+
+const OrderPage = () => {
+  const { items, removeItem, getCurrentRestaurantId } = useCartStore(
+    (state) => state
+  );
+  const dateNow = new Date().toLocaleDateString();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { businessId: urlBusinessId } = useParams<{ businessId: string }>();
+  // Check if we're in edit mode
+  const editBookingId = searchParams.get("editBooking");
+  const isEditMode = !!editBookingId;
+
+  // Get current restaurant ID from cart or URL (for edit mode)
+  const cartRestaurantId = getCurrentRestaurantId();
+  const currentRestaurantId = isEditMode ? urlBusinessId : cartRestaurantId;
+
+  // Fetch existing booking data when in edit mode to check loading state
+  const { isLoading: isLoadingBooking, error: bookingError } =
+    useBookingDetailQuery(editBookingId || "", {
+      enabled: isEditMode && !!editBookingId,
+    });
+
+  // Fetch restaurant data using the authenticated API
+  const {
+    data: restaurantData,
+    isLoading,
+    error,
+    isError,
+  } = useRestaurantDetailQuery(currentRestaurantId || "", {
+    enabled: !!currentRestaurantId,
+  });
+  console.log("error", error);
+  console.log("restaurantError", isError);
+
+  const restaurantInfo = {
+    id: currentRestaurantId || "",
+    name: restaurantData?.name || "Unknown Restaurant",
+    address: restaurantData?.address || "Address not available",
+  };
+
+  const handleSubmit = (data: OrderFormValues) => {
+    if(data){
+      console.log("Order form pending creation");
+    }
+  };
+  const handleDelete = (itemId: string) => {
+    removeItem(itemId);
+  };
+  // Calculate totals
+  const orderSummary = useMemo(() => {
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = items.reduce((sum, item) => sum + item.totalPrice, 0);
+    return { totalItems, totalPrice };
+  }, [items]); // Handle case where cart becomes empty (e.g., quantity reduced to 0)
+  useEffect(() => {
+    if (!currentRestaurantId || (items.length === 0 && !isEditMode)) {
+      // Small delay to allow for any pending state updates
+      const timeout = setTimeout(() => {
+        navigate(-1);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [items.length, currentRestaurantId, navigate, isEditMode]);
+  if (!currentRestaurantId || (items.length === 0 && !isEditMode)) {
+    return (
+      <section className="py-6 relative font-roboto flex flex-col items-center justify-center h-screen">
+        <p className="text-xl text-gray-500">Your cart is empty.</p>
+        <Button
+          onClick={() => navigate(-1)}
+          className="mt-4 bg-primary text-white p-2"
+        >
+          <span>Go to Shopping</span>
+        </Button>
+      </section>
+    );
+  }
+
+  // Show error state if booking not found in edit mode
+  if (isEditMode && bookingError) {
+    return (
+      <section className="py-6 relative font-roboto flex flex-col items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-xl text-red-600 mb-4">Booking Not Found</p>
+          <p className="text-gray-600 mb-6">
+            The booking you're trying to edit could not be found. It may have
+            been deleted or you may not have permission to edit it.
+          </p>
+          <Button
+            onClick={() => navigate(-1)}
+            className="bg-primary text-white p-2"
+          >
+            Go Back
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  // Show loading state in edit mode when cart is empty or booking is loading
+  if (isEditMode && (items.length === 0 || isLoadingBooking)) {
+    return <LoadingSpinner />;
+  }
+
+  return (
+    <section className="py-6 relative font-roboto">
+      <div className="p-2 mx-auto flex">
+        <ChevronLeft
+          className="w-[24px] ml-2 text-black"
+          onClick={() => navigate(-1)}
+        />
+        <div className="flex flex-col justify-center text-center w-full">
+          <h1 className="text-gray-400 text-sm ">Your Order</h1>
+          <p className="text-black ">Available {dateNow.toLocaleString()}</p>
+        </div>
+      </div>
+      <div className="border border-gray-300 flex flex-col gap-3" />
+      {/*  restaurant details */}
+      <div className="flex p-4 items-center justify-between">
+        <div className="flex gap-2 items-center">
+          <h1 className="text-black text-2xl capitalize">
+            {isLoading ? "Loading..." : restaurantInfo.name}
+          </h1>
+          <p className="text-black text-xs">
+            {isLoading ? "Loading..." : restaurantInfo.address}
+          </p>
+        </div>
+        <Link
+          to={`/restaurants/${restaurantInfo.id}/`}
+          className=" text-primary text-full text-sm"
+        >
+          Add new{" "}
+        </Link>
+      </div>
+      {/* Display all cart items */}
+      {items.map((item, index) => (
+        <div key={item.id}>
+          <div className="flex px-4 pt-2 items-center justify-between">
+            <div className="">
+              <h1 className="capitalize">{item.mealName}</h1>
+              {item.userInstruction && (
+                <p className="text-gray-600 text-sm">{item.userInstruction}</p>
+              )}
+              <p className="py-2">{formatCurrency(item.totalPrice)}</p>
+            </div>
+
+            <Quantity
+              quantity={item.quantity}
+              deleteIcon={true}
+              itemId={item.id}
+              onDelete={() => handleDelete(item.id)}
+            />
+          </div>
+          {index < items.length - 1 && (
+            <div className="border-t border-gray-200 mx-4" />
+          )}{" "}
+        </div>
+      ))}{" "}
+      {/* Order Summary */}
+      <div className="mx-4 p-4 bg-gray-50 rounded-lg">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Total Items:</span>
+          <span className="font-medium">{orderSummary.totalItems}</span>
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          <span className="text-gray-600">Total Amount:</span>
+          <span className="font-bold text-lg">
+            {formatCurrency(orderSummary.totalPrice)}
+          </span>
+        </div>
+      </div>
+      <div className="border-t border-gray-300 py-3" />
+      {/*  order details */}
+      <OrderForm onSubmit={handleSubmit} restaurantId={restaurantInfo.id} />
+    </section>
+  );
+};
+
+export default OrderPage;

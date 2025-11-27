@@ -1,0 +1,19 @@
+{
+  "name": "BoookBox 4.0",
+  "short_name": "BoookBox",
+  "description": "Order, Gift, Redeem meal tickets and more around the world",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF7A00",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/android/android-launchericon-192-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/android/android-launchericon-512-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/android/android-launchericon-192-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/android/android-launchericon-512-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/ios/180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/ios/1024.png", "sizes": "1024x1024", "type": "image/png" }
+  ]
+}

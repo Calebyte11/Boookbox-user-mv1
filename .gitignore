@@ -1,0 +1,48 @@
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+*.local
+dev-dist/
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Dependency directories
+jspm_packages/
+dev-dist/
+
+#copilot-ignore
+.vscode-test/
+.github/
+.env
+.env.production
+.env.development
+# Build output
+
+#dist
+dist/
+build/
+
+# Lock files
+yarn.lock
+package-lock.json
+.vscode/
+
+static/
+stats.html
+hmr-test.js

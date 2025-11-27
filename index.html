@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="BoookBox">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/ios/180.png" sizes="180x180" />
+    <link rel="apple-touch-icon" href="/ios/192.png" sizes="192x192" />
+    <link rel="mask-icon" href="/masked-icon.svg" color="#FF7A00" />
+
+    <!-- Add Tailwind CSS early so index.html loader utilities are styled before React mounts -->
+    <link rel="stylesheet" href="/src/index.css">
+    
+    <!-- Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/ios/152.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/ios/256.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/splash_iphone8.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="/splash/splash_iphone11.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="/splash/splash_ipad.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
+    
+    <!-- Fonts - Optimized for iOS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;800&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;800&display=swap">
+    </noscript>
+    
+    <!-- PWA Tags -->
+    <meta name="theme-color" content="#FF7A00" />
+    <!-- <link rel="manifest" href="/manifest.webmanifest" /> -->
+    <!--app-head-->
+    
+    <!-- Dev-only: aggressively clear SW and caches to avoid stale optimized chunks -->
+    <script>
+      (function () {
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              regs.forEach(function (reg) { reg.unregister(); });
+            }).catch(function (e) { console.warn('SW unregister failed', e); });
+          }
+          if (window.caches && caches.keys) {
+            caches.keys().then(function (keys) { return Promise.all(keys.map(function (k) { return caches.delete(k); })); })
+              .catch(function (e) { console.warn('Cache clear failed', e); });
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <style>
+            * {
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      }     
+      /* Loading fallback */
+      #loading-fallback {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FF7A00;
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+        z-index: 9999;
+      }
+      
+      .app-loaded #loading-fallback {
+        display: none;
+      }
+      
+      /* Prevent flash of unstyled content */
+      .font-loading {
+        visibility: hidden;
+      }
+      
+      .fonts-loaded .font-loading {
+        visibility: visible;
+      }
+      
+    </style>
+    <div id="loading-fallback" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+      <div class="flex flex-col items-center">
+        <div class="text-3xl font-extrabold tracking-tight mb-4 font-inter">BOOOKBOX 4.0</div>
+        <div class="flex items-center justify-center h-24">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+        <!-- <div class="text-sm text-gray-700 mt-2">Loading, please wait...</div> -->
+      </div>
+    </div>
+    <div id="root"><!--ssr-outlet--></div>
+    
+    <!-- Noscript fallback to detect JavaScript issues -->
+    <noscript>
+      <div style="padding: 20px; text-align: center; font-family: -apple-system, sans-serif;">
+        <h1>BoookBox</h1>
+        <p>Please enable JavaScript to use this application.</p>
+        <p>If JavaScript is enabled and you see this message, please try refreshing the page.</p>
+      </div>
+    </noscript>
+    
+    <!-- Font Loading Detection -->
+    <script>
+      // Font loading detection to prevent white screen
+      (function() {
+        function addFontClass() {
+          document.documentElement.classList.add('fonts-loaded');
+        }
+        
+        if ('fonts' in document) {
+          document.fonts.ready.then(addFontClass);
+        } else {
+          // Fallback for older browsers
+          setTimeout(addFontClass, 3000);
+        }
+        
+        // iOS PWA specific handling
+        const isIOSPWA = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
+                         'standalone' in navigator && 
+                         navigator.standalone === true;
+        
+        // Ensure app loads even if fonts fail, with shorter timeout for iOS PWA
+        const loadTimeout = isIOSPWA ? 3000 : 5000; // 3s for iOS PWA, 5s for others
+        
+        setTimeout(function() {
+          document.body.classList.add('app-loaded');
+          console.log('App marked as loaded after timeout');
+        }, loadTimeout);
+        
+        // Additional safety - force show app after React renders (faster for iOS)
+        setTimeout(function() {
+          const root = document.getElementById('root');
+          if (root && root.innerHTML.length > 50) { // Reduced threshold
+            document.body.classList.add('app-loaded');
+            console.log('App marked as loaded due to content detection');
+          }
+        }, 1000); // Reduced from 2000 to 1000 for faster response
+        
+        // Fallback timeout specifically for iOS PWA to prevent infinite loading
+        if (isIOSPWA) {
+          setTimeout(function() {
+            document.body.classList.add('app-loaded');
+            console.log('iOS PWA fallback timeout - forcing app loaded');
+          }, 2500); // 2.5 seconds max for iOS PWA
+        }
+      })();
+    </script>
+    
+    <script type="module" src="/src/entry-client.tsx"></script>
+  </body>
+</html>
