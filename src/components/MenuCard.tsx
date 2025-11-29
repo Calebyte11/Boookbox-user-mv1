@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Gift, HandHelping } from "lucide-react";
 
 interface MenuItemProps {
-  id: string; // Or number, depending on your data model
+  id: string;
   title: string;
   price: number | string;
   image: string;
@@ -11,48 +11,85 @@ interface MenuItemProps {
 type MenuType = {
   item?: MenuItemProps;
   restaurantId?: string;
+  businessCategory?: string;
   handleClick?: () => void;
 };
 
-const MenuCard = ({ item, restaurantId = "", handleClick }: MenuType) => {
+const MenuCard = ({
+  item,
+  restaurantId = "",
+  businessCategory = "",
+  handleClick,
+}: MenuType) => {
+  const navigate = useNavigate();
+
+
   if (!item) {
     return null; // Or a placeholder/loading state
   }
-
+  
   return (
     <div
-      className="flex flex-row items-stretch gap-2 shadow-sm bg-[#F8F8F8] border border-[#EADDFF] rounded-lg h-[14rem] max-w-full md:h-[16rem]"
+      className="flex items-start bg-[#F8F8F8] rounded-lg shadow-sm h-[12em] w-full hover:shadow-sm"
       onClick={handleClick}
     >
-      <div className="flex flex-col gap-2 mt-2 p-4 justify-between mb-4 flex-1 min-w-0">
-      <p className="capitalize font-semibold inline-flex flex-col gap-1">
-        <Link
-        to={`/restaurants/${restaurantId}/meals/${item.id}`}
-        key={item.id}
-        className="block"
-        >
-        <span className="text-2xl font-medium font-mf text-pretty line-clamp-2 break-words">
-          {item.title}
-        </span>
-        </Link>
-        <span className="text-sm text-gray-400">Lunch and Dinner</span>
-      </p>
-      <p className="font-normal tracking-tight text-medium text-lg">
-        ₦{item.price}
-      </p>
+      <div className="shrink-0 w-40 sm:w-40 md:w-48 h-full rounded-l-lg overflow-hidden flex items-center justify-center">
+        <img
+          src={item.image}
+          alt={item.title}
+          className="w-full h-full object-cover object-center rounded-l-lg"
+        />
       </div>
-      <div className="relative w-32 md:w-48 flex-shrink-0 h-full">
-      <img
-        src={item.image}
-        alt="restaurants-image"
-        className="rounded-r-lg object-cover w-full h-full"
-      />
-      <Link
-        to={`/restaurants/${restaurantId}/meals/${item.id}`}
-        className="absolute bottom-4 right-4 rounded-full p-2 bg-white"
-      >
-        <Plus />
-      </Link>
+      <div className="flex-col flex container p-2 justify-between flex-1 h-full w-40">
+        <div>
+          <Link
+            to={
+              businessCategory === "restaurant"
+                ? `/restaurants/${restaurantId}/meals/${item?.id}`
+                : `/${businessCategory}/${restaurantId}/items/${item?.id}`
+            }
+            // to={
+            // `/restaurants/${restaurantId}/meals/${item?.id}`}
+            key={item?.id}
+            className="block"
+          >
+            <h1
+              className="font-semibold text-lg truncate capitalize"
+              title={item.title}
+            >
+              {item.title}
+            </h1>
+          </Link>
+          <p className="text-black text-sm truncate">Lunch and Dinner</p>
+          <p className="font-normal tracking-tight text-medium text-lg mt-5">
+            ₦{item.price}
+          </p>
+        </div>
+
+        <div className="flex gap-2 w-full">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                businessCategory === "restaurant"
+                  ? `/restaurants/${restaurantId}/meals/${item?.id}`
+                  : `/${businessCategory}/${restaurantId}/items/${item?.id}`
+              )
+            }
+            className="bg-primary hover:bg-primary/90 p-1.5 text-white inline-flex rounded-lg items-center justify-center gap-1 flex-1 text-xs transition-colors"
+          >
+            <Gift className="w-3.5 h-3.5" />
+            <span className="truncate">Gift</span>
+          </button>
+          <button
+            onClick={() => console.log(item.id)}
+            type="button"
+            className="bg-green-100 border p-1.5 text-green-800 inline-flex rounded-lg items-center justify-center gap-1 flex-1 text-xs transition-colors"
+          >
+            <HandHelping className="w-4 h-4" />
+            <span className="truncate">Request</span>
+          </button>
+        </div>
       </div>
     </div>
   );

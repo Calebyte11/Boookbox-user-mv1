@@ -30,18 +30,6 @@ type RecommendedType = {
 
 type CategoryType = "restaurant" | "groceries" | "frozen-foods" | "wine-drinks";
 
-// Helper function to map category IDs to route paths
-// const getCategoryRoute = (category: CategoryType): string => {
-//   const routeMap: Record<CategoryType, string> = {
-//     restaurant: "restaurants",
-//     groceries: "groceries",
-//     "frozen-foods": "frozen-foods",
-//     "wine-drinks": "wine-drinks",
-//   };
-
-//   return routeMap[category] || category;
-// };
-
 const Recommended: React.FC<RecommendedType> = ({ count }) => {
   const [recommendation] = useState(true);
   const locationStore = useLocationStore();
@@ -505,18 +493,18 @@ const Recommended: React.FC<RecommendedType> = ({ count }) => {
       )}
 
       {/* Category Filter Navigation */}
-      <div id="category-filter-nav" className="mb-6 border-b border-gray-200">
+      <div id="category-filter-nav" className="mb-6 ">
         <ul className="flex gap-0 overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
-            <li key={category.id} className="flex-shrink-0">
+            <li key={category.id} className="flex-shrink-0 border-b-2 border-gray-400 ">
               <button
                 onClick={() => handleCategoryChange(category.id)}
                 className={`
-                  px-3 py-2 text-[13px] font-medium transition-colors whitespace-nowrap
+                  px-3 py-1 text-[13px] font-medium transition-colors whitespace-nowrap h-full
                   ${
                     selectedCategory === category.id
-                      ? "bg-gray-100 text-gray-900 border-b-2 border-primary"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-amber-50 text-gray-600 border-1 border-gray-900 rounded-t-sm rounded-b-sm"
+                      : "bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }
                 `}
               >
@@ -575,7 +563,7 @@ const Recommended: React.FC<RecommendedType> = ({ count }) => {
                 <span className="text-center text-sm">
                   {selectedCategory === "restaurant"
                     ? "Book a meal"
-                    : "Book an item"}
+                    : "Order items"}
                 </span>
               </div>
             </Link>

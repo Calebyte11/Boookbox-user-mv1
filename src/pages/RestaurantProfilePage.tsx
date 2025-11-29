@@ -61,7 +61,7 @@ import {
 import MenuCard from "@/components/MenuCard";
 import * as Tabs from "@radix-ui/react-tabs";
 import Heading from "../components/sponsor/Heading";
-import Reslider from "@/components/ReSlide";
+// import Reslider from "@/components/ReSlide";
 import CartButton from "@/components/CartButton";
 import refuel from "@/assets/images/refuel.png";
 import useCartStore from "@/store/cartStore";
@@ -550,26 +550,26 @@ const BusinessProfilePage: React.FC = () => {
 
   // Handlers for favorite and rating
   const handleToggleFavorite = () => {
-  console.log("handleToggleFavorite called:", {
-    businessId,
-    normalizedCategory,
-    isFavoriteLoading,
-    isPending: toggleFavoriteMutation.isPending,
-    restaurantId, // from useParams
-  });
-
-  if (!businessId) {
-    console.error("Cannot toggle favorite: businessId is missing");
-    return;
-  }
-
-  if (businessId && !isFavoriteLoading && !toggleFavoriteMutation.isPending) {
-    toggleFavoriteMutation.mutate({ 
-      businessId, 
-      category: normalizedCategory 
+    console.log("handleToggleFavorite called:", {
+      businessId,
+      normalizedCategory,
+      isFavoriteLoading,
+      isPending: toggleFavoriteMutation.isPending,
+      restaurantId, // from useParams
     });
-  }
-};
+
+    if (!businessId) {
+      console.error("Cannot toggle favorite: businessId is missing");
+      return;
+    }
+
+    if (businessId && !isFavoriteLoading && !toggleFavoriteMutation.isPending) {
+      toggleFavoriteMutation.mutate({
+        businessId,
+        category: normalizedCategory,
+      });
+    }
+  };
 
   const handleRateBusiness = (rating: number, comment?: string) => {
     if (businessId) {
@@ -949,22 +949,19 @@ const BusinessProfilePage: React.FC = () => {
               <>
                 <Heading title={labels.popularTab} />
                 <div className="mt-2">
-                  <Reslider
-                    data={popularMenuItems}
-                    renderSlide={(item: any) => (
-                      <MenuCard
-                        item={{ ...item, id: String(item.id) }}
-                        restaurantId={businessId}
-                        handleClick={() =>
-                          navigate(
-                            `/${normalizedCategory.toLowerCase()}/${businessId}/meals/${
-                              item.menuId
-                            }`
-                          )
-                        }
-                      />
-                    )}
-                  />
+                  
+                  <div className="mt-2 max-h-[600px] overflow-y-auto">
+                    <div className="flex flex-col gap-4">
+                      {popularMenuItems.map((item: any) => (
+                        <MenuCard
+                          key={item.id}
+                          item={{ ...item, id: String(item.id) }}
+                          restaurantId={businessId}
+                          businessCategory={normalizedCategory.toLowerCase()}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (

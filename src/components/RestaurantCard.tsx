@@ -67,9 +67,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
     const categoryButtonTexts = {
       restaurant: "Book a meal",
-      groceries: "Book an item",
-      frozenfoods: "Book an item",
-      winedrinks: "Book an item",
+      groceries: "Order items",
+      frozenfoods: "Order items",
+      winedrinks: "Order items",
     };
 
     return categoryButtonTexts[category];
@@ -148,10 +148,11 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       {id ? (
         <Link
           to={getNavigationUrl()}
-          className="bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 inline-flex justify-center transition-colors duration-200 mt-auto w-fit"
+          className="bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/90 inline-flex justify-center transition-colors duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           <span className="text-center text-sm">{getButtonText()}</span>
+          
         </Link>
       ) : (
         <button

@@ -8,6 +8,10 @@ import useAuthStore from "@/store/authStore";
 import { apiClient } from "./apiClient";
 import { generateTicketQRCodeWithLogo } from "@/utils/qrCode";
 
+
+// ======= FOR PROCUTION ====== Base URL for API calls=======
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 // ======= FOR DEVELOPMENT ====== Base URL for API calls=======
 const API_BASE_URL = "https://boookbox-backend-cpvu.onrender.com";
 
@@ -141,7 +145,7 @@ export const usersService = {
     }).then((res) => res.json()),
 
   login: (body: LoginBody) =>
-    fetch("https://boookbox-backend.onrender.com/api/users/auth/register", {
+    fetch(`${API_BASE_URL}${API_ENDPOINTS.USER_AUTH.LOGIN}`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(body),

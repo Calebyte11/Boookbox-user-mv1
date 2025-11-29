@@ -127,7 +127,7 @@ const RestaurantHeader: React.FC<RestaurantHeaderProps> = ({
           >
             <Heart
               className={`transition-all duration-300 ${
-                isFavorite ? "text-white" : "text-gray-400"
+                localIsFavorite ? "text-white" : "text-gray-400"
               } w-[24px]`}
               fill={localIsFavorite ? "#E91E63" : "none"}
               strokeWidth={2}

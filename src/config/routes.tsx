@@ -50,6 +50,9 @@ import PostDetail from "@/pages/PostDetail";
 import VerifyPayment from "@/pages/VerifyPayment";
 import NotFound from "@/pages/NotFound";
 
+// ===== for friend request ====
+import FriendRequestRedirect from "@/components/FriendRequestRedirect";
+
 // Wrapper component to conditionally show header based on authentication
 const PostDetailWrapper = () => {
   const { isAuthenticated } = useAuthStore();
@@ -95,6 +98,11 @@ export const routes: RouteObject[] = [
   { path: "/post/:postId", element: <PostDetailWrapper /> },
   { path: "/p/:postId", element: <PostDetailWrapper /> }, // Alternative short-link
   { path: "/reel/:reelId", element: <ReelView /> },
+  // ====== Friend Request Route =======
+  { 
+    path: "/friend-request", 
+    element: <FriendRequestRedirect /> 
+  },
 
   // --- Protected Routes (Main App) ---
   {
@@ -117,11 +125,43 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
+
+  // ====== for all the different categories =======
   {
     path: "/restaurants/:restaurantId/meals/:mealId",
     element: (
       <ProtectedRoute>
         <HeaderPageLayout title="Meal Details" headerType="meal">
+          <MealDetailsPage />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/groceries/:restaurantId/items/:mealId",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="Item Details" headerType="meal">
+          <MealDetailsPage />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/frozen-foods/:restaurantId/items/:mealId",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="Item Details" headerType="meal">
+          <MealDetailsPage />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/wine-drinks/:restaurantId/items/:mealId",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="Item Details" headerType="meal">
           <MealDetailsPage />
         </HeaderPageLayout>
       </ProtectedRoute>
