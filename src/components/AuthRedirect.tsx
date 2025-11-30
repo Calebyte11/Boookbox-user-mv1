@@ -23,7 +23,7 @@ const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
   useEffect(() => {
     // Only redirect if auth is initialized AND authenticated AND not logging out
     if (isInitialized && isAuthenticated && !isLoggingOut && !isEmailVerification) {
-      navigate("/home", { replace: true });
+      // navigate("/home", { replace: true });
     }
   }, [isAuthenticated, isLoggingOut, isEmailVerification, navigate, isInitialized]);
 

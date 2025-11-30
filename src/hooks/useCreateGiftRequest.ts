@@ -1,12 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
+import useAuthStore from "@/store/authStore";
 
 // Define the request payload interface
 interface CreateGiftRequestPayload {
-  packageId: string;
+  productId: string;
   businessId: string;
   quantity: number;
-  totalPrice: number;
-  customMessage: string;
+  totalAmount: number;
+  message: string;
 }
 
 // Define the API response interface
@@ -31,12 +32,33 @@ const createGiftRequest = async (
 // ===== FOR DEVELOPMENT =====
     const baseUrl = "https://boookbox-backend-cpvu.onrender.com";
   
-  const response = await fetch(`${baseUrl}/u/request/gift/create`, {
+
+  function getHeaders(auth = false, isJson = true) {
+  const headers: Record<string, string> = {};
+  if (isJson) headers["Content-Type"] = "application/json";
+  if (auth) {
+    const { getDecodedToken, hasValidAuth } = useAuthStore.getState();
+
+    if (!hasValidAuth()) {
+      throw new Error("User is not authenticated");
+    }
+
+    const token = getDecodedToken();
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    } else {
+      console.error("❌ No token available for authorization");
+      throw new Error("No authentication token available");
+    }
+  }
+  return headers;
+}
+
+  const response = await fetch(`${baseUrl}/u/gifting/requests/create`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies/auth tokens
+    headers: getHeaders(true),
+    // credentials: 'include', // Include cookies/auth tokens
     body: JSON.stringify(payload),
   });
 

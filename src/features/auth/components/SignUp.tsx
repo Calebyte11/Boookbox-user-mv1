@@ -33,16 +33,18 @@ const FacebookLogin = lazy(() => import("@greatsumini/react-facebook-login"));
 // iOS PWA detection utility with safety checks
 const isIOSPWA = () => {
   try {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    if (typeof window === "undefined" || typeof navigator === "undefined") {
       return false;
     }
-    
+
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-    
+    const isStandalone =
+      window.matchMedia &&
+      window.matchMedia("(display-mode: standalone)").matches;
+
     return isIOS && isStandalone;
   } catch (error) {
-    console.warn('iOS PWA detection failed:', error);
+    console.warn("iOS PWA detection failed:", error);
     return false;
   }
 };
@@ -102,32 +104,49 @@ const PasswordRequirement: React.FC<PasswordRequirementProps> = ({
 
 const getFieldsForStep = (step: number): (keyof SignUpFormData)[] => {
   switch (step) {
-    case 1: return ["email"];
-    case 2: return ["password"];
-    case 3: return ["firstName", "lastName", "phoneNumber", "accountType", "organizationName", "contactEmail", "gender"];
-    case 4: return ["dateOfBirth"];
-    case 5: return ["address"];
-    default: return [];
+    case 1:
+      return ["email"];
+    case 2:
+      return ["password"];
+    case 3:
+      return [
+        "firstName",
+        "lastName",
+        "phoneNumber",
+        "accountType",
+        "organizationName",
+        "contactEmail",
+        "gender",
+      ];
+    case 4:
+      return ["dateOfBirth"];
+    case 5:
+      return ["address"];
+    default:
+      return [];
   }
 };
 
-class AuthErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class AuthErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
   state = { hasError: false };
-  
+
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-  
+
   componentDidCatch(error: Error) {
-    console.error('Auth Error:', error);
+    console.error("Auth Error:", error);
   }
-  
+
   render() {
     if (this.state.hasError) {
       return (
         <div className="p-4 text-center">
           <h2>Something went wrong</h2>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-2 px-4 py-2 bg-primary text-white rounded"
           >
@@ -140,19 +159,22 @@ class AuthErrorBoundary extends React.Component<{ children: React.ReactNode }, {
   }
 }
 
-const GoogleButton = ({ 
-  onClick, 
-  loading 
-}: { 
-  onClick: () => void; 
-  loading: boolean 
+const GoogleButton = ({
+  onClick,
+  loading,
+}: {
+  onClick: () => void;
+  loading: boolean;
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, isIOSPWA() ? 1500 : 500);
+    const timer = setTimeout(
+      () => {
+        setIsLoaded(true);
+      },
+      isIOSPWA() ? 1500 : 500
+    );
 
     return () => clearTimeout(timer);
   }, []);
@@ -190,7 +212,7 @@ const SignUp: React.FC = () => {
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [isComponentReady, setIsComponentReady] = useState(false);
   const [searchParams] = useSearchParams();
-  
+
   // Safe navigation for iOS PWA
   const safeNavigate = (path: string) => {
     try {
@@ -202,12 +224,12 @@ const SignUp: React.FC = () => {
         navigate(path);
       }
     } catch (navError) {
-      console.error('Navigation failed:', navError);
+      console.error("Navigation failed:", navError);
       // Fallback to window.location as last resort
       try {
         window.location.href = path;
       } catch (fallbackNavError) {
-        console.error('Fallback navigation failed:', fallbackNavError);
+        console.error("Fallback navigation failed:", fallbackNavError);
       }
     }
   };
@@ -224,50 +246,50 @@ const SignUp: React.FC = () => {
   // Initialize component with iOS PWA safeguards
   useEffect(() => {
     const initDelay = isIOSPWA() ? 1000 : 100;
-    
+
     const timer = setTimeout(() => {
       try {
         // Set up viewport units for iOS with safety checks
-        if (isIOSPWA() && typeof window !== 'undefined' && window.innerHeight) {
+        if (isIOSPWA() && typeof window !== "undefined" && window.innerHeight) {
           const setVh = () => {
             try {
               if (document?.documentElement?.style) {
                 document.documentElement.style.setProperty(
-                  '--vh',
+                  "--vh",
                   `${window.innerHeight * 0.01}px`
                 );
               }
             } catch (vhError) {
-              console.warn('Viewport height setup failed:', vhError);
+              console.warn("Viewport height setup failed:", vhError);
             }
           };
-          
+
           setVh();
-          
+
           // Add resize listener with error handling
           const handleResize = () => {
             try {
               setVh();
             } catch (resizeError) {
-              console.warn('Resize handler error:', resizeError);
+              console.warn("Resize handler error:", resizeError);
             }
           };
-          
+
           if (window.addEventListener) {
-            window.addEventListener('resize', handleResize, { passive: true });
+            window.addEventListener("resize", handleResize, { passive: true });
           }
-          
+
           // Cleanup function
           return () => {
             if (window.removeEventListener) {
-              window.removeEventListener('resize', handleResize);
+              window.removeEventListener("resize", handleResize);
             }
           };
         }
-      
+
         setIsComponentReady(true);
       } catch (error) {
-        console.error('Initialization error:', error);
+        console.error("Initialization error:", error);
         // Always show component even if initialization fails
         setIsComponentReady(true);
       }
@@ -334,7 +356,9 @@ const SignUp: React.FC = () => {
         return value === "user" || value === "organization";
       }
       if (
-        (field === "organizationName" || field === "contactEmail" || field === "category") &&
+        (field === "organizationName" ||
+          field === "contactEmail" ||
+          field === "category") &&
         formValues.accountType !== "organization"
       ) {
         return true;
@@ -353,6 +377,162 @@ const SignUp: React.FC = () => {
   };
 
   const isValid = isCurrentStepValid();
+
+  // const onSubmit = async (data: SignUpFormData) => {
+  //   if (currentStep < 5) {
+  //     setCurrentStep(currentStep + 1);
+  //     return;
+  //   }
+
+  //   try {
+  //     setIsSubmitting(true);
+  //     const fullName = `${data.firstName} ${data.lastName}`;
+  //     const birthday = convertDateStringToBirthday(data.dateOfBirth);
+
+  //     const payload = {
+  //       fullName,
+  //       email: data.email.toLowerCase(),
+  //       password: data.password,
+  //       accountType: data.accountType,
+  //       organizationName: data.organizationName,
+  //       category: data.category,
+  //       contactEmail: data.contactEmail,
+  //       birthday: birthday,
+  //       phoneNumber: data.phoneNumber,
+  //       address: data.address,
+  //       city: data.city,
+  //       state: data.state,
+  //       zipCode: data.zipCode,
+  //       country: data.country,
+  //       gender: data.gender,
+  //       ...(data.referralCode && { referralCode: data.referralCode }),
+  //     } as any;
+
+  //     await registerUser(payload);
+
+  //     try {
+  //       await resendVerificationMutation.mutateAsync(data.email.toLowerCase());
+  //       const params = new URLSearchParams(window.location.search);
+  //       const next = params.get('next');
+  //       safeNavigate(next ? decodeURIComponent(next) : "/auth/email-verification");
+  //     } catch (emailError) {
+  //       console.error("Failed to send verification email:", emailError);
+  //     }
+  //   } catch (err) {
+  //     console.error("Signup failed:", err);
+  //     setFormError("root", {
+  //       type: "manual",
+  //       message: err instanceof Error ? err.message : "Sign up failed",
+  //     });
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+  // const handleGoogleSignUp = async () => {
+  //   if (!isInitialized) {
+  //     // console.warn("Google signup attempted before auth initialization");
+  //     return;
+  //   }
+
+  //   try {
+  //     // Add safety check for Google auth function
+  //     if (!signInWithGoogle || typeof signInWithGoogle !== 'function') {
+  //       throw new Error("Google authentication not available");
+  //     }
+
+  // await signInWithGoogle();
+  // const params = new URLSearchParams(window.location.search);
+  // const next = params.get('next');
+  // setTimeout(() => safeNavigate(next ? decodeURIComponent(next) : "/home"), 100);
+  //   } catch (err) {
+  //     console.error("Google sign up failed:", err);
+  //     toast({
+  //       title: "Google Sign Up Failed",
+  //       description: err instanceof Error ? err.message : "Google sign up failed. Please try again.",
+  //       variant: "error",
+  //     });
+  //   }
+  // };
+
+  // const handleFacebookSignUp = async (res: any) => {
+  //   if (!isInitialized) {
+  //     // console.warn("Facebook signup attempted before auth initialization");
+  //     return;
+  //   }
+
+  //   setIsFacebookLoading(true);
+
+  //   try {
+  //     // Enhanced validation of Facebook response
+  //     if (!res || typeof res !== 'object') {
+  //       throw new Error("Invalid Facebook response");
+  //     }
+
+  //     if (!res.accessToken || typeof res.accessToken !== 'string') {
+  //       throw new Error("No access token received from Facebook");
+  //     }
+
+  //     // Check if required services are available
+  //     if (!getEnvironmentInfo || typeof getEnvironmentInfo !== 'function') {
+  //       throw new Error("Environment service not available");
+  //     }
+
+  //     if (!usersService?.facebookAuth || typeof usersService.facebookAuth !== 'function') {
+  //       throw new Error("Facebook authentication service not available");
+  //     }
+
+  //     const envInfo = await getEnvironmentInfo();
+  //     const fbUser: LoginUserResponse = await usersService.facebookAuth({
+  //       credential: res.accessToken,
+  //       environmentInfo: envInfo,
+  //     });
+
+  //     if (!fbUser?.token || !fbUser?.user) {
+  //       throw new Error("Facebook authentication failed - invalid response");
+  //     }
+
+  //     // Safely construct user object with fallbacks
+  //     const user: User = {
+  //       id: fbUser.user._id || '',
+  //       username: fbUser.user.fullName || "User",
+  //       email: fbUser.user.email || '',
+  //       role: (fbUser.user.accountType as "user" | "organization") || "user",
+  //       photoURL: fbUser.user.profileImage || "",
+  //       isVerified: fbUser.user.isVerified ?? false,
+  //       token: fbUser.token,
+  //       tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
+  //       phoneNumber: fbUser.user.phoneNumber || ""
+  //     };
+
+  //     // Validate required user fields
+  //     if (!user.email || !user.token) {
+  //       throw new Error("Facebook authentication failed - missing required user data");
+  //     }
+
+  //     toast({
+  //       title: "Success",
+  //       description: "Signed up with Facebook successfully!",
+  //       variant: "success",
+  //     });
+
+  // login(user);
+  // const params = new URLSearchParams(window.location.search);
+  // const next = params.get('next');
+  // setTimeout(() => safeNavigate(next ? decodeURIComponent(next) : "/home"), 100);
+  //   } catch (error) {
+  //     console.error("Facebook auth error:", error);
+  //     const errorMessage = error instanceof Error ? error.message : "An error occurred during Facebook sign up";
+
+  //     toast({
+  //       title: "Facebook Sign Up Failed",
+  //       description: errorMessage,
+  //       variant: "error",
+  //     });
+  //   } finally {
+  //     setIsFacebookLoading(false);
+  //   }
+  // };
 
   const onSubmit = async (data: SignUpFormData) => {
     if (currentStep < 5) {
@@ -388,9 +568,14 @@ const SignUp: React.FC = () => {
 
       try {
         await resendVerificationMutation.mutateAsync(data.email.toLowerCase());
-        const params = new URLSearchParams(window.location.search);
-        const next = params.get('next');
-        safeNavigate(next ? decodeURIComponent(next) : "/auth/email-verification");
+
+        // Get the 'next' parameter and pass it to email verification
+        const next = searchParams.get("next");
+        const verificationPath = next
+          ? `/auth/email-verification?next=${encodeURIComponent(next)}`
+          : "/auth/email-verification";
+
+        safeNavigate(verificationPath);
       } catch (emailError) {
         console.error("Failed to send verification email:", emailError);
       }
@@ -405,27 +590,32 @@ const SignUp: React.FC = () => {
     }
   };
 
+  // 3. Update OAuth handlers to use 'next' parameter:
   const handleGoogleSignUp = async () => {
     if (!isInitialized) {
-      // console.warn("Google signup attempted before auth initialization");
       return;
     }
 
     try {
-      // Add safety check for Google auth function
-      if (!signInWithGoogle || typeof signInWithGoogle !== 'function') {
+      if (!signInWithGoogle || typeof signInWithGoogle !== "function") {
         throw new Error("Google authentication not available");
       }
-      
-  await signInWithGoogle();
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get('next');
-  setTimeout(() => safeNavigate(next ? decodeURIComponent(next) : "/home"), 100);
+
+      await signInWithGoogle();
+
+      // Get the 'next' parameter for redirect
+      const next = searchParams.get("next");
+      const redirectPath = next ? decodeURIComponent(next) : "/home";
+
+      setTimeout(() => safeNavigate(redirectPath), 100);
     } catch (err) {
       console.error("Google sign up failed:", err);
       toast({
         title: "Google Sign Up Failed",
-        description: err instanceof Error ? err.message : "Google sign up failed. Please try again.",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Google sign up failed. Please try again.",
         variant: "error",
       });
     }
@@ -433,7 +623,6 @@ const SignUp: React.FC = () => {
 
   const handleFacebookSignUp = async (res: any) => {
     if (!isInitialized) {
-      // console.warn("Facebook signup attempted before auth initialization");
       return;
     }
 
@@ -441,20 +630,23 @@ const SignUp: React.FC = () => {
 
     try {
       // Enhanced validation of Facebook response
-      if (!res || typeof res !== 'object') {
+      if (!res || typeof res !== "object") {
         throw new Error("Invalid Facebook response");
       }
 
-      if (!res.accessToken || typeof res.accessToken !== 'string') {
+      if (!res.accessToken || typeof res.accessToken !== "string") {
         throw new Error("No access token received from Facebook");
       }
 
       // Check if required services are available
-      if (!getEnvironmentInfo || typeof getEnvironmentInfo !== 'function') {
+      if (!getEnvironmentInfo || typeof getEnvironmentInfo !== "function") {
         throw new Error("Environment service not available");
       }
 
-      if (!usersService?.facebookAuth || typeof usersService.facebookAuth !== 'function') {
+      if (
+        !usersService?.facebookAuth ||
+        typeof usersService.facebookAuth !== "function"
+      ) {
         throw new Error("Facebook authentication service not available");
       }
 
@@ -470,20 +662,22 @@ const SignUp: React.FC = () => {
 
       // Safely construct user object with fallbacks
       const user: User = {
-        id: fbUser.user._id || '',
+        id: fbUser.user._id || "",
         username: fbUser.user.fullName || "User",
-        email: fbUser.user.email || '',
+        email: fbUser.user.email || "",
         role: (fbUser.user.accountType as "user" | "organization") || "user",
         photoURL: fbUser.user.profileImage || "",
         isVerified: fbUser.user.isVerified ?? false,
         token: fbUser.token,
         tokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
-        phoneNumber: fbUser.user.phoneNumber || ""
+        phoneNumber: fbUser.user.phoneNumber || "",
       };
 
       // Validate required user fields
       if (!user.email || !user.token) {
-        throw new Error("Facebook authentication failed - missing required user data");
+        throw new Error(
+          "Facebook authentication failed - missing required user data"
+        );
       }
 
       toast({
@@ -491,15 +685,21 @@ const SignUp: React.FC = () => {
         description: "Signed up with Facebook successfully!",
         variant: "success",
       });
-      
-  login(user);
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get('next');
-  setTimeout(() => safeNavigate(next ? decodeURIComponent(next) : "/home"), 100);
+
+      login(user);
+
+      // Get the 'next' parameter for redirect
+      const next = searchParams.get("next");
+      const redirectPath = next ? decodeURIComponent(next) : "/home";
+
+      setTimeout(() => safeNavigate(redirectPath), 100);
     } catch (error) {
       console.error("Facebook auth error:", error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred during Facebook sign up";
-      
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during Facebook sign up";
+
       toast({
         title: "Facebook Sign Up Failed",
         description: errorMessage,
@@ -509,11 +709,10 @@ const SignUp: React.FC = () => {
       setIsFacebookLoading(false);
     }
   };
-
   const handleUseCurrentLocation = async () => {
     setIsLoadingLocation(true);
     setLocationError("");
-    
+
     try {
       // Check if geolocation is available
       if (!navigator.geolocation) {
@@ -524,21 +723,26 @@ const SignUp: React.FC = () => {
       try {
         await getCurrentLocation();
       } catch (locationServiceError) {
-        console.warn('Location service failed, using fallback:', locationServiceError);
+        console.warn(
+          "Location service failed, using fallback:",
+          locationServiceError
+        );
         // Don't throw here, let it fall through to use IP location
       }
 
       let locationData = null;
-      
+
       // Try to use GPS location first
       if (addressParts?.city && addressParts?.state) {
         locationData = {
           city: addressParts.city,
           state: addressParts.state,
           country: addressParts.country || "Unknown",
-          address: addressParts.formatted || `${addressParts.city}, ${addressParts.state}`,
+          address:
+            addressParts.formatted ||
+            `${addressParts.city}, ${addressParts.state}`,
         };
-      } 
+      }
       // Fallback to IP location
       else if (ipLocation?.city && ipLocation?.state) {
         locationData = {
@@ -557,15 +761,17 @@ const SignUp: React.FC = () => {
           setValue("state", locationData.state);
           setValue("country", locationData.country);
         } catch (setValueError) {
-          console.error('Failed to set form values:', setValueError);
+          console.error("Failed to set form values:", setValueError);
           setLocationError("Failed to populate location fields");
         }
       } else {
-        setLocationError("Unable to determine your location. Please enter manually.");
+        setLocationError(
+          "Unable to determine your location. Please enter manually."
+        );
       }
     } catch (error) {
       console.error("Location detection failed:", error);
-      
+
       // Try IP location as final fallback
       if (ipLocation?.city && ipLocation?.state) {
         try {
@@ -574,11 +780,15 @@ const SignUp: React.FC = () => {
           setValue("state", ipLocation.state);
           setValue("country", ipLocation.country || "Unknown");
         } catch (fallbackError) {
-          console.error('Fallback location setting failed:', fallbackError);
-          setLocationError("Location services unavailable. Please enter manually.");
+          console.error("Fallback location setting failed:", fallbackError);
+          setLocationError(
+            "Location services unavailable. Please enter manually."
+          );
         }
       } else {
-        setLocationError("Unable to retrieve your location. Please enter manually.");
+        setLocationError(
+          "Unable to retrieve your location. Please enter manually."
+        );
       }
     } finally {
       setIsLoadingLocation(false);
@@ -587,12 +797,36 @@ const SignUp: React.FC = () => {
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 1: return { title: "Create your Account", description: "Enter your Email Address" };
-      case 2: return { title: "Create your Account", description: "Choose a Password" };
-      case 3: return { title: "Personal Information", description: "Tell us about yourself" };
-      case 4: return { title: "Date of Birth", description: "Can we know your Birthday?" };
-      case 5: return { title: "Address Information", description: "Where are you Located?" };
-      default: return { title: "Create your Account", description: "Enter your Email Address" };
+      case 1:
+        return {
+          title: "Create your Account",
+          description: "Enter your Email Address",
+        };
+      case 2:
+        return {
+          title: "Create your Account",
+          description: "Choose a Password",
+        };
+      case 3:
+        return {
+          title: "Personal Information",
+          description: "Tell us about yourself",
+        };
+      case 4:
+        return {
+          title: "Date of Birth",
+          description: "Can we know your Birthday?",
+        };
+      case 5:
+        return {
+          title: "Address Information",
+          description: "Where are you Located?",
+        };
+      default:
+        return {
+          title: "Create your Account",
+          description: "Enter your Email Address",
+        };
     }
   };
 
@@ -614,16 +848,16 @@ const SignUp: React.FC = () => {
             />
             {referralCode && (
               <>
-              <Text>Referral Code</Text>
-              <FormField
-                name="referralCode"
-                type="text"
-                register={register}
-                errors={errors}
-                placeholder="Referral Code"
-                inputClassName="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-full bg-gray-100"
-                disabled={true}
-              />
+                <Text>Referral Code</Text>
+                <FormField
+                  name="referralCode"
+                  type="text"
+                  register={register}
+                  errors={errors}
+                  placeholder="Referral Code"
+                  inputClassName="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-full bg-gray-100"
+                  disabled={true}
+                />
               </>
             )}
           </div>
@@ -703,7 +937,7 @@ const SignUp: React.FC = () => {
             <div className="my-3">
               {/* <label className="text-sm font-medium text-gray-700 block mb-2">Gender</label> */}
               <select
-                {...register('gender')}
+                {...register("gender")}
                 className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary w-full bg-white"
               >
                 <option value="">Gender</option>
@@ -827,7 +1061,9 @@ const SignUp: React.FC = () => {
               errors={errors}
               placeholder="Street address or zip code"
               inputClassName="p-4 border-b border-gray-300 focus:outline-none focus:border-primary w-full"
-              icon={<img src={LocationOn} alt="address icon" className="w-5 h-5" />}
+              icon={
+                <img src={LocationOn} alt="address icon" className="w-5 h-5" />
+              }
               iconPosition="left"
             />
             <button
@@ -910,11 +1146,15 @@ const SignUp: React.FC = () => {
                 brandImg={true}
               />
               <div className="flex flex-col gap-4 md:gap-6">
-                <GoogleButton 
-                  onClick={handleGoogleSignUp} 
-                  loading={isLoading || !isInitialized} 
+                <GoogleButton
+                  onClick={handleGoogleSignUp}
+                  loading={isLoading || !isInitialized}
                 />
-                <Suspense fallback={<div className="bg-gray-200 h-16 md:h-14 rounded-xl animate-pulse"></div>}>
+                <Suspense
+                  fallback={
+                    <div className="bg-gray-200 h-16 md:h-14 rounded-xl animate-pulse"></div>
+                  }
+                >
                   <FacebookLogin
                     appId="572654712555502"
                     onSuccess={handleFacebookSignUp}
@@ -923,7 +1163,9 @@ const SignUp: React.FC = () => {
                         type="button"
                         onClick={() => {
                           if (!isInitialized) {
-                            console.warn("Facebook signup attempted before initialization");
+                            console.warn(
+                              "Facebook signup attempted before initialization"
+                            );
                             return;
                           }
                           onClick?.();
@@ -933,8 +1175,11 @@ const SignUp: React.FC = () => {
                       >
                         <img src={Facebook} alt="facebook-logo" />
                         <p className="text-black font-medium ml-3">
-                          {!isInitialized ? "Initializing..." :
-                           isFacebookLoading ? "Signing up..." : "Continue with Facebook"}
+                          {!isInitialized
+                            ? "Initializing..."
+                            : isFacebookLoading
+                            ? "Signing up..."
+                            : "Continue with Facebook"}
                         </p>
                       </button>
                     )}
@@ -955,7 +1200,7 @@ const SignUp: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {/* Right side - Form */}
       <div className="md:flex-1 flex md:items-center md:justify-center p-6 md:p-0 flex-col gap-3 overflow-y-auto h-screen">
         {currentStep > 1 && (
@@ -1019,7 +1264,9 @@ const SignUp: React.FC = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    {currentStep === 5 ? "Creating Account..." : "Processing..."}
+                    {currentStep === 5
+                      ? "Creating Account..."
+                      : "Processing..."}
                   </div>
                 ) : currentStep === 5 ? (
                   "Create Account"
@@ -1033,7 +1280,11 @@ const SignUp: React.FC = () => {
                     Already have an account?{" "}
                   </span>
                   <Link
-                    to="/auth/login"
+                    to={`/auth/login${
+                      searchParams.toString()
+                        ? `?${searchParams.toString()}`
+                        : ""
+                    }`}
                     className="text-primary hover:underline font-medium hover:text-primary/90 ml-1"
                   >
                     Log In
@@ -1051,9 +1302,17 @@ const SignUp: React.FC = () => {
                     onClick={handleGoogleSignUp}
                     disabled={isLoading || !isInitialized}
                   >
-                    <img src={Google} alt="google-logo" className="w-full h-full" />
+                    <img
+                      src={Google}
+                      alt="google-logo"
+                      className="w-full h-full"
+                    />
                   </button>
-                  <Suspense fallback={<div className="h-12 w-12 rounded-full border border-gray-200 bg-gray-100 animate-pulse"></div>}>
+                  <Suspense
+                    fallback={
+                      <div className="h-12 w-12 rounded-full border border-gray-200 bg-gray-100 animate-pulse"></div>
+                    }
+                  >
                     <FacebookLogin
                       appId="572654712555502"
                       onSuccess={handleFacebookSignUp}
@@ -1064,7 +1323,11 @@ const SignUp: React.FC = () => {
                           className="h-12 w-12 rounded-full border border-gray-200 hover:bg-gray-100 transition-colors p-2 disabled:opacity-50"
                           disabled={isFacebookLoading}
                         >
-                          <img src={Facebook} alt="facebook-logo" className="w-full h-full" />
+                          <img
+                            src={Facebook}
+                            alt="facebook-logo"
+                            className="w-full h-full"
+                          />
                         </button>
                       )}
                     />
@@ -1072,21 +1335,24 @@ const SignUp: React.FC = () => {
                 </div>
               </div>
             )}
-            <Footer/>
+            <Footer />
           </form>
         </div>
       </div>
-      
+
       {/* Mobile splash image */}
-      {currentStep > 1 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && (
-        <div className="md:hidden -z-10">
-          <img
-            src={SplashImage}
-            alt="Illustration"
-            className="md:hidden object-contain -mt-40 w-full"
-          />
-        </div>
-      )}
+      {currentStep > 1 &&
+        currentStep !== 3 &&
+        currentStep !== 4 &&
+        currentStep !== 5 && (
+          <div className="md:hidden -z-10">
+            <img
+              src={SplashImage}
+              alt="Illustration"
+              className="md:hidden object-contain -mt-40 w-full"
+            />
+          </div>
+        )}
     </div>
   );
 };

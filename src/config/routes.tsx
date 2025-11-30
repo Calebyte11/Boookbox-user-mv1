@@ -49,9 +49,10 @@ import ReelView from "@/pages/ReelView";
 import PostDetail from "@/pages/PostDetail";
 import VerifyPayment from "@/pages/VerifyPayment";
 import NotFound from "@/pages/NotFound";
+import GiftRequestHandler from "@/components/GiftRequestHandler"; // Add this import
 
 // ===== for friend request ====
-import FriendRequestRedirect from "@/components/FriendRequestRedirect";
+// import FriendRequestRedirect from "@/components/FriendRequestRedirect";
 
 // Wrapper component to conditionally show header based on authentication
 const PostDetailWrapper = () => {
@@ -99,9 +100,15 @@ export const routes: RouteObject[] = [
   { path: "/p/:postId", element: <PostDetailWrapper /> }, // Alternative short-link
   { path: "/reel/:reelId", element: <ReelView /> },
   // ====== Friend Request Route =======
-  { 
-    path: "/friend-request", 
-    element: <FriendRequestRedirect /> 
+  // { 
+  //   path: "/friend-request", 
+  //   element: <FriendRequestRedirect /> 
+  // },
+  // ====== Gift Request Route ======= (ADD THIS NEW ROUTE)
+
+  {
+    path: "/gifting/requests/r/:requestId",
+    element: <GiftRequestHandler />
   },
 
   // --- Protected Routes (Main App) ---
