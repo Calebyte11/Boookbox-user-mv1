@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import Confetti from "react-confetti";
 import debounce from "debounce";
+import RequestPackageForm from "@/components/RequestPackageForm";
+import RequestPackageModal from "@/components/RequestPackageModal";
 
 // Dynamic imports based on category
 import {
@@ -163,6 +165,21 @@ const getCategoryLabels = (category: BusinessCategory) => {
   return labels[category];
 };
 
+// ================= INTERFACES =======================
+interface PackageItem {
+  id: string;
+  brand: string;
+  businessCategory: string;
+  description: string;
+  image: string;
+  package: string;
+  price?: number;
+  restaurantId: string;
+  menuId: string;
+  currency: string;
+  category: any;
+}
+
 const BusinessProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { restaurantId } = useParams<{
@@ -186,6 +203,54 @@ const BusinessProfilePage: React.FC = () => {
   const { items } = useCartStore((state) => state);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(
+    null
+  );
+  const [shareableLink, setShareableLink] = useState<string>("");
+
+  const handleRequestClick = (menuItem: any) => {
+    // Transform menu item to PackageItem format
+    const packageData: PackageItem = {
+      id: menuItem.id || menuItem._id,
+      brand: businessInfo.name,
+      businessCategory: normalizedCategory.toLowerCase(),
+      description: menuItem.description || `Delicious ${menuItem.title}`,
+      image: menuItem.image,
+      package: menuItem.title,
+      price:
+        typeof menuItem.price === "number"
+          ? menuItem.price
+          : parseFloat(menuItem.price),
+      restaurantId: businessId || "",
+      menuId: menuItem.id,
+      currency:
+        menuItem.currency || businessInfo.paymentInfo?.paymentCurrency || "NGN",
+      category: menuItem.category,
+    };
+
+    setSelectedPackage(packageData);
+    setShowRequestForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowRequestForm(false);
+    setSelectedPackage(null);
+  };
+
+  const handleFormSuccess = (link: string) => {
+    setShareableLink(link);
+    setShowRequestForm(false);
+    setShowRequestModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowRequestModal(false);
+    setSelectedPackage(null);
+    setShareableLink("");
+  };
 
   // Validate and normalize category - default to "Restaurant" if not provided
   const normalizeCategoryName = (cat: string | null): BusinessCategory => {
@@ -587,398 +652,271 @@ const BusinessProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="relative font-roboto">
-      {showConfetti && (
-        <Confetti
-          width={window.innerWidth}
-          height={window.innerHeight}
-          recycle={false}
-          numberOfPieces={200}
-          tweenDuration={5000}
-          onConfettiComplete={() => setShowConfetti(false)}
-          colors={["#FFCE6D", "#FF7A00", "#FFFFFF", "#FBBF24"]}
-        />
-      )}
+    <>
+      <div className="relative font-roboto">
+        {showConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            recycle={false}
+            numberOfPieces={200}
+            tweenDuration={5000}
+            onConfettiComplete={() => setShowConfetti(false)}
+            colors={["#FFCE6D", "#FF7A00", "#FFFFFF", "#FBBF24"]}
+          />
+        )}
 
-      {/* Hero Image Section */}
-      <div className="relative w-full h-64 md:block hidden">
-        <NotchAreaHeader
-          imageUrl={businessInfo.banner}
-          imageAlt={`${businessInfo.name}`}
-        >
-          <div className="flex justify-between mt-5">
-            <button
-              className="p-4 bg-white rounded-xl"
-              onClick={() => window.history.back()}
-            >
-              <ChevronLeft className="w-[24px]" />
-            </button>
-            <button
-              className={`p-4 rounded-xl cursor-pointer transition-all duration-200 bg-white hover:bg-gray-50`}
-              onClick={handleToggleFavorite}
-              disabled={toggleFavoriteMutation.isPending}
-            >
-              <Heart
-                className={`transition-colors duration-200 ${
-                  isFavorite ? "text-[#ff0000]" : "text-gray-500"
-                } w-6`}
-                fill={isFavorite ? "#ff0000" : "none"}
-              />
-            </button>
-          </div>
-        </NotchAreaHeader>
-      </div>
+        {/* Hero Image Section */}
+        <div className="relative w-full h-64 md:block hidden">
+          <NotchAreaHeader
+            imageUrl={businessInfo.banner}
+            imageAlt={`${businessInfo.name}`}
+          >
+            <div className="flex justify-between mt-5">
+              <button
+                className="p-4 bg-white rounded-xl"
+                onClick={() => window.history.back()}
+              >
+                <ChevronLeft className="w-[24px]" />
+              </button>
+              <button
+                className={`p-4 rounded-xl cursor-pointer transition-all duration-200 bg-white hover:bg-gray-50`}
+                onClick={handleToggleFavorite}
+                disabled={toggleFavoriteMutation.isPending}
+              >
+                <Heart
+                  className={`transition-colors duration-200 ${
+                    isFavorite ? "text-[#ff0000]" : "text-gray-500"
+                  } w-6`}
+                  fill={isFavorite ? "#ff0000" : "none"}
+                />
+              </button>
+            </div>
+          </NotchAreaHeader>
+        </div>
 
-      {/* Business Info Section */}
-      <div className="px-4 py-6 flex flex-col">
-        <div>
-          {/* Category Badge */}
-          <div className="mb-3 inline-block">
-            <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full border border-blue-200">
-              {labels.businessType}
-            </span>
-          </div>
+        {/* Business Info Section */}
+        <div className="px-4 py-6 flex flex-col">
+          <div>
+            {/* Category Badge */}
+            <div className="mb-3 inline-block">
+              <span className="px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full border border-blue-200">
+                {labels.businessType}
+              </span>
+            </div>
 
-          <p className="text-gray-400 capitalize">
-            {businessInfo.categories.join(", ")}
-            {Array.isArray(businessDataContent?.kitchenType)
-              ? businessDataContent.kitchenType.map(
-                  (type: string, idx: number) => (
-                    <span
-                      key={type + idx}
-                      className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
-                    >
-                      {type}
-                    </span>
+            <p className="text-gray-400 capitalize">
+              {businessInfo.categories.join(", ")}
+              {Array.isArray(businessDataContent?.kitchenType)
+                ? businessDataContent.kitchenType.map(
+                    (type: string, idx: number) => (
+                      <span
+                        key={type + idx}
+                        className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                      >
+                        {type}
+                      </span>
+                    )
                   )
-                )
-              : businessDataContent?.kitchenType && (
-                  <span className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                    {businessDataContent.kitchenType}
+                : businessDataContent?.kitchenType && (
+                    <span className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                      {businessDataContent.kitchenType}
+                    </span>
+                  )}
+            </p>
+            <h1 className="font-bold text-4xl text-black capitalize inline-flex items-center text-pretty">
+              <span className="text-pretty items-center inline-flex">
+                {businessInfo.name}
+                {hasBadges(businessData || "") && (
+                  <span className="relative inline-flex items-center">
+                    {renderBadges(businessData || "")}
                   </span>
                 )}
-          </p>
-          <h1 className="font-bold text-4xl text-black capitalize inline-flex items-center text-pretty">
-            <span className="text-pretty items-center inline-flex">
-              {businessInfo.name}
-              {hasBadges(businessData || "") && (
-                <span className="relative inline-flex items-center">
-                  {renderBadges(businessData || "")}
-                </span>
-              )}
+              </span>
+            </h1>
+          </div>
+
+          <div className="inline-flex items-center gap-2 text-xl py-2 flex-wrap">
+            <button
+              onClick={handleOpenRatingModal}
+              className="inline-flex items-center gap-1 hover:bg-gray-100 rounded-lg p-1"
+            >
+              <Star fill="inherit" /> <span>{businessInfo.averageRating}</span>
+            </button>
+            {businessInfo.rating !== 0 && (
+              <button
+                className="underline font-medium inline-flex items-center cursor-pointer"
+                onClick={() =>
+                  navigate(
+                    `/${normalizedCategory.toLowerCase()}/${businessId}/ratings`
+                  )
+                }
+              >
+                {`${businessInfo.rating} ${
+                  businessInfo.rating > 1000 ? "k ratings" : "ratings"
+                }`}
+              </button>
+            )}
+            <span className="font-normal font-mf">{businessInfo.address}</span>
+          </div>
+
+          <div className="pt-2 mb-6 text-start flex flex-col items-start">
+            <span
+              className={isCurrentlyOpen ? "text-[#34C759]" : "text-red-500"}
+            >
+              {isCurrentlyOpen ? "Open Now" : "Closed"}
             </span>
-          </h1>
+            {businessInfo.openingHours && businessInfo.closingHours && (
+              <span className="text-gray-500 text-sm">
+                {businessInfo.openingHours} - {businessInfo.closingHours}
+              </span>
+            )}
+          </div>
+
+          {normalizedCategory === "Restaurant" && (
+            <div className="flex gap-3 w-full justify-start">
+              <button className="border border-[#FFCE6D] rounded-full p-3 inline-flex md:gap-2 w-fit items-center">
+                <User className="text-[#FF7A00]" />
+                <span className="text-[#FF7A00] w-full md:w-fit text-sm">
+                  Sponsor a person
+                </span>
+              </button>
+              <button className="border border-[#FFCE6D] rounded-full p-3 inline-flex md:gap-2 w-fit items-center">
+                <Users className="text-[#FF7A00]" />
+                <span className="text-[#FF7A00] w-full md:w-fit text-sm">
+                  Sponsor a group
+                </span>
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="inline-flex items-center gap-2 text-xl py-2 flex-wrap">
-          <button
-            onClick={handleOpenRatingModal}
-            className="inline-flex items-center gap-1 hover:bg-gray-100 rounded-lg p-1"
+        {/* Search Section */}
+        <div className="px-4 py-2">
+          <form
+            className="relative"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
           >
-            <Star fill="inherit" /> <span>{businessInfo.averageRating}</span>
-          </button>
-          {businessInfo.rating !== 0 && (
+            <input
+              type="text"
+              placeholder={
+                searchType === "reserved"
+                  ? `${labels.reservedPlaceholder} ${businessInfo.name}`
+                  : `${labels.searchPlaceholder} ${businessInfo.name}`
+              }
+              className={`w-full rounded-full py-4 px-12 pr-16 text-lg border transition-colors duration-200 ${
+                searchType === "reserved"
+                  ? "bg-[#F0E6FF] border-[#D4C5E4]"
+                  : "bg-[#ECE6F0] border-[#ECE6F0]"
+              }`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F]" />
+
             <button
-              className="underline font-medium inline-flex items-center cursor-pointer"
-              onClick={() =>
-                navigate(
-                  `/${normalizedCategory.toLowerCase()}/${businessId}/ratings`
-                )
+              type="button"
+              onClick={() => {
+                setSearchType(
+                  searchType === "general" ? "reserved" : "general"
+                );
+                setSearchQuery("");
+              }}
+              className="absolute right-12 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#D4C5E4] transition-colors duration-200 group"
+              title={
+                searchType === "general"
+                  ? "Switch to Reserved Ticket Search"
+                  : "Switch to General Search"
               }
             >
-              {`${businessInfo.rating} ${
-                businessInfo.rating > 1000 ? "k ratings" : "ratings"
-              }`}
-            </button>
-          )}
-          <span className="font-normal font-mf">{businessInfo.address}</span>
-        </div>
-
-        <div className="pt-2 mb-6 text-start flex flex-col items-start">
-          <span className={isCurrentlyOpen ? "text-[#34C759]" : "text-red-500"}>
-            {isCurrentlyOpen ? "Open Now" : "Closed"}
-          </span>
-          {businessInfo.openingHours && businessInfo.closingHours && (
-            <span className="text-gray-500 text-sm">
-              {businessInfo.openingHours} - {businessInfo.closingHours}
-            </span>
-          )}
-        </div>
-
-        {normalizedCategory === "Restaurant" && (
-          <div className="flex gap-3 w-full justify-start">
-            <button className="border border-[#FFCE6D] rounded-full p-3 inline-flex md:gap-2 w-fit items-center">
-              <User className="text-[#FF7A00]" />
-              <span className="text-[#FF7A00] w-full md:w-fit text-sm">
-                Sponsor a person
-              </span>
-            </button>
-            <button className="border border-[#FFCE6D] rounded-full p-3 inline-flex md:gap-2 w-fit items-center">
-              <Users className="text-[#FF7A00]" />
-              <span className="text-[#FF7A00] w-full md:w-fit text-sm">
-                Sponsor a group
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Search Section */}
-      <div className="px-4 py-2">
-        <form
-          className="relative"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <input
-            type="text"
-            placeholder={
-              searchType === "reserved"
-                ? `${labels.reservedPlaceholder} ${businessInfo.name}`
-                : `${labels.searchPlaceholder} ${businessInfo.name}`
-            }
-            className={`w-full rounded-full py-4 px-12 pr-16 text-lg border transition-colors duration-200 ${
-              searchType === "reserved"
-                ? "bg-[#F0E6FF] border-[#D4C5E4]"
-                : "bg-[#ECE6F0] border-[#ECE6F0]"
-            }`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Search className="absolute left-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F]" />
-
-          <button
-            type="button"
-            onClick={() => {
-              setSearchType(searchType === "general" ? "reserved" : "general");
-              setSearchQuery("");
-            }}
-            className="absolute right-12 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#D4C5E4] transition-colors duration-200 group"
-            title={
-              searchType === "general"
-                ? "Switch to Reserved Ticket Search"
-                : "Switch to General Search"
-            }
-          >
-            {searchType === "general" ? (
-              <Soup className="h-6 w-6 text-[#49454F] group-hover:text-primary" />
-            ) : (
-              <Utensils className="h-6 w-6 text-[#49454F] group-hover:text-primary" />
-            )}
-          </button>
-
-          {searchQuery && (
-            <X
-              className="absolute right-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F] cursor-pointer"
-              onClick={() => setSearchQuery("")}
-            />
-          )}
-        </form>
-      </div>
-
-      <div ref={sentinelRef} />
-
-      {/* Search Results or Tabs */}
-      {searchQuery.trim() ? (
-        <div className={`pb-2 ${isSticky ? "" : "px-4 pt-4"}`}>
-          <div
-            className={`z-40 ${
-              isSticky ? "sticky top-0 bg-white shadow-lg" : ""
-            }`}
-          >
-            {isSticky && (
-              <div className="px-4 py-3 flex items-center justify-between border-b border-gray-200">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-1 rounded-md hover:bg-gray-100"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <h2 className="text-md font-semibold mx-2 truncate">
-                  {businessInfo.name}
-                </h2>
-                <button
-                  className="p-1 rounded-md hover:bg-gray-100"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            )}
-
-            <div
-              className={`flex border-b border-gray-300 bg-[#FEF7FF] justify-center ${
-                isSticky ? "px-4" : ""
-              }`}
-            >
-              <div className="py-4 border-b-2 border-primary text-[#1D1B20] font-medium font-mf tracking-tight">
-                {searchType === "reserved"
-                  ? "Reserved Ticket Search Results"
-                  : "General Search Results"}
-              </div>
-            </div>
-          </div>
-
-          <div className={`py-4 ${isSticky ? "px-4" : ""}`}>
-            {searchType === "reserved" &&
-              searchQuery.trim() &&
-              isReservedMenusLoading && (
-                <p className="text-center py-8 text-gray-500">
-                  Searching for reserved tickets...
-                </p>
-              )}
-
-            {searchType === "reserved" &&
-              searchQuery.trim() &&
-              isReservedMenusError && (
-                <p className="text-center py-8 text-gray-400 text-xs">
-                  Failed to search reserved tickets. Showing menu results
-                  instead.
-                </p>
-              )}
-
-            <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
-              {searchType === "reserved" &&
-              searchQuery.trim() &&
-              isReservedMenusLoading ? (
-                <div className="col-span-full text-center text-gray-500 py-8">
-                  Searching for reserved tickets...
-                </div>
-              ) : filteredItems.length > 0 ? (
-                filteredItems.map((items: any, key: number) => (
-                  <SignatureBowelCard
-                    key={key}
-                    restaurantID={`${businessId}`}
-                    title={items.name}
-                    description={items.description}
-                    price={items.price}
-                    currency={
-                      items.currency ||
-                      businessInfo.paymentInfo?.paymentCurrency ||
-                      "NGN"
-                    }
-                    image={
-                      Array.isArray(items.images)
-                        ? items.images[0]
-                        : items.image || refuel
-                    }
-                    handleClick={() =>
-                      navigate(
-                        `/${normalizedCategory.toLowerCase()}/${businessId}/meals/${
-                          items.menuId
-                        }`
-                      )
-                    }
-                  />
-                ))
+              {searchType === "general" ? (
+                <Soup className="h-6 w-6 text-[#49454F] group-hover:text-primary" />
               ) : (
-                <div className="col-span-full text-center text-gray-500 py-8">
-                  {searchType === "reserved"
-                    ? `No reserved tickets found for "${searchQuery}"`
-                    : `${labels.noItemsMessage} for "${searchQuery}"`}
-                </div>
+                <Utensils className="h-6 w-6 text-[#49454F] group-hover:text-primary" />
               )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <Tabs.Root
-          tabIndex={-1}
-          defaultValue="tab1"
-          activationMode="manual"
-          className={`pb-2 ${isSticky ? "" : "px-4 pt-4"}`}
-        >
-          <div
-            className={`z-40 ${
-              isSticky ? "sticky top-0 bg-white shadow-lg" : ""
-            }`}
-          >
-            {isSticky && (
-              <div className="px-4 py-3 flex items-center justify-between border-b border-gray-200">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-1 rounded-md hover:bg-gray-100"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <h2 className="text-md font-semibold mx-2 truncate">
-                  {businessInfo.name}
-                </h2>
-                <button className="p-1 rounded-md hover:bg-gray-100">
-                  <Search size={20} />
-                </button>
-              </div>
-            )}
+            </button>
 
-            <Tabs.List
-              tabIndex={-1}
-              className={`flex border-b border-gray-300 bg-[#FEF7FF] justify-evenly ${
-                isSticky ? "px-4" : ""
+            {searchQuery && (
+              <X
+                className="absolute right-4 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F] cursor-pointer"
+                onClick={() => setSearchQuery("")}
+              />
+            )}
+          </form>
+        </div>
+
+        <div ref={sentinelRef} />
+
+        {/* Search Results or Tabs */}
+        {searchQuery.trim() ? (
+          <div className={`pb-2 ${isSticky ? "" : "px-4 pt-4"}`}>
+            <div
+              className={`z-40 ${
+                isSticky ? "sticky top-0 bg-white shadow-lg" : ""
               }`}
             >
-              <Tabs.Trigger
-                tabIndex={-1}
-                value="tab1"
-                className="py-4 border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-[#1D1B20] hover:text-primary font-medium font-mf tracking-tight"
-              >
-                {labels.popularTab}
-              </Tabs.Trigger>
-              <Tabs.Trigger
-                tabIndex={-1}
-                value="tab2"
-                className="py-4 border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-[#1D1B20] hover:text-primary font-medium font-mf tracking-tight"
-              >
-                {labels.signatureTab}
-              </Tabs.Trigger>
-            </Tabs.List>
-          </div>
-
-          <Tabs.Content
-            tabIndex={-1}
-            value="tab1"
-            className={`py-4 ${isSticky ? "px-4" : ""}`}
-          >
-            {isPopularMenusLoading && (
-              <p className="text-center">Loading {labels.popularTab}...</p>
-            )}
-            {isPopularMenusError && (
-              <p className="text-gray-500">Failed to load popular items.</p>
-            )}
-            {popularMenuItems && popularMenuItems.length > 0 ? (
-              <>
-                <Heading title={labels.popularTab} />
-                <div className="mt-2">
-                  
-                  <div className="mt-2 max-h-[600px] overflow-y-auto">
-                    <div className="flex flex-col gap-4">
-                      {popularMenuItems.map((item: any) => (
-                        <MenuCard
-                          key={item.id}
-                          item={{ ...item, id: String(item.id) }}
-                          restaurantId={businessId}
-                          businessCategory={normalizedCategory.toLowerCase()}
-                        />
-                      ))}
-                    </div>
-                  </div>
+              {isSticky && (
+                <div className="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="p-1 rounded-md hover:bg-gray-100"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <h2 className="text-md font-semibold mx-2 truncate">
+                    {businessInfo.name}
+                  </h2>
+                  <button
+                    className="p-1 rounded-md hover:bg-gray-100"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-              </>
-            ) : (
-              <p className="text-center">{labels.noPopularMessage}</p>
-            )}
-          </Tabs.Content>
+              )}
 
-          <Tabs.Content
-            value="tab2"
-            className={`py-4 ${isSticky ? "px-4" : ""}`}
-          >
-            <Heading title={labels.signatureTab} />
+              <div
+                className={`flex border-b border-gray-300 bg-[#FEF7FF] justify-center ${
+                  isSticky ? "px-4" : ""
+                }`}
+              >
+                <div className="py-4 border-b-2 border-primary text-[#1D1B20] font-medium font-mf tracking-tight">
+                  {searchType === "reserved"
+                    ? "Reserved Ticket Search Results"
+                    : "General Search Results"}
+                </div>
+              </div>
+            </div>
 
-            <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
-              {(businessMenus || menuItemsFromBusiness).length > 0 ? (
-                (businessMenus || menuItemsFromBusiness).map(
-                  (items: any, key: number) => (
+            <div className={`py-4 ${isSticky ? "px-4" : ""}`}>
+              {searchType === "reserved" &&
+                searchQuery.trim() &&
+                isReservedMenusLoading && (
+                  <p className="text-center py-8 text-gray-500">
+                    Searching for reserved tickets...
+                  </p>
+                )}
+
+              {searchType === "reserved" &&
+                searchQuery.trim() &&
+                isReservedMenusError && (
+                  <p className="text-center py-8 text-gray-400 text-xs">
+                    Failed to search reserved tickets. Showing menu results
+                    instead.
+                  </p>
+                )}
+
+              <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                {searchType === "reserved" &&
+                searchQuery.trim() &&
+                isReservedMenusLoading ? (
+                  <div className="col-span-full text-center text-gray-500 py-8">
+                    Searching for reserved tickets...
+                  </div>
+                ) : filteredItems.length > 0 ? (
+                  filteredItems.map((items: any, key: number) => (
                     <SignatureBowelCard
                       key={key}
                       restaurantID={`${businessId}`}
@@ -1003,41 +941,195 @@ const BusinessProfilePage: React.FC = () => {
                         )
                       }
                     />
-                  )
-                )
-              ) : (
-                <div className="col-span-full text-center text-gray-500 py-8">
-                  {labels.noSignatureMessage}
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-gray-500 py-8">
+                    {searchType === "reserved"
+                      ? `No reserved tickets found for "${searchQuery}"`
+                      : `${labels.noItemsMessage} for "${searchQuery}"`}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Tabs.Root
+            tabIndex={-1}
+            defaultValue="tab1"
+            activationMode="manual"
+            className={`pb-2 ${isSticky ? "" : "px-4 pt-4"}`}
+          >
+            <div
+              className={`z-40 ${
+                isSticky ? "sticky top-0 bg-white shadow-lg" : ""
+              }`}
+            >
+              {isSticky && (
+                <div className="px-4 py-3 flex items-center justify-between border-b border-gray-200">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="p-1 rounded-md hover:bg-gray-100"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <h2 className="text-md font-semibold mx-2 truncate">
+                    {businessInfo.name}
+                  </h2>
+                  <button className="p-1 rounded-md hover:bg-gray-100">
+                    <Search size={20} />
+                  </button>
                 </div>
               )}
+
+              <Tabs.List
+                tabIndex={-1}
+                className={`flex border-b border-gray-300 bg-[#FEF7FF] justify-evenly ${
+                  isSticky ? "px-4" : ""
+                }`}
+              >
+                <Tabs.Trigger
+                  tabIndex={-1}
+                  value="tab1"
+                  className="py-4 border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-[#1D1B20] hover:text-primary font-medium font-mf tracking-tight"
+                >
+                  {labels.popularTab}
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  tabIndex={-1}
+                  value="tab2"
+                  className="py-4 border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-[#1D1B20] hover:text-primary font-medium font-mf tracking-tight"
+                >
+                  {labels.signatureTab}
+                </Tabs.Trigger>
+              </Tabs.List>
             </div>
-          </Tabs.Content>
-        </Tabs.Root>
+
+            <Tabs.Content
+              tabIndex={-1}
+              value="tab1"
+              className={`py-4 ${isSticky ? "px-4" : ""}`}
+            >
+              {isPopularMenusLoading && (
+                <p className="text-center">Loading {labels.popularTab}...</p>
+              )}
+              {isPopularMenusError && (
+                <p className="text-gray-500">Failed to load popular items.</p>
+              )}
+              {popularMenuItems && popularMenuItems.length > 0 ? (
+                <>
+                  <Heading title={labels.popularTab} />
+                  <div className="mt-2">
+                    <div className="mt-2 max-h-[600px] overflow-y-auto">
+                      <div className="flex flex-col gap-4">
+                        {popularMenuItems.map((item: any) => (
+                          <MenuCard
+                            key={item.id}
+                            item={{ ...item, id: String(item.id) }}
+                            restaurantId={businessId}
+                            restaurantName={businessInfo.name}
+                            businessCategory={normalizedCategory.toLowerCase()}
+                            onRequestClick={handleRequestClick}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-center">{labels.noPopularMessage}</p>
+              )}
+            </Tabs.Content>
+
+            <Tabs.Content
+              value="tab2"
+              className={`py-4 ${isSticky ? "px-4" : ""}`}
+            >
+              <Heading title={labels.signatureTab} />
+
+              <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                {(businessMenus || menuItemsFromBusiness).length > 0 ? (
+                  (businessMenus || menuItemsFromBusiness).map(
+                    (items: any, key: number) => (
+                      <SignatureBowelCard
+                        key={key}
+                        restaurantID={`${businessId}`}
+                        title={items.name}
+                        description={items.description}
+                        price={items.price}
+                        currency={
+                          items.currency ||
+                          businessInfo.paymentInfo?.paymentCurrency ||
+                          "NGN"
+                        }
+                        image={
+                          Array.isArray(items.images)
+                            ? items.images[0]
+                            : items.image || refuel
+                        }
+                        handleClick={() =>
+                          navigate(
+                            `/${normalizedCategory.toLowerCase()}/${businessId}/meals/${
+                              items.menuId
+                            }`
+                          )
+                        }
+                      />
+                    )
+                  )
+                ) : (
+                  <div className="col-span-full text-center text-gray-500 py-8">
+                    {labels.noSignatureMessage}
+                  </div>
+                )}
+              </div>
+            </Tabs.Content>
+          </Tabs.Root>
+        )}
+
+        {items.length > 0 && (
+          <Link
+            to={
+              normalizedCategory === "Restaurant"
+                ? `/restaurants/${businessId}/orders`
+                : `/${normalizedCategory.toLowerCase()}/${businessId}/orders`
+            }
+            className="mx-6 fixed bottom-4 left-0 right-0 z-50 flex justify-center md:relative"
+          >
+            <CartButton text="View Order" isValid={items.length > 0} />
+          </Link>
+        )}
+
+        <RatingModal
+          isOpen={isRatingModalOpen}
+          onClose={() => setIsRatingModalOpen(false)}
+          onSubmit={handleRateBusiness}
+          restaurantName={businessInfo.name}
+          initialRating={userRatingData?.data?.rating || 0}
+          initialComment={userRatingData?.data?.comment || ""}
+          isSubmitting={rateRestaurantMutation.isPending}
+        />
+      </div>
+
+      {/* Request Form (First Layer) */}
+      {selectedPackage && (
+        <RequestPackageForm
+          isOpen={showRequestForm}
+          onClose={handleCloseForm}
+          packageData={selectedPackage}
+          onSuccess={handleFormSuccess}
+        />
       )}
 
-      {items.length > 0 && (
-        <Link
-          to={
-            normalizedCategory === "Restaurant"
-              ? `/restaurants/${businessId}/orders`
-              : `/${normalizedCategory.toLowerCase()}/${businessId}/orders`
-          }
-          className="mx-6 fixed bottom-4 left-0 right-0 z-50 flex justify-center md:relative"
-        >
-          <CartButton text="View Order" isValid={items.length > 0} />
-        </Link>
+      {/* Request Modal (Second Layer - Sharing) */}
+      {selectedPackage && shareableLink && (
+        <RequestPackageModal
+          isOpen={showRequestModal}
+          onClose={handleCloseModal}
+          packageData={selectedPackage}
+          shareableLink={shareableLink}
+        />
       )}
-
-      <RatingModal
-        isOpen={isRatingModalOpen}
-        onClose={() => setIsRatingModalOpen(false)}
-        onSubmit={handleRateBusiness}
-        restaurantName={businessInfo.name}
-        initialRating={userRatingData?.data?.rating || 0}
-        initialComment={userRatingData?.data?.comment || ""}
-        isSubmitting={rateRestaurantMutation.isPending}
-      />
-    </div>
+    </>
   );
 };
 

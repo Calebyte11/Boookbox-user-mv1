@@ -265,7 +265,7 @@
 
 
 import React, { useState } from 'react';
-import { X, Gift, Minus, Plus, Loader2 } from 'lucide-react';
+import { X, Gift, Minus, Plus, Loader2} from 'lucide-react';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useCreateGiftRequest } from '@/hooks/useCreateGiftRequest';
 import RequestPackageModal from "@/components/RequestPackageModal";
@@ -303,7 +303,8 @@ const RequestPackageForm: React.FC<RequestPackageFormProps> = ({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   const { mutate: createGiftRequest, isPending } = useCreateGiftRequest();
-
+  console.log(packageData);
+  
   if (!isOpen && !showSuccessModal) return null;
 
   const price = packageData.price || 0;

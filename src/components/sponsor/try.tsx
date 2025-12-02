@@ -1,0 +1,1254 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useRef, useState, useEffect } from "react";
+import {
+  useForm,
+  Controller,
+  useFieldArray,
+  type Resolver,
+} from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import {
+  User,
+  Users,
+  Utensils,
+  Upload,
+  ChevronDown,
+  Check,
+  Circle,
+  X,
+  Edit3,
+  Gift, // ADD THIS NEW ICON
+} from "lucide-react";
+import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as Tabs from "@radix-ui/react-tabs";
+import type { OrderFormValues, OrderFormProps } from "@/features/sponsor/types";
+import FormField from "@/components/FormField";
+import UserSearchCombobox from "@/components/UserSearchCombobox";
+import CartButton from "@/components/CartButton";
+import Calendar from "./Calendar";
+import BookingTypeSection from "./BookingTypeSection";
+import RedemptionModeSection from "./RedemptionModeSection";
+import PublicTagsSection from "./PublicTagsSection";
+import { useCartStore } from "@/store/cartStore";
+import { orderFormSchema } from "@/features/sponsor/schema";
+import {
+  useUpdateBooking,
+  useBookingDetailQuery,
+  useCreateBooking
+} from "@/hooks/useUserQueries";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/useToast";
+import { useRestaurantDetailQuery } from "@/hooks/useRestaurantQueries";
+import { useImageUpload, useImageValidation } from "@/hooks/useImageUpload";
+import { fileService, type ImageUploadResponse } from "@/services/fileService";
+import { type UserSearchResult, BookingCreateBody } from "@/services/usersService";
+import useAuthStore from "@/store/authStore";
+import { useBookingStore } from "@/store/bookingStore";
+import { OrderFormSkeleton } from "@/components/SkeletonLoader";
+import type { GiftRequestData } from "@/services/giftRequestService"; // ADD THIS IMPORT
+
+// UPDATE THE OrderFormProps INTERFACE
+interface ExtendedOrderFormProps extends OrderFormProps {
+  giftRequestData?: GiftRequestData | null; // Add gift request data prop
+}
+
+const OrderForm = ({ 
+  onSubmit, 
+  restaurantId,
+  giftRequestData // ADD THIS PROP
+}: ExtendedOrderFormProps): JSX.Element => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { items } = useCartStore();
+  const { hasValidAuth, user } = useAuthStore();
+  const { updateBookingDetails, setBookingPayload } = useBookingStore();
+  const [searchParams] = useSearchParams();
+
+  console.log(giftRequestData);
+  
+
+  // Check if we're in edit mode
+  const editBookingId = searchParams.get("editBooking");
+  const isEditMode = !!editBookingId;
+
+  // NEW: State for creating booking
+  const [isCreating, setIsCreating] = useState(false);
+  
+  // NEW: Check if this is a gift request
+  const isGiftRequest = !!giftRequestData;
+
+  // Fetch restaurant details
+  const { data: restaurantData } = useRestaurantDetailQuery(restaurantId, {
+    enabled: !!restaurantId,
+  });
+
+  // Fetch existing booking data when in edit mode
+  const {
+    data: editBookingData,
+    isLoading: isLoadingBooking,
+  }: { data: any; isLoading: boolean } = useBookingDetailQuery(
+    editBookingId || "",
+    {
+      enabled: isEditMode && !!editBookingId,
+    }
+  );
+  
+  // State for uploaded ticket design
+  const [uploadedTicketDesign, setUploadedTicketDesign] = useState<{
+    file: File;
+    url: string;
+    preview: string;
+    isUploading?: boolean;
+  } | null>(null);
+
+  const { uploadImage } = useImageUpload({
+    onSuccess: () => {},
+    showToast: false,
+  });
+
+  const { validateFile } = useImageValidation();
+  
+  const deliveryType = [
+    { name: "single", icon: <User />, label: "Single Recipient" },
+    { name: "multiple", icon: <Users />, label: "Multiple Recipients" },
+  ];
+  // =======================================================================
+  // UPDATED: Form initialization with gift request handling
+  const formMethods = useForm<OrderFormValues>({
+    defaultValues: {
+      bookingType: isGiftRequest ? "others" : "public", // Auto-set to "others" for gift requests
+      redemptionMode: "pick-up",
+      includeUtensils: false,
+      deliveryType: deliveryType[0].name,
+      recipientName: isGiftRequest ? giftRequestData?.user.fullName || "" : "",
+      recipientPhone: isGiftRequest ? giftRequestData?.user.phoneNumber || "" : "",
+      recipientEmail: isGiftRequest ? giftRequestData?.user.email || "" : "",
+      recipientAddress: "",
+      recipientRemark: "",
+      numberOfRecipients: isGiftRequest ? String(giftRequestData?.quantity || 1) : "1",
+      multipleRecipients: [],
+      redemptionDate: new Date(),
+      reason: isGiftRequest 
+        ? `Gift request fulfillment for ${ 
+          giftRequestData?.user.accountType === "organization"
+            ? giftRequestData?.user.organizationName : giftRequestData?.user.fullName
+        }` 
+        : "",
+      publicTags: "",
+      refundable: false,
+      supportsMultipleClaims: false,
+      autoGenerateTicket: false,
+      restaurantId: restaurantId || "",
+      customImage: "",
+      totalAmount: "",
+    },
+    resolver: yupResolver(
+      orderFormSchema
+    ) as unknown as Resolver<OrderFormValues>,
+  });
+  
+  const {
+    control,
+    handleSubmit,
+    watch,
+    register,
+    formState: { errors },
+    setValue,
+    getValues,
+  } = formMethods;
+  
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "multipleRecipients",
+  });
+
+  // NEW: Effect to populate form with gift request data
+  useEffect(() => {
+    if (isGiftRequest && giftRequestData) {
+      // Set booking type to "others" (for gifting)
+      setValue("bookingType", "others");
+      
+      // Set delivery type to "single" since gift requests are for individual recipients
+      setValue("deliveryType", "single");
+      
+      // Pre-fill recipient information
+      setValue("recipientName", giftRequestData.user.fullName);
+      setValue("recipientPhone", giftRequestData.user.phoneNumber);
+      setValue("recipientEmail", giftRequestData.user.email);
+      
+      // Set quantity from gift request
+      setValue("numberOfRecipients", String(giftRequestData.quantity));
+      
+      // Set reason
+      setValue("reason", `Fulfilling gift request for ${
+        giftRequestData.user.accountType === "organization"
+          ? giftRequestData.user.organizationName
+          : giftRequestData.user.fullName}`);
+      
+      // Show toast notification
+      toast({
+        title: "Gift Request Loaded",
+        description: `Recipient details have been pre-filled from the gift request.`,
+        variant: "success",
+        duration: 1000,
+      });
+    }
+  }, [isGiftRequest, giftRequestData, setValue, toast]);
+
+  // Populate menuItems from cart whenever cart changes
+  useEffect(() => {
+    if (items.length > 0) {
+      const cartMenuItems = items.map((item) => ({
+        menuId: item.mealId,
+        quantity: item.quantity,
+        name: item.mealName,
+        price: item.pricePerUnit,
+        currency: "NGN",
+      }));
+
+      setValue("menuItems", cartMenuItems);
+      setValue("restaurantId", restaurantId || items[0]?.restaurantId || "");
+    } else {
+      setValue("menuItems", []);
+    }
+  }, [items, setValue, restaurantId]);
+
+  const delivery = watch("redemptionMode") === "delivery";
+  const bookingTypeWatched = watch("bookingType");
+  const redemptionModeWatched = watch("redemptionMode");
+  const numberOfRecipientsValueWatched = watch("numberOfRecipients");
+  
+  const showRecipientTabs =
+    (redemptionModeWatched === "delivery" ||
+      redemptionModeWatched === "pick-up" ||
+      redemptionModeWatched === "dine-in" ||
+      redemptionModeWatched === "dine-with-me") &&
+    bookingTypeWatched !== "public";
+    
+  const showRedemptionDatePicker =
+    redemptionModeWatched === "pick-up" ||
+    bookingTypeWatched === "public" ||
+    redemptionModeWatched === "dine-in" ||
+    bookingTypeWatched === "date" ||
+    redemptionModeWatched === "dine-with-me";
+    
+  const showPublicTagsInput = bookingTypeWatched === "public";
+  
+  const showTicketCustomization =
+    redemptionModeWatched === "pick-up" ||
+    redemptionModeWatched === "delivery" ||
+    (redemptionModeWatched === "dine-in" && bookingTypeWatched === "yourself") ||
+    (redemptionModeWatched === "dine-with-me" && (bookingTypeWatched === "yourself" || bookingTypeWatched === "date")) ||
+    bookingTypeWatched === "yourself";
+    
+  const showMultipleClaims =
+    (bookingTypeWatched === "yourself" || bookingTypeWatched === "others") &&
+    items.reduce((total, item) => total + item.quantity, 0) > 1;
+
+  // =======================
+
+  const handleNumberOfRecipientsChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const count = parseInt(e.target.value, 10) || 0;
+    setValue("numberOfRecipients", e.target.value);
+    const currentLength = getValues("multipleRecipients")?.length ?? 0;
+    if (count > currentLength) {
+      for (let i = currentLength; i < count; i++) {
+        append({ name: "", phone: "", email: "", address: "" });
+      }
+    } else if (count < currentLength) {
+      for (let i = currentLength; i > count; i--) {
+        remove(i - 1);
+      }
+    }
+  };
+
+  const updateBookingMutation = useUpdateBooking(editBookingId || "");
+
+  // ======== NEW : FOR CREATING BOOKING =========
+  const createBookingMutation = useCreateBooking();
+
+  // Handle file input change
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check authentication before proceeding
+    if (!hasValidAuth()) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload images.",
+        variant: "error",
+        duration: 1000,
+      });
+      return;
+    }
+
+    // Validate the file
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: "Invalid file",
+        description: validation.error,
+        variant: "error",
+        duration: 1500,
+      });
+      return;
+    }
+
+    // Create preview URL immediately and store file for later upload
+    const previewUrl = URL.createObjectURL(file);
+
+    // Set the preview immediately for better UX - don't upload yet
+    setUploadedTicketDesign({
+      file,
+      url: "", // Will be updated after upload during form submission
+      preview: previewUrl,
+      isUploading: false,
+    });
+
+    toast({
+      title: "File selected",
+      description:
+        "Your ticket design will be uploaded when you submit the booking.",
+      variant: "success",
+    });
+  };
+
+  // Remove uploaded file
+  const handleRemoveFile = () => {
+    if (uploadedTicketDesign?.preview) {
+      URL.revokeObjectURL(uploadedTicketDesign.preview);
+    }
+    setUploadedTicketDesign(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // UPDATED: Handle form submission and create/update booking
+  const handleBookingSubmit = async (data: any) => {
+    try {
+      // Check if cart has items (especially important in edit mode)
+      if (items.length === 0) {
+        toast({
+          title: "No items in cart",
+          description:
+            "Please add at least one item to your cart before proceeding.",
+          variant: "error",
+          duration: 1000,
+        });
+        return;
+      }
+
+      let uploadedImageUrl = "";
+
+      // Upload image if one is selected
+      if (uploadedTicketDesign?.file && !uploadedTicketDesign.url) {
+        try {
+          setUploadedTicketDesign((prev) =>
+            prev ? { ...prev, isUploading: true } : null
+          );
+
+          const uploadResult = await new Promise<ImageUploadResponse>(
+            (resolve, reject) => {
+              uploadImage(
+                { file: uploadedTicketDesign.file },
+                {
+                  onSuccess: (result: ImageUploadResponse) => {
+                    resolve(result);
+                  },
+                  onError: (error: Error) => {
+                    reject(error);
+                  },
+                }
+              );
+            }
+          );
+
+          if (!uploadResult || !uploadResult.url) {
+            throw new Error("Upload result is invalid.");
+          }
+
+          uploadedImageUrl = uploadResult.url;
+
+          // Update state with the uploaded URL
+          setUploadedTicketDesign((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  url: uploadedImageUrl,
+                  isUploading: false,
+                }
+              : null
+          );
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          setUploadedTicketDesign((prev) =>
+            prev ? { ...prev, isUploading: false } : null
+          );
+
+          const errorMessage =
+            uploadError instanceof Error
+              ? uploadError.message
+              : "Unknown error";
+
+          toast({
+            title: "Image Upload Failed",
+            description: `Your custom ticket design could not be uploaded. Reason: ${errorMessage}. Please try again or proceed without it.`,
+            variant: "error",
+            duration: 5000,
+          });
+
+          // Stop the submission process if upload fails
+          return;
+        }
+      } else if (uploadedTicketDesign?.url) {
+        uploadedImageUrl = uploadedTicketDesign.url;
+      }
+      
+      if (isEditMode && editBookingId) {
+        // Update existing booking
+        const updatePayload = {
+          menuItems: items.map((item) => ({
+            menuId: item.mealId,
+            quantity:
+              data.deliveryType === "multiple" || data.bookingType === "public"
+                ? item.quantity * parseInt(data.numberOfRecipients || "1", 10)
+                : item.quantity,
+          })),
+          reason:
+            data.reason ||
+            `${data.redemptionMode} order${
+              data.includeUtensils ? " with utensils" : ""
+            }`,
+          bookingType:
+            data.bookingType === "yourself"
+              ? "self"
+              : data.bookingType === "public"
+              ? "public"
+              : "others",
+          bookedFor:
+            data.bookingType === "yourself"
+              ? { type: "self" }
+              : data.bookingType === "public"
+              ? { type: "public" }
+              : {
+                  type: "contact",
+                  contact:
+                    data.deliveryType === "single"
+                      ? [
+                          {
+                            name: data.recipientName || "",
+                            email: data.recipientEmail || "",
+                            phoneNumber: data.recipientPhone || "",
+                            remark: data.recipientRemark || "",
+                          },
+                        ]
+                      : (data.multipleRecipients || []).map(
+                          (recipient: any) => ({
+                            name: recipient.name || "",
+                            email: recipient.email || "",
+                            phoneNumber: recipient.phone || "",
+                            remark: recipient.remark || "",
+                          })
+                        ),
+                },
+          restaurantId: restaurantId,
+          numberOfBookings:
+            data.deliveryType === "multiple" || data.bookingType === "public"
+              ? items.reduce((total, item) => total + item.quantity, 0) *
+                parseInt(data.numberOfRecipients || "1", 10)
+              : items.reduce((total, item) => total + item.quantity, 0),
+          validityDate: data.redemptionDate
+            ? {
+                start: new Date(data.redemptionDate).toISOString(),
+                stop: new Date(
+                  new Date(data.redemptionDate).getTime() +
+                    7 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+              }
+            : {
+                start: new Date(
+                  Date.now() + 7 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+                stop: new Date(
+                  Date.now() + 14 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+              },
+          image: items[0]?.mealImage || "",
+          // Add public tags if it's a public booking
+          ...(data.bookingType === "public" && {
+            tags: data.publicTags
+              ? data.publicTags
+                  .split(",")
+                  .map((tag: string) => tag.trim().replace(/^#/, "")) // Strip # symbol
+                  .filter((tag: string) => tag)
+              : [],
+          }),
+        };
+
+        await updateBookingMutation.mutateAsync(updatePayload);
+        toast({
+          title: "Booking updated successfully!",
+          description: "Your booking has been updated.",
+          variant: "success",
+        });
+
+        // Navigate back to booking details
+        navigate(`/booking/${editBookingId}`);
+      } else {
+        // NEW: Create new booking
+        setIsCreating(true);
+
+        // Build base payload (from original logic)
+        const bookingPayload = {
+          menuItems: items.map((item) => ({
+            menuId: item.mealId,
+            quantity:
+              data.deliveryType === "multiple" || data.bookingType === "public"
+                ? item.quantity * parseInt(data.numberOfRecipients || "1", 10)
+                : item.quantity,
+            instructions: item.userInstruction || "",
+          })),
+          reason:
+            data.reason ||
+            `${data.redemptionMode} order${
+              data.includeUtensils ? " with utensils" : ""
+            }`,
+          redemptionMode: data.redemptionMode,
+          includeUtensils: data.includeUtensils,
+          deliveryType: data.deliveryType,
+          bookingType:
+            data.bookingType === "yourself"
+              ? "self"
+              : data.bookingType === "public"
+              ? "public"
+              : "others",
+          bookedFor:
+            data.bookingType === "yourself"
+              ? { type: "self" }
+              : data.bookingType === "public"
+              ? { type: "public" }
+              : {
+                  type: "contact",
+                  contact:
+                    data.deliveryType === "single"
+                      ? [
+                          {
+                            name: data.recipientName || "",
+                            email: data.recipientEmail || "",
+                            phoneNumber: data.recipientPhone || "",
+                            remark: data.recipientRemark || "",
+                          },
+                        ]
+                      : (data.multipleRecipients || []).map(
+                          (recipient: any) => ({
+                            name: recipient.name || "",
+                            email: recipient.email || "",
+                            phoneNumber: recipient.phone || "",
+                            remark: recipient.remark || "",
+                          })
+                        ),
+                },
+          restaurantId: restaurantId,
+          numberOfBookings:
+            data.deliveryType === "multiple" || data.bookingType === "public"
+              ? items.reduce((total, item) => total + item.quantity, 0) *
+                parseInt(data.numberOfRecipients || "1", 10)
+              : items.reduce((total, item) => total + item.quantity, 0),
+          validityDate: data.redemptionDate
+            ? {
+                start: new Date(data.redemptionDate).toISOString(),
+                stop: new Date(
+                  new Date(data.redemptionDate).getTime() +
+                    7 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+              }
+            : {
+                start: new Date(
+                  Date.now() + 7 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+                stop: new Date(
+                  Date.now() + 14 * 24 * 60 * 60 * 1000
+                ).toISOString(),
+              },
+          image: items[0]?.mealImage || "",
+          // Add public tags if it's a public booking
+          ...(data.bookingType === "public" && {
+            tags: data.publicTags
+              ? data.publicTags
+                  .split(",")
+                  .map((tag: string) =>
+                    tag.trim().replace(/^#/, "").toLowerCase()
+                  ) // Strip # symbol
+                  .filter((tag: string) => tag)
+              : [],
+          }),
+          // Add custom image if uploaded
+          customImage: uploadedImageUrl || "",
+          // Add multiple claims support
+          supportsMultipleClaims: data.supportsMultipleClaims || false,
+          // Add auto generate ticket flag
+          autoGenerateTicket: data.autoGenerateTicket || false,
+        };
+
+        // Transform for backend (match CheckoutDetails format)
+        const { restaurantId: originalRestaurantId, menuItems, ...restOfPayload } = bookingPayload;
+        const transformedItems = menuItems.map((item: any) => ({
+          pid: item.menuId,
+          quantity: item.quantity,
+          instructions: item.instructions,
+        }));
+
+        const createPayload = {
+          ...restOfPayload,
+          businessId: originalRestaurantId,
+          items: transformedItems,
+          createdAt: new Date().toISOString(),
+        } as BookingCreateBody; // Type it if available
+
+        // Create booking
+        const response = await createBookingMutation.mutateAsync(createPayload);
+
+        // Extract booking ID (match CheckoutDetails logic)
+        const newBookingId =
+          response?.data?.bookingId ||
+          response?.bookingId ||
+          response?.data?._id ||
+          response?.data?.id ||
+          response?._id ||
+          response?.id;
+
+        if (!newBookingId) {
+          throw new Error("Failed to retrieve booking ID from response");
+        }
+
+        toast({
+          title: "Booking created successfully!",
+          description: "Proceeding to payment.",
+          variant: "success",
+        });
+
+        // Navigate to checkout with booking ID
+        navigate(`/checkout?bookingId=${newBookingId}`);
+      }
+    } catch (error) {
+      console.error("Booking creation failed:", error);
+      toast({
+        title: isEditMode ? "Update Failed" : "Creation Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "error",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <>
+      {isLoadingBooking ? (
+        <OrderFormSkeleton />
+      ) : (
+        <form onSubmit={handleSubmit(handleBookingSubmit)} className="space-y-6">
+          {/* Booking Type Section */}
+          <BookingTypeSection
+            control={control}
+            errors={errors}
+            bookingTypeWatched={bookingTypeWatched}
+            isGiftRequest={isGiftRequest} // Pass isGiftRequest to disable options if needed
+          />
+
+          {/* Redemption Mode Section */}
+          <RedemptionModeSection
+            control={control}
+            errors={errors}
+            redemptionModeWatched={redemptionModeWatched}
+            includeUtensilsWatched={watch("includeUtensils")}
+          />
+
+          {/* Public Tags Input - only for public bookings */}
+          {showPublicTagsInput && (
+            <PublicTagsSection
+              register={register}
+              errors={errors}
+              publicTagsWatched={watch("publicTags")}
+            />
+          )}
+
+          {/* Redemption Date Picker */}
+          {showRedemptionDatePicker && (
+            <div className="m-4">
+              <div className="border-t border-gray-300 my-4" />
+              <p className="text-xl font-medium mb-4">Redemption Date</p>
+              <Controller
+                name="redemptionDate"
+                control={control}
+                render={({ field }) => (
+                  <Calendar
+                    selected={field.value}
+                    onSelect={(date) => field.onChange(date)}
+                  />
+                )}
+              />
+              {errors.redemptionDate && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.redemptionDate.message}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Recipient Tabs - shown for non-public bookings */}
+          {showRecipientTabs && (
+            <div className="m-4">
+              <div className="border-t border-gray-300 my-4" />
+              <p className="text-xl font-medium mb-4">Recipient Details</p>
+              <Controller
+                name="deliveryType"
+                control={control}
+                render={({ field }) => (
+                  <Tabs.Root
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value as "single" | "multiple")}
+                  >
+                    <Tabs.List className="flex border-b border-gray-300">
+                      {deliveryType.map((type) => (
+                        <Tabs.Trigger
+                          key={type.name}
+                          value={type.name}
+                          className={`flex-1 px-4 py-2 text-center ${
+                            field.value === type.name
+                              ? "border-b-2 border-primary text-primary"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {type.icon}
+                          <span className="ml-2">{type.label}</span>
+                        </Tabs.Trigger>
+                      ))}
+                    </Tabs.List>
+
+                    {/* Single Recipient Tab */}
+                    <Tabs.Content value="single" className="pt-4">
+                      <div className="space-y-4">
+                        <FormField<OrderFormValues>
+                          name="recipientName"
+                          register={register}
+                          errors={errors}
+                          placeholder="Recipient's name"
+                          disabled={isGiftRequest} // Disable for gift requests
+                        />
+                        <FormField<OrderFormValues>
+                          name="recipientPhone"
+                          register={register}
+                          errors={errors}
+                          placeholder="Recipient's phone number"
+                          disabled={isGiftRequest}
+                        />
+                        <FormField<OrderFormValues>
+                          name="recipientEmail"
+                          register={register}
+                          errors={errors}
+                          placeholder="Recipient's email"
+                          disabled={isGiftRequest}
+                        />
+                        {delivery && (
+                          <FormField<OrderFormValues>
+                            name="recipientAddress"
+                            register={register}
+                            errors={errors}
+                            placeholder="Recipient's address"
+                          />
+                        )}
+                        <FormField<OrderFormValues>
+                          name="recipientRemark"
+                          register={register}
+                          errors={errors}
+                          placeholder="Optional remark"
+                        />
+                      </div>
+                    </Tabs.Content>
+
+                    {/* Multiple Recipients Tab */}
+                    <Tabs.Content value="multiple" className="pt-4">
+                      <div className="space-y-4">
+                        <FormField<OrderFormValues>
+                          name="numberOfRecipients"
+                          register={register}
+                          errors={errors}
+                          type="number"
+                          placeholder="Number of recipients"
+                          onChange={handleNumberOfRecipientsChange}
+                          disabled={isGiftRequest} // Disable for gift requests
+                        />
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="space-y-2 border p-4 rounded-lg relative">
+                            <button
+                              type="button"
+                              onClick={() => remove(index)}
+                              className="absolute top-2 right-2 text-red-500"
+                            >
+                              <X size={16} />
+                            </button>
+                            <FormField<OrderFormValues>
+                              name={`multipleRecipients.${index}.name`}
+                              register={register}
+                              errors={errors}
+                              placeholder={`Recipient ${index + 1} name`}
+                            />
+                            <FormField<OrderFormValues>
+                              name={`multipleRecipients.${index}.phone`}
+                              register={register}
+                              errors={errors}
+                              placeholder={`Recipient ${index + 1} phone`}
+                            />
+                            <FormField<OrderFormValues>
+                              name={`multipleRecipients.${index}.email`}
+                              register={register}
+                              errors={errors}
+                              placeholder={`Recipient ${index + 1} email`}
+                            />
+                            {delivery && (
+                              <FormField<OrderFormValues>
+                                name={`multipleRecipients.${index}.address`}
+                                register={register}
+                                errors={errors}
+                                placeholder={`Recipient ${index + 1} address`}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </Tabs.Content>
+                  </Tabs.Root>
+                )}
+              />
+            </div>
+          )}
+
+          {/* Ticket Customization Section */}
+          {showTicketCustomization && (
+            <div className="m-4">
+              <div className="border-t border-gray-300 my-4" />
+              <p className="text-xl font-medium mb-4">Customize Ticket Design</p>
+              <p className="text-sm text-gray-600 mb-4">
+                Upload a custom image for the ticket (optional)
+              </p>
+              <div className="space-y-4">
+                <div className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center w-full h-full"
+                  >
+                    <Upload className="w-8 h-8 text-gray-400" />
+                    <span className="mt-2 text-sm text-gray-600">
+                      Upload custom ticket design
+                    </span>
+                  </button>
+                </div>
+
+                {uploadedTicketDesign && (
+                  <div className="relative">
+                    <img
+                      src={uploadedTicketDesign.preview || uploadedTicketDesign.url}
+                      alt="Uploaded ticket design"
+                      className="max-w-full max-h-48 object-contain rounded-lg border"
+                    />
+
+                    {uploadedTicketDesign.isUploading && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                        <div className="bg-white rounded-lg p-4 flex items-center space-x-3">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                          <span className="text-sm font-medium">
+                            Uploading...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      disabled={uploadedTicketDesign.isUploading}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      aria-label="Remove uploaded image"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {uploadedTicketDesign && (
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900">
+                        {uploadedTicketDesign.file.name}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        {fileService.formatFileSize(
+                          uploadedTicketDesign.file.size
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {uploadedTicketDesign.url ? (
+                        <>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-green-600 font-medium">
+                            Upload complete!
+                          </span>
+                        </>
+                      ) : uploadedTicketDesign.isUploading ? (
+                        <>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-blue-600">
+                            Uploading...
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          <span className="text-sm text-gray-500">
+                            Ready to upload
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        
+          {/* Reason Section - shown for all booking types with different options */}
+          <div className="m-4">
+            <div className="border-t border-gray-300 my-4" />
+            <p className="text-xl font-medium mb-4">
+              {bookingTypeWatched === "yourself"
+                ? "Personal booking reason"
+                : bookingTypeWatched === "public"
+                ? "Public booking reason"
+                : "Gift reason"}
+            </p>
+
+            {/* Reason input with dropdown for all booking types */}
+            <div className="relative">
+              <FormField<OrderFormValues>
+                name="reason"
+                register={register}
+                errors={errors}
+                placeholder={`Enter ${
+                  bookingTypeWatched === "yourself"
+                    ? "personal booking"
+                    : bookingTypeWatched === "public"
+                    ? "public booking"
+                    : "gift"
+                } reason...`}
+                inputClassName={`w-full px-3 py-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
+                  isGiftRequest ? "bg-gray-100" : ""
+                }`}
+                disabled={isGiftRequest} // NEW: Disable for gift requests
+              />
+
+              {!isGiftRequest && (
+                <RadixDropdownMenu.Root>
+                  <RadixDropdownMenu.Trigger asChild>
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 flex items-center focus:outline-none"
+                      aria-label="Select reason"
+                    >
+                      <ChevronDown size={20} />
+                    </button>
+                  </RadixDropdownMenu.Trigger>
+                  <RadixDropdownMenu.Portal>
+                    <RadixDropdownMenu.Content
+                      className="bg-white border border-gray-300 rounded-md shadow-lg z-50 min-w-[280px] max-h-[300px] overflow-y-auto p-1"
+                      sideOffset={5}
+                      align="end"
+                    >
+                      {(() => {
+                        const predefinedReasons =
+                          bookingTypeWatched === "yourself"
+                            ? [
+                                "Personal treat",
+                                "Lunch break",
+                                "Dinner plans",
+                                "Date night",
+                                "Family meal",
+                                "Work meeting",
+                                "Celebration",
+                              ]
+                            : bookingTypeWatched === "others"
+                            ? [
+                                "Birthday celebration",
+                                "Anniversary gift",
+                                "Thank you gesture",
+                                "Holiday gift",
+                                "Congratulations",
+                                "Get well soon",
+                                "Random act of kindness",
+                              ]
+                            : [
+                                "Community support",
+                                "Holiday sharing",
+                                "Charity initiative",
+                                "Random kindness",
+                                "Festival celebration",
+                                "Religious occasion",
+                                "Social impact",
+                              ];
+
+                        return predefinedReasons.map((reason) => (
+                          <RadixDropdownMenu.Item
+                            key={`reason-option-${reason}`}
+                            className="flex items-center px-3 py-2 text-sm cursor-pointer rounded-md hover:bg-gray-100 focus:bg-gray-100 outline-none"
+                            onSelect={() => {
+                              setValue("reason", reason, {
+                                shouldValidate: true,
+                              });
+                            }}
+                          >
+                            {reason}
+                          </RadixDropdownMenu.Item>
+                        ));
+                      })()}
+                    </RadixDropdownMenu.Content>
+                  </RadixDropdownMenu.Portal>
+                </RadixDropdownMenu.Root>
+              )}
+            </div>
+          </div>
+        
+          {/* Refundable Section */}
+          <div className="m-4">
+            <div className="border-t border-gray-300 my-4" />
+            <Controller
+              name="refundable"
+              control={control}
+              render={({ field }) => (
+                <div
+                  className={`flex p-4 border rounded-lg items-center gap-4 cursor-pointer ${
+                    field.value
+                      ? "border-primary bg-primary/5"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => field.onChange(!field.value)}
+                >
+                  <div className="p-2 flex flex-col gap-1 flex-1">
+                    <h3 className="text-lg font-medium">Refundable Booking</h3>
+                    <p className="text-black/50 text-sm">
+                      Make this booking refundable in case of cancellation
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-checked={field.value}
+                    aria-label="Toggle refundable booking"
+                  >
+                    <Circle
+                      fill={`${field.value ? "#ff7a00" : "white"}`}
+                      className={`rounded-full ${
+                        field.value
+                          ? "ring-primary ring text-primary p-1 border border-primary rounded-full"
+                          : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+            />
+            {errors.refundable && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.refundable.message}
+              </p>
+            )}
+          </div>
+
+          {/* =====================  */}
+          {/* Multiple Claims Section - only show for yourself/others bookings with multiple items */}
+          {showMultipleClaims && (
+            <div className="m-4">
+              <div className="border-t border-gray-300 my-4" />
+              <p className="text-xl font-medium mb-4">Multiple Claims Support</p>
+              <p className="text-sm text-gray-600 mb-4">
+                Choose whether this ticket can be claimed multiple times or just
+                once
+              </p>
+              <Controller
+                name="supportsMultipleClaims"
+                control={control}
+                render={({ field }) => (
+                  <div className="space-y-3">
+                    <div
+                      className={`flex p-4 border rounded-lg items-center gap-4 cursor-pointer ${
+                        !field.value
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-300"
+                      }`}
+                      onClick={() => field.onChange(false)}
+                    >
+                      <div className="p-2 flex flex-col gap-1 flex-1">
+                        <h3 className="text-lg font-medium">Single Use Only</h3>
+                        <p className="text-black/50 text-sm">
+                          This ticket can only be claimed once per recipient
+                        </p>
+                      </div>
+                      <Circle
+                        fill={`${!field.value ? "#ff7a00" : "white"}`}
+                        className={`rounded-full ${
+                          !field.value
+                            ? "ring-primary ring text-primary p-1 border border-primary rounded-full"
+                            : ""
+                        }`}
+                      />
+                    </div>
+                    <div
+                      className={`flex p-4 border rounded-lg items-center gap-4 cursor-pointer ${
+                        field.value
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-300"
+                      }`}
+                      onClick={() => field.onChange(true)}
+                    >
+                      <div className="p-2 flex flex-col gap-1 flex-1">
+                        <h3 className="text-lg font-medium">
+                          Multiple Claims Allowed
+                        </h3>
+                        <p className="text-black/50 text-sm">
+                          This ticket can be claimed multiple times by the same
+                          recipient
+                        </p>
+                      </div>
+                      <Circle
+                        fill={`${field.value ? "#ff7a00" : "white"}`}
+                        className={`rounded-full ${
+                          field.value
+                            ? "ring-primary ring text-primary p-1 border border-primary rounded-full"
+                            : ""
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+              />
+              {errors.supportsMultipleClaims && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.supportsMultipleClaims.message}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Auto Generate Ticket Section */}
+          <div className="m-4">
+            <div className="border-t border-gray-300 my-4" />
+            <p className="text-xl font-medium mb-4">Ticket Generation</p>
+            <p className="text-sm text-gray-600 mb-4">
+              Choose whether to automatically generate tickets or handle manually
+            </p>
+            <Controller
+              name="autoGenerateTicket"
+              control={control}
+              render={({ field }) => (
+                <div className="space-y-3">
+                  <div
+                    className={`flex p-4 border rounded-lg items-center gap-4 cursor-pointer ${
+                      field.value
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-300"
+                    }`}
+                    onClick={() => field.onChange(!field.value)}
+                  >
+                    <div className="p-2 flex flex-col gap-1 flex-1">
+                      <h3 className="text-lg font-medium">Auto Generate</h3>
+                      <p className="text-black/50 text-sm">
+                        Tickets will be automatically generated upon booking
+                      </p>
+                    </div>
+                    <Circle
+                      fill={`${field.value ? "#ff7a00" : "white"}`}
+                      className={`rounded-full ${
+                        field.value
+                          ? "ring-primary ring text-primary p-1 border border-primary rounded-full"
+                          : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+            {errors.autoGenerateTicket && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.autoGenerateTicket.message}
+              </p>
+            )}
+          </div>
+          
+          {/* Submit button */}
+          <div className="mx-6 fixed bottom-4 left-0 right-0 z-50 md:relative lg:relative">
+            {/* Show booking error if exists */}
+            {updateBookingMutation.error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-red-700 text-sm">
+                  {isEditMode ? "Update failed:" : "Booking failed:"}{" "}
+                  {updateBookingMutation.error?.message ||
+                    "Something went wrong. Please try again."}
+                </p>
+              </div>
+            )}
+            
+            {/* Show loading state for edit mode */}
+            {isEditMode && isLoadingBooking && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-blue-700 text-sm">Loading booking data...</p>
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <CartButton
+                text={
+                  isEditMode
+                    ? updateBookingMutation.isPending
+                      ? "Updating Booking..."
+                      : "Update Booking"
+                    : isGiftRequest
+                    ? "Fulfill Gift Request"
+                    : "Proceed to Checkout"
+                }
+                textClassName="text-center"
+                isValid={!updateBookingMutation.isPending && !isLoadingBooking}
+                onClick={!errors && handleBookingSubmit}
+              />
+              
+              {/* Cancel button for edit mode */}
+              {isEditMode && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/booking/${editBookingId}`)}
+                  className="w-full py-3 px-4 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      )}
+    </>
+  );
+};
+
+export default OrderForm;

@@ -494,7 +494,7 @@ const Recommended: React.FC<RecommendedType> = ({ count }) => {
 
       {/* Category Filter Navigation */}
       <div id="category-filter-nav" className="mb-6 ">
-        <ul className="flex gap-0 overflow-x-auto scrollbar-hide">
+        <ul className="flex gap-0 overflow-x-auto scrollbar- ">
           {categories.map((category) => (
             <li key={category.id} className="flex-shrink-0 border-b-2 border-gray-400 ">
               <button
