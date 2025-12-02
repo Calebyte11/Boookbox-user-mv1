@@ -206,7 +206,7 @@ import {
   useSearchParams,
   useParams,
 } from "react-router-dom";
-import OrderForm from "../components/sponsor/OrderForm";
+import OrderForm from "@/components/sponsor/OrderForm";
 import type { OrderFormValues } from "../features/sponsor/types";
 import Button from "@/components/Button";
 import { useRestaurantDetailQuery } from "@/hooks/useRestaurantQueries";

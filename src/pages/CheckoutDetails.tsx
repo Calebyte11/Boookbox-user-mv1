@@ -543,8 +543,19 @@ const CheckoutDetails = () => {
         duration: 1000,
       });
 
+      const { restaurantId: originalRestaurantId, menuItems, ...restOfPayload } = bookingPayload as any;
+
+      // Transform menuItems to items with pid instead of menuId
+      const transformedItems = menuItems?.map((item: any) => ({
+        pid: item.menuId,  // Transform menuId to pid
+        quantity: item.quantity,
+        instructions: item.instructions,
+      })) || [];
+
       const createBookingPayload = {
-        ...bookingPayload,
+        ...restOfPayload,
+        businessId: originalRestaurantId,
+        items: transformedItems,
         totalAmount: normalizedTotalAmount,
         currency: "NGN",
         deliveryFee,
@@ -568,6 +579,8 @@ const CheckoutDetails = () => {
           transactionCharge: computedBreakdown.transactionCharge,
         },
       };
+      console.log(createBookingPayload);
+      
 
       const bookingResult = await createBookingMutation.mutateAsync(
         createBookingPayload as unknown as BookingCreateBody

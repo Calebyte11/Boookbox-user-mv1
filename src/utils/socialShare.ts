@@ -5,7 +5,7 @@ export const generateShareableLink = (menuId: string, restaurantId: string): str
 };
 
 export const shareToWhatsApp = (link: string): void => {
-  const message = encodeURIComponent(`Hey! I'd love this meal package: ${link}`);
+  const message = encodeURIComponent(`${link}`);
   window.open(`https://wa.me/?text=${message}`, '_blank');
 };
 
@@ -17,7 +17,7 @@ export const shareToFacebook = (link: string): void => {
 };
 
 export const shareToSMS = (link: string): void => {
-  const message = encodeURIComponent(`Hey! I'd love this meal package: ${link}`);
+  const message = encodeURIComponent(`${link}`);
   window.open(`sms:?body=${message}`);
 };
 
@@ -29,6 +29,6 @@ export const shareToTwitter = (link: string, text: string = 'Check out this amaz
 };
 
 export const shareToEmail = (link: string, subject: string = 'Check out this meal package'): void => {
-  const body = encodeURIComponent(`Hey! I'd love this meal package: ${link}`);
+  const body = encodeURIComponent(`${link}`);
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
 };

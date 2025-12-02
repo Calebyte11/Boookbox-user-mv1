@@ -212,7 +212,7 @@ const GiftRequestHandler: React.FC = () => {
       if (!isAuthenticated) {
         // Store the current URL as the target destination
         // const currentPath = window.location.pathname + window.location.search;
-        const encodedTarget = encodeURIComponent("http://localhost:5000/gifting/requests/r/692c5caff99a5506d3ebe28f");
+        const encodedTarget = encodeURIComponent(`${window.location.origin}/gifting/requests/r/${requestId}`);
         
         // Redirect to sign in with target parameter
         const signinUrl = `/auth/login?next=${encodedTarget}`;
@@ -304,7 +304,9 @@ const GiftRequestHandler: React.FC = () => {
         // Step 7: Navigate to order page with gift request flag
         const businessCategory = giftRequest.business.category.toLowerCase();
         navigate(
-          `/${businessCategory}s/${giftRequest.business._id}/orders?giftRequest=${requestId}`,
+          businessCategory === "restaurant"
+            ? `/restaurants/${giftRequest.business._id}/orders?giftRequest=${requestId}`
+            : `/${businessCategory}/${giftRequest.business._id}/orders?giftRequest=${requestId}`,
           { replace: true }
         );
       } catch (err) {

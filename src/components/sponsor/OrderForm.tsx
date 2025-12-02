@@ -1841,14 +1841,17 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
       setValue("numberOfRecipients", String(giftRequestData.quantity));
       
       // Set reason
-      setValue("reason", `Fulfilling gift request for ${giftRequestData.user.fullName}`);
+      setValue("reason", `Fulfilling gift request for ${
+        giftRequestData.user.accountType === "organization"
+          ? giftRequestData.user.organizationName
+          : giftRequestData.user.fullName}`);
       
       // Show toast notification
       toast({
         title: "Gift Request Loaded",
         description: `Recipient details have been pre-filled from the gift request.`,
         variant: "success",
-        duration: 3000,
+        duration: 1000,
       });
     }
   }, [isGiftRequest, giftRequestData, setValue, toast]);
@@ -1935,7 +1938,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
         title: "Authentication required",
         description: "Please sign in to upload images.",
         variant: "error",
-        duration: 2000,
+        duration: 1000,
       });
       return;
     }
@@ -1947,7 +1950,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
         title: "Invalid file",
         description: validation.error,
         variant: "error",
-        duration: 2000,
+        duration: 1500,
       });
       return;
     }
@@ -1992,7 +1995,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
           description:
             "Please add at least one item to your cart before proceeding.",
           variant: "error",
-          duration: 2000,
+          duration: 1000,
         });
         return;
       }
@@ -2345,449 +2348,6 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
   const handleBrowseFileClick = () => {
     fileInputRef.current?.click();
   };
-
-  // ============ 
-  // const handleNumberOfRecipientsChange = (
-  //   e: React.ChangeEvent<HTMLInputElement>
-  // ) => {
-  //   const count = parseInt(e.target.value, 10) || 0;
-  //   setValue("numberOfRecipients", e.target.value);
-  //   const currentLength = getValues("multipleRecipients")?.length ?? 0;
-  //   if (count > currentLength) {
-  //     for (let i = currentLength; i < count; i++) {
-  //       append({ name: "", phone: "", email: "", address: "" });
-  //     }
-  //   } else if (count < currentLength) {
-  //     for (let i = currentLength; i > count; i--) {
-  //       remove(i - 1);
-  //     }
-  //   }
-  // };
-
-  // const updateBookingMutation = useUpdateBooking(editBookingId || "");
-
-  // Handle file input change
-  // const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.target.files?.[0];
-  //   if (!file) return;
-
-  //   // Check authentication before proceeding
-  //   if (!hasValidAuth()) {
-  //     toast({
-  //       title: "Authentication required",
-  //       description: "Please sign in to upload images.",
-  //       variant: "error",
-  //       duration: 2000,
-  //     });
-  //     return;
-  //   }
-
-  //   // Validate the file
-  //   const validation = validateFile(file);
-  //   if (!validation.isValid) {
-  //     toast({
-  //       title: "Invalid file",
-  //       description: validation.error,
-  //       variant: "error",
-  //       duration: 2000,
-  //     });
-  //     return;
-  //   }
-
-  //   // Create preview URL immediately and store file for later upload
-  //   const previewUrl = URL.createObjectURL(file);
-
-  //   // Set the preview immediately for better UX - don't upload yet
-  //   setUploadedTicketDesign({
-  //     file,
-  //     url: "", // Will be updated after upload during form submission
-  //     preview: previewUrl,
-  //     isUploading: false,
-  //   });
-
-  //   toast({
-  //     title: "File selected",
-  //     description:
-  //       "Your ticket design will be uploaded when you submit the booking.",
-  //     variant: "success",
-  //   });
-  // };
-
-  // Remove uploaded file
-  // const handleRemoveFile = () => {
-  //   if (uploadedTicketDesign?.preview) {
-  //     URL.revokeObjectURL(uploadedTicketDesign.preview);
-  //   }
-  //   setUploadedTicketDesign(null);
-  //   if (fileInputRef.current) {
-  //     fileInputRef.current.value = "";
-  //   }
-  // };
-
-  // UPDATED: Handle form submission and create/update booking
-  // const handleBookingSubmit = async (data: any) => {
-  //   try {
-  //     // Check if cart has items (especially important in edit mode)
-  //     if (items.length === 0) {
-  //       toast({
-  //         title: "No items in cart",
-  //         description:
-  //           "Please add at least one item to your cart before proceeding.",
-  //         variant: "error",
-  //         duration: 2000,
-  //       });
-  //       return;
-  //     }
-
-  //     let uploadedImageUrl = "";
-
-  //     // Upload image if one is selected
-  //     if (uploadedTicketDesign?.file && !uploadedTicketDesign.url) {
-  //       try {
-  //         setUploadedTicketDesign((prev) =>
-  //           prev ? { ...prev, isUploading: true } : null
-  //         );
-
-  //         const uploadResult = await new Promise<ImageUploadResponse>(
-  //           (resolve, reject) => {
-  //             uploadImage(
-  //               { file: uploadedTicketDesign.file },
-  //               {
-  //                 onSuccess: (result: ImageUploadResponse) => {
-  //                   resolve(result);
-  //                 },
-  //                 onError: (error: Error) => {
-  //                   reject(error);
-  //                 },
-  //               }
-  //             );
-  //           }
-  //         );
-
-  //         if (!uploadResult || !uploadResult.url) {
-  //           throw new Error("Upload result is invalid.");
-  //         }
-
-  //         uploadedImageUrl = uploadResult.url;
-
-  //         // Update state with the uploaded URL
-  //         setUploadedTicketDesign((prev) =>
-  //           prev
-  //             ? {
-  //                 ...prev,
-  //                 url: uploadedImageUrl,
-  //                 isUploading: false,
-  //               }
-  //             : null
-  //         );
-  //       } catch (uploadError) {
-  //         console.error("Image upload failed:", uploadError);
-  //         setUploadedTicketDesign((prev) =>
-  //           prev ? { ...prev, isUploading: false } : null
-  //         );
-
-  //         const errorMessage =
-  //           uploadError instanceof Error
-  //             ? uploadError.message
-  //             : "Unknown error";
-
-  //         toast({
-  //           title: "Image Upload Failed",
-  //           description: `Your custom ticket design could not be uploaded. Reason: ${errorMessage}. Please try again or proceed without it.`,
-  //           variant: "error",
-  //           duration: 5000,
-  //         });
-
-  //         // Stop the submission process if upload fails
-  //         return;
-  //       }
-  //     } else if (uploadedTicketDesign?.url) {
-  //       uploadedImageUrl = uploadedTicketDesign.url;
-  //     }
-      
-  //     if (isEditMode && editBookingId) {
-  //       // Update existing booking
-  //       const updatePayload = {
-  //         menuItems: items.map((item) => ({
-  //           menuId: item.mealId,
-  //           quantity:
-  //             data.deliveryType === "multiple" || data.bookingType === "public"
-  //               ? item.quantity * parseInt(data.numberOfRecipients || "1", 10)
-  //               : item.quantity,
-  //         })),
-  //         reason:
-  //           data.reason ||
-  //           `${data.redemptionMode} order${
-  //             data.includeUtensils ? " with utensils" : ""
-  //           }`,
-  //         bookingType:
-  //           data.bookingType === "yourself"
-  //             ? "self"
-  //             : data.bookingType === "public"
-  //             ? "public"
-  //             : "others",
-  //         bookedFor:
-  //           data.bookingType === "yourself"
-  //             ? { type: "self" }
-  //             : data.bookingType === "public"
-  //             ? { type: "public" }
-  //             : {
-  //                 type: "contact",
-  //                 contact:
-  //                   data.deliveryType === "single"
-  //                     ? [
-  //                         {
-  //                           name: data.recipientName || "",
-  //                           email: data.recipientEmail || "",
-  //                           phoneNumber: data.recipientPhone || "",
-  //                           remark: data.recipientRemark || "",
-  //                         },
-  //                       ]
-  //                     : (data.multipleRecipients || []).map(
-  //                         (recipient: any) => ({
-  //                           name: recipient.name || "",
-  //                           email: recipient.email || "",
-  //                           phoneNumber: recipient.phone || "",
-  //                           remark: recipient.remark || "",
-  //                         })
-  //                       ),
-  //               },
-  //         restaurantId: restaurantId,
-  //         numberOfBookings:
-  //           data.deliveryType === "multiple" || data.bookingType === "public"
-  //             ? items.reduce((total, item) => total + item.quantity, 0) *
-  //               parseInt(data.numberOfRecipients || "1", 10)
-  //             : items.reduce((total, item) => total + item.quantity, 0),
-  //         validityDate: data.redemptionDate
-  //           ? {
-  //               start: new Date(data.redemptionDate).toISOString(),
-  //               stop: new Date(
-  //                 new Date(data.redemptionDate).getTime() +
-  //                   7 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //             }
-  //           : {
-  //               start: new Date(
-  //                 Date.now() + 7 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //               stop: new Date(
-  //                 Date.now() + 14 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //             },
-  //         image: items[0]?.mealImage || "",
-  //         // Add public tags if it's a public booking
-  //         ...(data.bookingType === "public" && {
-  //           tags: data.publicTags
-  //             ? data.publicTags
-  //                 .split(",")
-  //                 .map((tag: string) => tag.trim().replace(/^#/, "")) // Strip # symbol
-  //                 .filter((tag: string) => tag)
-  //             : [],
-  //         }),
-  //       };
-
-  //       await updateBookingMutation.mutateAsync(updatePayload);
-  //       toast({
-  //         title: "Booking updated successfully!",
-  //         description: "Your booking has been updated.",
-  //         variant: "success",
-  //       });
-
-  //       // Navigate back to booking details
-  //       navigate(`/booking/${editBookingId}`);
-  //     } else {
-  //       // NEW: Enhanced booking payload with gift request metadata
-  //       const bookingPayload = {
-  //         menuItems: items.map((item) => ({
-  //           menuId: item.mealId,
-  //           quantity:
-  //             data.deliveryType === "multiple" || data.bookingType === "public"
-  //               ? item.quantity * parseInt(data.numberOfRecipients || "1", 10)
-  //               : item.quantity,
-  //           instructions: item.userInstruction || "",
-  //         })),
-  //         reason:
-  //           data.reason ||
-  //           `${data.redemptionMode} order${
-  //             data.includeUtensils ? " with utensils" : ""
-  //           }`,
-  //         redemptionMode: data.redemptionMode,
-  //         includeUtensils: data.includeUtensils,
-  //         deliveryType: data.deliveryType,
-  //         bookingType:
-  //           data.bookingType === "yourself"
-  //             ? "self"
-  //             : data.bookingType === "public"
-  //             ? "public"
-  //             : "others",
-  //         bookedFor:
-  //           data.bookingType === "yourself"
-  //             ? { type: "self" }
-  //             : data.bookingType === "public"
-  //             ? { type: "public" }
-  //             : {
-  //                 type: "contact",
-  //                 contact:
-  //                   data.deliveryType === "single"
-  //                     ? [
-  //                         {
-  //                           name: data.recipientName || "",
-  //                           email: data.recipientEmail || "",
-  //                           phoneNumber: data.recipientPhone || "",
-  //                           remark: data.recipientRemark || "",
-  //                         },
-  //                       ]
-  //                     : (data.multipleRecipients || []).map(
-  //                         (recipient: any) => ({
-  //                           name: recipient.name || "",
-  //                           email: recipient.email || "",
-  //                           phoneNumber: recipient.phone || "",
-  //                           remark: recipient.remark || "",
-  //                         })
-  //                       ),
-  //               },
-  //         restaurantId: restaurantId,
-  //         numberOfBookings:
-  //           data.deliveryType === "multiple" || data.bookingType === "public"
-  //             ? items.reduce((total, item) => total + item.quantity, 0) *
-  //               parseInt(data.numberOfRecipients || "1", 10)
-  //             : items.reduce((total, item) => total + item.quantity, 0),
-  //         validityDate: data.redemptionDate
-  //           ? {
-  //               start: new Date(data.redemptionDate).toISOString(),
-  //               stop: new Date(
-  //                 new Date(data.redemptionDate).getTime() +
-  //                   7 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //             }
-  //           : {
-  //               start: new Date(
-  //                 Date.now() + 7 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //               stop: new Date(
-  //                 Date.now() + 14 * 24 * 60 * 60 * 1000
-  //               ).toISOString(),
-  //             },
-  //         image: items[0]?.mealImage || "",
-  //         // Add public tags if it's a public booking
-  //         ...(data.bookingType === "public" && {
-  //           tags: data.publicTags
-  //             ? data.publicTags
-  //                 .split(",")
-  //                 .map((tag: string) =>
-  //                   tag.trim().replace(/^#/, "").toLowerCase()
-  //                 )
-  //                 .filter((tag: string) => tag)
-  //             : [],
-  //         }),
-  //         // Add custom image if uploaded
-  //         customImage: uploadedImageUrl || "",
-  //         // Add multiple claims support
-  //         supportsMultipleClaims: data.supportsMultipleClaims || false,
-  //         // Add auto generate ticket flag
-  //         autoGenerateTicket: data.autoGenerateTicket || false,
-  //         // NEW: Add gift request metadata if applicable
-  //         ...(isGiftRequest && giftRequestData && {
-  //           giftRequestId: giftRequestData._id,
-  //           isGiftRequestFulfillment: true,
-  //           giftRequestDetails: {
-  //             requesterId: giftRequestData.user._id,
-  //             requesterName: giftRequestData.user.fullName,
-  //             requesterEmail: giftRequestData.user.email,
-  //             originalQuantity: giftRequestData.quantity,
-  //             originalAmount: giftRequestData.totalAmount,
-  //           },
-  //         }),
-  //       };
-        
-  //       // Store booking payload for API call later
-  //       setBookingPayload(bookingPayload);
-
-  //       // Success - Save booking details to store for CheckoutDetails page
-  //       const recipientDetails =
-  //         data.bookingType === "yourself"
-  //           ? null
-  //           : data.bookingType === "public"
-  //           ? null
-  //           : data.deliveryType === "single"
-  //           ? {
-  //               name: data.recipientName || "",
-  //               phone: data.recipientPhone || "",
-  //               email: data.recipientEmail || "",
-  //               message: data.reason || "",
-  //             }
-  //           : {
-  //               name: `${data.numberOfRecipients} recipients`,
-  //               phone: "Multiple phone numbers",
-  //               email: "Multiple email addresses",
-  //               message: `Booking for ${data.numberOfRecipients} recipients`,
-  //             };
-
-  //       // Update booking store with form data
-  //       updateBookingDetails({
-  //         bookingType: data.bookingType,
-  //         numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
-  //         recipientDetails,
-  //         deliveryDate: data.redemptionDate
-  //           ? new Date(data.redemptionDate).toISOString()
-  //           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  //         deliveryTime: null,
-  //         specialInstructions: data.reason || "",
-  //         isGift:
-  //           data.bookingType !== "yourself" && data.bookingType !== "public",
-  //         paymentMethod: "",
-  //         restaurantId,
-  //         restaurantName:
-  //           restaurantData?.name || items[0]?.restaurantName || "",
-  //         location:
-  //           restaurantData?.address ||
-  //           (typeof restaurantData?.location === "string"
-  //             ? restaurantData.location
-  //             : restaurantData?.location
-  //             ? `${restaurantData.location.coordinates[1]},${restaurantData.location.coordinates[0]}`
-  //             : ""),
-  //       });
-
-  //       // Call the original onSubmit for any additional handling before navigation
-  //       onSubmit(data);
-
-  //       // NEW: Clear gift request data from sessionStorage after successful submission
-  //       if (isGiftRequest) {
-  //         sessionStorage.removeItem("giftRequestData");
-  //       }
-
-  //       navigate("/checkout");
-  //     }
-
-  //     // Clean up the preview URL after successful booking
-  //     if (uploadedTicketDesign?.preview) {
-  //       URL.revokeObjectURL(uploadedTicketDesign.preview);
-  //     }
-  //     setUploadedTicketDesign(null);
-  //   } catch (error: unknown) {
-  //     console.error(
-  //       isEditMode ? "Booking update failed:" : "Booking failed:",
-  //       error
-  //     );
-  //     setUploadedTicketDesign((prev) =>
-  //       prev ? { ...prev, isUploading: false } : null
-  //     );
-
-  //     toast({
-  //       title: isEditMode ? "Update failed" : "Booking failed",
-  //       description:
-  //         error instanceof Error
-  //           ? error.message
-  //           : "Something went wrong. Please try again.",
-  //       variant: "error",
-  //     });
-  //   }
-  // };
-  
-  // const handleBrowseFileClick = () => {
-  //   fileInputRef.current?.click();
-  // };
-
   // ================================================
   // Auto-populate user details when booking for yourself
   useEffect(() => {
@@ -3137,12 +2697,12 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
         {/* section-1: Booking Type */}
         {/* NEW: Disable booking type section for gift requests */}
         <div className={isGiftRequest ? "pointer-events-none opacity-60" : ""}>
-          <BookingTypeSection control={control} errors={errors} />
-          {isGiftRequest && (
+          <BookingTypeSection control={control} errors={errors}/>
+          {/* {isGiftRequest && (
             <p className="mx-4 text-xs text-gray-500 italic mt-2">
               Booking type is locked for gift request fulfillment
             </p>
-          )}
+          )} */}
         </div>
         <div className="border-t border-gray-300 my-4" />
         
@@ -3228,7 +2788,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
                           </p>
                           
                           {/* NEW: Show locked indicator for gift requests */}
-                          {isGiftRequest && (
+                          {/* {isGiftRequest && (
                             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <p className="text-blue-800 text-sm flex items-center gap-2">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -3237,7 +2797,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
                                 Recipient information is locked for this gift request
                               </p>
                             </div>
-                          )}
+                          )} */}
                           
                           {/* Conditional rendering based on booking type */}
                           <div className={isGiftRequest ? "pointer-events-none opacity-75" : ""}>
@@ -3299,7 +2859,11 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
                               type="email"
                               register={register}
                               errors={errors}
-                              placeholder="Enter email address"
+                              placeholder={
+                                  isGiftRequest ? giftRequestData.user.accountType === "organization" 
+                                  ? giftRequestData.user.email : giftRequestData.user.email
+                                   : "Enter email address"
+                                }
                               inputClassName={isGiftRequest ? "bg-gray-100" : ""}
                               disabled={isGiftRequest}
                             />
