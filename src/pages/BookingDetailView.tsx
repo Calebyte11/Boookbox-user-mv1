@@ -73,8 +73,11 @@ const BookingDetailView: React.FC = () => {
 
   // Handle the new API response format where data is an array
   const booking = Array.isArray(bookingData) ? bookingData[0] : bookingData;
+  console.log(booking);
 
-  const restaurantFromBooking = booking?.bookedAtRestaurant;
+  const restaurantFromBooking = booking?.bookedAtBusiness;
+  console.log(restaurantFromBooking);
+  
 
   // Prefer embedded restaurant data over separate query result
   const restaurant = restaurantFromBooking;
@@ -155,13 +158,16 @@ const BookingDetailView: React.FC = () => {
     }
   };
   const mealIds =
-    booking?.menuItems?.map((item: any) => item.menu?.menuId || item.menuId) ||
+    booking?.items?.map((item: any) => item.product?._id) ||
     [];
   // 2. Fetch all meals in one query (assuming your API supports batch fetching)
   const { data: allMeals } = useRestaurantMenuInfoQuery(
-    booking?.restaurantId || booking?.bookedAtRestaurant?.restaurantId || "",
+    booking?.restaurantId || booking?.bookedAtBusiness?.businessId || "",
     mealIds
   );
+
+  console.log(allMeals);
+  
   // Handle claim booking
 
   const canClaim = canClaimBooking(user, booking);
@@ -423,10 +429,11 @@ const BookingDetailView: React.FC = () => {
                 </div>
               </div>
             </div>{" "}
+
             {/* Meal Package Details */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Meal Package Details
+                Package Details
               </h3>
               <div className="flex gap-4 mb-4 relative">
                 {/* Image Container - Fixed Size with Aspect Ratio */}
@@ -457,13 +464,13 @@ const BookingDetailView: React.FC = () => {
                 </div>
               </div>{" "}
               {/* Menu Items */}
-              {booking.menuItems && booking.menuItems.length > 0 && (
+              {booking.items && booking.items.length > 0 && (
                 <div className="border-t pt-4">
                   <h4 className="font-medium text-gray-900 mb-3">Menu Items</h4>{" "}
                   <div className="space-y-2">
-                    {booking.menuItems.map((item: any, index: number) => {
+                    {booking.items.map((item: any, index: number) => {
                       // Handle both old and new API structure
-                      const menuItem = item.menu || item;
+                      const menuItem = item.product || item;
                       const quantity = item.quantity || 1;
                       const price = menuItem.price || item.price || 0;
                       const name = menuItem.name || item.name || "Menu Item";

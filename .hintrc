@@ -15,6 +15,7 @@
         "label": "off"
       }
     ],
-    "axe/aria": "off"
+    "axe/aria": "off",
+    "meta-viewport": "off"
   }
 }

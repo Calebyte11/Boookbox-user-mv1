@@ -15,7 +15,7 @@ const GiftRequestHandler: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userAppUrl = import.meta.env.VITE_USER_APP_URL;
+  // const userAppUrl = import.meta.env.VITE_USER_APP_URL;
 
   useEffect(() => {
     const handleGiftRequest = async () => {
@@ -23,7 +23,7 @@ const GiftRequestHandler: React.FC = () => {
       if (!isAuthenticated) {
         // Store the current URL as the target destination
 
-        const encodedTarget = encodeURIComponent(`${userAppUrl}/gifting/requests/r/${requestId}`);
+        const encodedTarget = encodeURIComponent(`${window.location.origin}/gifting/requests/r/${requestId}`);
         
         // Redirect to sign in with target parameter
         const signinUrl = `/auth/login?next=${encodedTarget}`;
