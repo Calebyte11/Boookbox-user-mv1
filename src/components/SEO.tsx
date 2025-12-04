@@ -44,7 +44,7 @@ const SEO = ({
   ogImage,
   ogType = "website",
   twitterCard = "summary_large_image",
-  keywords = "meal gifting, social impact, restaurants, food donations, community support",
+  keywords = "package gifting, social impact, restaurants & stores, item donations, community support",
   noIndex = false,
   structuredData,
   openGraph,

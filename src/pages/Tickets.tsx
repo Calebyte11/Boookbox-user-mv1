@@ -240,7 +240,7 @@ const RecipientTickets = () => {
 
   const emptyState: EmptyStateConfig = {
     title: "No ticket available",
-    buttonText: "Ticket to your first Meal",
+    buttonText: "Ticket to your first package",
     buttonAction: () => navigate("/gifts"),
     heroImage: ActivityHero,
   };
