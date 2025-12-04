@@ -229,7 +229,7 @@ const Gifts = () => {
     title: "It seems you're yet to gift any meal",
     buttonText: "Gift your first Meal",
     buttonAction: () => {
-      navigate("/restaurants");
+      navigate("/home");
     },
     heroImage: ActivityHero,
   }; // Dynamic title based on filter

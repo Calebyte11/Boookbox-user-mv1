@@ -7,6 +7,7 @@ import {
   Edit3,
   Trash2,
 } from "lucide-react";
+import ActivityHero from "@/assets/images/sponsorbanner.png";
 // import Button from "@/components/Button";
 import Heading from "./Heading";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -124,7 +125,7 @@ const GiftList: React.FC<GiftListProps> = ({
                   onClick={() => onItemClick?.(item)}
                 >
                   <img
-                    src={item.image}
+                    src={item.image || ActivityHero}
                     alt={`Gift item ${item.id}`}
                     className="rounded-full w-14 h-14 object-cover shadow"
                   />

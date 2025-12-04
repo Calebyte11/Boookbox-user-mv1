@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -79,6 +80,11 @@ const schema = yup.object({
 });
 
 const RecipientProfile = () => {
+
+  // =========== defining the referral urls =========
+  const userAppUrl = import.meta.env.VITE_USER_APP_URL;
+  const businessAppUrl = import.meta.env.VITE_BUSINESS_APP_URL;
+
   const { user, forceSignOut } = useAuth();
   const navigate = useNavigate();
 
@@ -129,9 +135,9 @@ const RecipientProfile = () => {
   );
 
   // ======= for normal user referral =========
-  const handleCopyReferral = async () => {
+  const handleCopyReferral = async (userAppUrl: any) => {
     if (profile?.referralCode) {
-      const referralLink = `${window.location.origin}/auth/signup?referralCode=${profile.referralCode}`;
+      const referralLink = `${userAppUrl}/auth/signup?referralCode=${profile.referralCode}`;
       const shareData = {
         title: "Join me on BoookBox!",
         text: "Sign up on BoookBox using my referral link. Let's connect and share meals!",
@@ -158,9 +164,10 @@ const RecipientProfile = () => {
   };
 
   // ========= FOR BUSINESS REFERRAL ========
-  const handleCopyBusinessReferral = async () => {
+  const handleCopyBusinessReferral = async (businessAppUrl: any) => {
     if (profile?.referralCode) {
-      const referralLink = `${window.location.origin}/auth/business-signup?referralCode=${profile.referralCode}`;
+      
+      const referralLink = `${businessAppUrl}/auth/business-signup?referralCode=${profile.referralCode}`;
       const shareData = {
         title: "Join my business on BoookBox!",
         text: "Sign up your business on BoookBox using my referral link. Let's connect and share meals!",
@@ -849,7 +856,7 @@ const RecipientProfile = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={handleCopyReferral}
+                  onClick={() => handleCopyReferral(userAppUrl)}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary-light rounded-lg hover:bg-primary-dark-light focus:outline-none cursor-pointer"
                 >
                   <Copy className="w-4 h-4" />
@@ -868,7 +875,7 @@ const RecipientProfile = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={handleCopyBusinessReferral}
+                  onClick={() => handleCopyBusinessReferral(businessAppUrl)}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary-light rounded-lg hover:bg-primary-dark-light focus:outline-none cursor-pointer"
                 >
                   <Copy className="w-4 h-4" />

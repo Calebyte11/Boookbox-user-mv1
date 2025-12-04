@@ -73,36 +73,36 @@ import SignatureBowelCard from "@/components/SignatureBowelCard";
 import { renderBadges, hasBadges } from "@/utils/badgeUtil";
 
 type BusinessCategory =
-  | "Restaurant"
-  | "Groceries"
-  | "FrozenFoods"
-  | "WineDrinks";
+  | "restaurant"
+  | "groceries"
+  | "frozen-foods"
+  | "wine-drinks";
 
 // Helper function to get the appropriate hooks based on category
 const getQueryHooks = (category: BusinessCategory) => {
   switch (category) {
-    case "Restaurant":
+    case "restaurant":
       return {
         useDetailQuery: useRestaurantDetailQuery,
         usePopularMenusQuery: usePopularMenusByRestaurantQuery,
         useReservedMenuQuery: useRestaurantReservedMenu,
         useMenusQuery: useRestaurantMenusQuery,
       };
-    case "Groceries":
+    case "groceries":
       return {
         useDetailQuery: useGroceriesDetailQuery,
         usePopularMenusQuery: usePopularProductsByGroceriesQuery,
         useReservedMenuQuery: useGroceriesReservedProduct,
         useMenusQuery: useGroceriesProductsQuery,
       };
-    case "FrozenFoods":
+    case "frozen-foods":
       return {
         useDetailQuery: useFrozenFoodsDetailQuery,
         usePopularMenusQuery: usePopularProductsByFrozenFoodsQuery,
         useReservedMenuQuery: useFrozenFoodsReservedProduct,
         useMenusQuery: useFrozenFoodsProductsQuery,
       };
-    case "WineDrinks":
+    case "wine-drinks":
       return {
         useDetailQuery: useWineDrinksDetailQuery,
         usePopularMenusQuery: usePopularProductsByWineDrinksQuery,
@@ -117,7 +117,7 @@ const getQueryHooks = (category: BusinessCategory) => {
 // Helper function to get display labels based on category
 const getCategoryLabels = (category: BusinessCategory) => {
   const labels = {
-    Restaurant: {
+    restaurant: {
       businessType: "Restaurant",
       itemsLabel: "Meals",
       searchPlaceholder: "Search",
@@ -128,7 +128,7 @@ const getCategoryLabels = (category: BusinessCategory) => {
       noPopularMessage: "No popular items available",
       noSignatureMessage: "No signature bowls available",
     },
-    Groceries: {
+    groceries: {
       businessType: "Grocery Store",
       itemsLabel: "Products",
       searchPlaceholder: "Search products",
@@ -139,7 +139,7 @@ const getCategoryLabels = (category: BusinessCategory) => {
       noPopularMessage: "No popular products available",
       noSignatureMessage: "No products available",
     },
-    FrozenFoods: {
+    "frozen-foods": {
       businessType: "Frozen Foods Store",
       itemsLabel: "Products",
       searchPlaceholder: "Search frozen foods",
@@ -150,7 +150,7 @@ const getCategoryLabels = (category: BusinessCategory) => {
       noPopularMessage: "No popular items available",
       noSignatureMessage: "No frozen foods available",
     },
-    WineDrinks: {
+    "wine-drinks": {
       businessType: "Wine & Drinks Store",
       itemsLabel: "Products",
       searchPlaceholder: "Search drinks",
@@ -257,15 +257,13 @@ const BusinessProfilePage: React.FC = () => {
     if (!cat) return "Restaurant" as BusinessCategory;
 
     const categoryMap: Record<string, BusinessCategory> = {
-      restaurant: "Restaurant",
-      groceries: "Groceries",
-      frozenfoods: "FrozenFoods",
-      "frozen-foods": "FrozenFoods",
-      frozenfood: "FrozenFoods", // handle typo
-      winedrinks: "WineDrinks",
-      "wine&drinks": "WineDrinks",
-      "wine-drinks": "WineDrinks",
-      winedrink: "WineDrinks", // handle typo
+      restaurant: "restaurant",
+      groceries: "groceries",
+      frozenfoods: "frozen-foods",
+      "frozen-foods": "frozen-foods",
+      winedrinks: "wine-drinks",
+      "wine&drinks": "wine-drinks",
+      "wine-drinks": "wine-drinks",
     };
 
     const normalized = categoryMap[cat.toLowerCase()];
@@ -335,7 +333,7 @@ const BusinessProfilePage: React.FC = () => {
 
   if (
     !normalizedCategory ||
-    !["Restaurant", "Groceries", "FrozenFoods", "WineDrinks"].includes(
+    !["restaurant", "groceries", "frozen-foods", "wine-drinks"].includes(
       normalizedCategory
     )
   ) {
@@ -393,6 +391,9 @@ const BusinessProfilePage: React.FC = () => {
   const { data: businessMenus } = queryHooks.useMenusQuery(businessId || "", {
     enabled: !!businessId,
   });
+
+  console.log("business menu" + businessMenus);
+  
 
   // Fetch popular menus
   const {
@@ -532,6 +533,8 @@ const BusinessProfilePage: React.FC = () => {
       );
     });
   })();
+
+  console.log("sjnkjdnjdbjh" + filteredItems)
 
   // Transform API business data to component format
   const businessInfo = {
@@ -773,7 +776,7 @@ const BusinessProfilePage: React.FC = () => {
             )}
           </div>
 
-          {normalizedCategory === "Restaurant" && (
+          {normalizedCategory === "restaurant" && (
             <div className="flex gap-3 w-full justify-start">
               <button className="border border-[#FFCE6D] rounded-full p-3 inline-flex md:gap-2 w-fit items-center">
                 <User className="text-[#FF7A00]" />
@@ -933,12 +936,14 @@ const BusinessProfilePage: React.FC = () => {
                           ? items.images[0]
                           : items.image || refuel
                       }
-                      handleClick={() =>
+                      handleClick={() => {
+                        console.log("item id " + items._id)
                         navigate(
-                          `/${normalizedCategory.toLowerCase()}/${businessId}/meals/${
-                            items.menuId
-                          }`
+                          normalizedCategory === "restaurant" 
+                            ? `/restaurants/${businessId}/meals/${items._id}`
+                            : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${items._id}`
                         )
+                      }
                       }
                     />
                   ))
@@ -1066,12 +1071,15 @@ const BusinessProfilePage: React.FC = () => {
                             ? items.images[0]
                             : items.image || refuel
                         }
-                        handleClick={() =>
+                        handleClick={() => {
+
+                          console.log("item is " + items._id)
                           navigate(
-                            `/${normalizedCategory.toLowerCase()}/${businessId}/meals/${
-                              items.menuId
-                            }`
-                          )
+                          normalizedCategory === "restaurant" 
+                            ? `/restaurants/${businessId}/meals/${items._id}`
+                            : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${items._id}`
+                        )
+                        }
                         }
                       />
                     )
@@ -1089,7 +1097,7 @@ const BusinessProfilePage: React.FC = () => {
         {items.length > 0 && (
           <Link
             to={
-              normalizedCategory === "Restaurant"
+              normalizedCategory === "restaurant"
                 ? `/restaurants/${businessId}/orders`
                 : `/${normalizedCategory.toLowerCase()}/${businessId}/orders`
             }

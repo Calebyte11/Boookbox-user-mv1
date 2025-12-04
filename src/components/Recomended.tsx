@@ -4,6 +4,7 @@ import { Star, AlertCircle } from "lucide-react";
 import Heading from "./Heading";
 import { Link } from "react-router-dom";
 import Pagination from "./Pagination";
+import ActivityHero from "@/assets/images/sponsorbanner.png";
 import { formatCurrency } from "@/utils/formatCurrency";
 import {
   useAllRestaurantsQuery,
@@ -528,15 +529,18 @@ const Recommended: React.FC<RecommendedType> = ({ count }) => {
               key={item.id || index}
               className="flex flex-col gap-2 shadow-sm p-2 bg-[#F8F8F8] cursor-pointer hover:shadow-md transition-shadow"
             >
-              <img
-                src={item.image}
-                alt={`${selectedCategory}-image`}
-                className="rounded-lg object-cover h-[10rem] w-full"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "";
-                }}
-              />
+              {item.image?
+                  <img
+                    src={item.image}
+                    alt={item.title || "Business"}
+                    className="rounded-lg object-cover h-[10rem] w-full"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "";
+                    }}
+                  />
+                  : <img src={ActivityHero} alt="" />
+              }
               <div className="flex flex-col gap-1 mt-2">
                 <p
                   className="capitalize font-semibold text-sm truncate"
