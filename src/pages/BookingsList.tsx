@@ -308,7 +308,7 @@ const BookingsList = () => {
         <div className="flex items-center gap-2">
           <Button
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg"
-            onClick={() => navigate("/restaurants")}
+            onClick={() => navigate("/home")}
           >
             <Calendar className="h-4 w-4" />
             New Booking
@@ -323,7 +323,7 @@ const BookingsList = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search bookings by restaurant, reason, or recipient..."
+            placeholder="Search bookings by restaurant or store, reason, or recipient..."
             value={filters.search}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
@@ -452,7 +452,7 @@ const BookingsList = () => {
               </p>
               <Button
                 className="bg-primary text-white px-6 py-3 rounded-lg"
-                onClick={() => navigate("/restaurants")}
+                onClick={() => navigate("/home")}
               >
                 Make Your First Booking
               </Button>
@@ -493,7 +493,7 @@ const BookingsList = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">
-                            {booking.restaurant?.name || booking.bookedAtRestaurant?.name || "Restaurant"}
+                            {booking.restaurant?.name || booking.bookedAtRestaurant?.name || "Store"}
                           </h3>
                           <p className="text-sm text-gray-500 flex items-center gap-1">
                             <MapPin className="h-3 w-3" />

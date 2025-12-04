@@ -72,7 +72,7 @@ const OrderPage = () => {
 
   const restaurantInfo = {
     id: currentRestaurantId || "",
-    name: restaurantData?.name || giftRequestData?.business.name || "Unknown Restaurant",
+    name: restaurantData?.name || giftRequestData?.business.name || "Unknown Store",
     address: restaurantData?.address || "Address not available",
   };
 

@@ -254,7 +254,7 @@ const BusinessProfilePage: React.FC = () => {
 
   // Validate and normalize category - default to "Restaurant" if not provided
   const normalizeCategoryName = (cat: string | null): BusinessCategory => {
-    if (!cat) return "Restaurant" as BusinessCategory;
+    if (!cat) return "restaurant" as BusinessCategory;
 
     const categoryMap: Record<string, BusinessCategory> = {
       restaurant: "restaurant",
@@ -393,7 +393,6 @@ const BusinessProfilePage: React.FC = () => {
   });
 
   console.log("business menu" + businessMenus);
-  
 
   // Fetch popular menus
   const {
@@ -534,7 +533,7 @@ const BusinessProfilePage: React.FC = () => {
     });
   })();
 
-  console.log("sjnkjdnjdbjh" + filteredItems)
+  console.log("sjnkjdnjdbjh" + filteredItems);
 
   // Transform API business data to component format
   const businessInfo = {
@@ -751,7 +750,9 @@ const BusinessProfilePage: React.FC = () => {
                 className="underline font-medium inline-flex items-center cursor-pointer"
                 onClick={() =>
                   navigate(
-                    `/${normalizedCategory.toLowerCase()}/${businessId}/ratings`
+                    normalizedCategory === "restaurant"
+                      ? `/restaurants/${businessId}/ratings`
+                      : `/${normalizedCategory.toLowerCase()}/${businessId}/ratings`
                   )
                 }
               >
@@ -937,14 +938,15 @@ const BusinessProfilePage: React.FC = () => {
                           : items.image || refuel
                       }
                       handleClick={() => {
-                        console.log("item id " + items._id)
+                        console.log("item id " + items._id);
                         navigate(
-                          normalizedCategory === "restaurant" 
+                          normalizedCategory === "restaurant"
                             ? `/restaurants/${businessId}/meals/${items._id}`
-                            : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${items._id}`
-                        )
-                      }
-                      }
+                            : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${
+                                items._id
+                              }`
+                        );
+                      }}
                     />
                   ))
                 ) : (
@@ -1072,15 +1074,15 @@ const BusinessProfilePage: React.FC = () => {
                             : items.image || refuel
                         }
                         handleClick={() => {
-
-                          console.log("item is " + items._id)
+                          console.log("item is " + items._id);
                           navigate(
-                          normalizedCategory === "restaurant" 
-                            ? `/restaurants/${businessId}/meals/${items._id}`
-                            : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${items._id}`
-                        )
-                        }
-                        }
+                            normalizedCategory === "restaurant"
+                              ? `/restaurants/${businessId}/meals/${items._id}`
+                              : `/${normalizedCategory.toLowerCase()}/${businessId}/items/${
+                                  items._id
+                                }`
+                          );
+                        }}
                       />
                     )
                   )

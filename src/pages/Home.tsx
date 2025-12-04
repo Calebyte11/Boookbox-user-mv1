@@ -65,14 +65,14 @@ const HomePage: React.FC = () => {
     <Container size="4" className="mx-3">
       <SEO
         title="Home"
-        description="order, gift, redeem meal tickets and more around the world."
-        keywords="meal gifting, food donation, social impact, restaurants, community support"
+        description="order, gift, redeem package tickets and more around the world."
+        keywords="packages gifting,  donations, social impact, restaurants and business stores, community support"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
           name: "BoookBox Home",
           description:
-            "order, gift, redeem meal tickets and more around the world.",
+            "order, gift, redeem package tickets and more around the world.",
         }}
         ogImage="/pwa-192x192.png"
       />{" "}

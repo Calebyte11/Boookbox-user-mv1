@@ -317,6 +317,28 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/groceries/:restaurantId/ratings",
+    element: (
+      <ProtectedRoute>
+        <RestaurantRatingsPage />
+      </ProtectedRoute>
+    ),
+  },{
+    path: "/frozen-foods/:restaurantId/ratings",
+    element: (
+      <ProtectedRoute>
+        <RestaurantRatingsPage />
+      </ProtectedRoute>
+    ),
+  },{
+    path: "/wine-drinks/:restaurantId/ratings",
+    element: (
+      <ProtectedRoute>
+        <RestaurantRatingsPage />
+      </ProtectedRoute>
+    ),
+  },
   // ======= for all business categories =======
   {
     path: "/restaurants/view-all",
@@ -389,7 +411,7 @@ export const routes: RouteObject[] = [
     ),
   },
   {
-    path: "/frozenfoods/:businessId/orders",
+    path: "/frozen-foods/:businessId/orders",
     element: (
       <ProtectedRoute>
         <HeaderPageLayout title="Order Page" headerType="simple">
@@ -399,7 +421,7 @@ export const routes: RouteObject[] = [
     ),
   },
   {
-    path: "/winedrinks/:businessId/orders",
+    path: "/wine-drinks/:businessId/orders",
     element: (
       <ProtectedRoute>
         <HeaderPageLayout title="Order Page" headerType="simple">

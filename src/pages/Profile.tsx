@@ -140,7 +140,7 @@ const RecipientProfile = () => {
       const referralLink = `${userAppUrl}/auth/signup?referralCode=${profile.referralCode}`;
       const shareData = {
         title: "Join me on BoookBox!",
-        text: "Sign up on BoookBox using my referral link. Let's connect and share meals!",
+        text: "Sign up on BoookBox using my referral link. Let's connect and share packages!",
         url: referralLink,
       };
 
@@ -167,10 +167,10 @@ const RecipientProfile = () => {
   const handleCopyBusinessReferral = async (businessAppUrl: any) => {
     if (profile?.referralCode) {
       
-      const referralLink = `${businessAppUrl}/auth/business-signup?referralCode=${profile.referralCode}`;
+      const referralLink = `${businessAppUrl}/signup?referralCode=${profile.referralCode}`;
       const shareData = {
         title: "Join my business on BoookBox!",
-        text: "Sign up your business on BoookBox using my referral link. Let's connect and share meals!",
+        text: "Sign up your business on BoookBox using my referral link.",
         url: referralLink,
       };
       if (navigator.share) {
@@ -516,12 +516,12 @@ const RecipientProfile = () => {
 
                 <div
                   className="rounded-xl bg-primary p-4 inline-flex gap-2 items-center text-white md:w-max w-full cursor-pointer"
-                  onClick={() => navigate("/restaurants/view-all")}
+                  onClick={() => navigate("/home")}
                 >
                   <div className="rounded-lg bg-white text-primary w-8 h-8 flex items-center p-2">
                     <Gift className="w-5 h-5" />
                   </div>
-                  <p className="">Gift a Meal Today</p>
+                  <p className="">Gift a Package Today</p>
                 </div>
               </div>
             </div>
@@ -1068,11 +1068,11 @@ const RecipientProfile = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Complete Your Profile to Claim Meals
+                    Complete Your Profile to Claim packages
                   </h3>
                   <p className="text-sm text-gray-600 mb-3">
                     Complete your profile information to unlock the ability to
-                    claim and receive meals from restaurants.
+                    claim and receive packages from restaurants or stores.
                   </p>
 
                   {/* Progress Bar */}
