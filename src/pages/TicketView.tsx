@@ -17,6 +17,7 @@ import {
   ChevronUp,
   CalendarIcon,
 } from "lucide-react";
+import ActivityHero from "@/assets/images/sponsorbanner.png";
 // Radix Dialog (theme package provides radix components/styles)
 import * as Dialog from "@radix-ui/react-dialog";
 // import chicken from "@/assets/images/chiken.png";
@@ -92,7 +93,9 @@ const TicketView = () => {
     ? ticketData.data[0]
     : ticketFromState || ticketData?.data || null; // Fetch restaurant details with proper error handling
   // No longer needed since restaurant data is now included in ticket response
-  const restaurant = ticket?.bookedForRestaurant || null;
+  const restaurant = ticket?.bookedForBusiness || null;
+  console.log(ticket);
+  
 
   // Generate QR code when ticket is available
   useEffect(() => {
@@ -335,15 +338,31 @@ const TicketView = () => {
           id="ticket-image-container"
         >
           <div className="w-full relative overflow-hidden rounded-t-lg bg-gray-100">
-            <img
-              src={ticket?.customImage || restaurant?.profileImage}
-              alt="meal package"
+            {
+              ticket.bookedForBusiness.profileImage?
+              (
+                <img
+              src={ticket?.bookedForBusiness.profileImage || restaurant?.profileImage}
+              alt="item package"
               className="w-full h-full object-contain"
               onError={(e) => {
                 e.currentTarget.src = restaurant?.profileImage || Brand;
               }}
               crossOrigin="anonymous"
             />
+              ) :
+              <img
+              src={ActivityHero}
+              alt="item package"
+              className="w-full h-[17rem] object-contain"
+              onError={(e) => {
+                e.currentTarget.src = ticket?.bookedForBusiness.profileImage || Brand;
+              }}
+              crossOrigin="anonymous"
+            />
+
+            }
+            
           </div>
           {/* QR Code Section */}
           <div className="flex justify-center items-center py-4 bg-white">
@@ -418,7 +437,7 @@ const TicketView = () => {
                   Redeem Ticket
                 </Dialog.Title>
                 <Dialog.Description className="text-sm text-gray-600 mb-4">
-                  Select your preferred date and time to redeem this ticket. The restaurant will be notified to prepare your meal.
+                  Select your preferred date and time to redeem this ticket. The store will be notified to prepare your package.
                 </Dialog.Description>
 
                 <div className="space-y-4">
@@ -512,7 +531,7 @@ const TicketView = () => {
       )}{" "}
       {/* Restaurant Information - Show restaurant details if available, otherwise show booking info */}
       <div className="m-4">
-        <h2 className="text-xl font-medium my-2">Restaurant Information</h2>
+        <h2 className="text-xl font-medium my-2">Store Information</h2>
         <div className="flex gap-2 shadow-sm bg-black/15 rounded-xl min-h-[96px]">
           <div className="h-[8rem] w-auto">
             <img
@@ -526,7 +545,7 @@ const TicketView = () => {
           </div>
           <div className="flex flex-col p-2 flex-1 gap-1">
             <h2 className="text-xl font-medium">
-              {restaurant?.name || "Restaurant"}
+              {restaurant?.name ||"Store"}
             </h2>
             <p className="text-sm text-gray-600">{restaurant?.address}</p>
             <p className="text-sm text-gray-600">
@@ -570,7 +589,7 @@ const TicketView = () => {
                 ticket.image ||
                 Brand
               }
-              alt="meal package"
+              alt="item package"
               className="md:w-[10rem] h-full object-cover rounded-l-xl flex-shrink-0 bg-gray-100"
               onError={(e) => {
                 e.currentTarget.src = Brand;
@@ -579,7 +598,7 @@ const TicketView = () => {
           </div>
           <div className="flex flex-col p-2 flex-1 gap-1">
             <h2 className="text-xl font-medium">
-              {ticket.ticketName || "Meal Ticket"}
+              {ticket.ticketName || "Package Ticket"}
             </h2>
             <p className="inline-flex gap-2 items-center text-sm text-gray-600">
               Booked by:{" "}
@@ -607,10 +626,10 @@ const TicketView = () => {
             <span className="block mb-2 italic">"{ticket.booking.reason}"</span>
           )}
           {ticket.booking?.validityDate?.stop || ticket.validityDate?.stop
-            ? `Kindly note that this meal ticket is valid until ${new Date(
+            ? `Kindly note that this ticket is valid until ${new Date(
                 ticket.booking?.validityDate?.stop || ticket.validityDate.stop
               ).toLocaleDateString()}`
-            : "Please check with the restaurant for validity information"}
+            : "Please check with the store for validity information"}
         </p>
         {/* Status information */}
         <div className="mt-4 p-3 rounded-lg bg-gray-50">

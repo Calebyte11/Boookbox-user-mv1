@@ -23,6 +23,7 @@ import {
   Share2,
   Mail,
 } from "lucide-react";
+import ActivityHero from "@/assets/images/sponsorbanner.png"
 import { BookingDetailViewSkeleton } from "@/components/SkeletonLoader";
 import IdDisplay from "@/components/IdDisplay";
 import {
@@ -440,9 +441,9 @@ const BookingDetailView: React.FC = () => {
                 <div className="flex-shrink-0 relative rounded-lg bg-gray-100 w-full">
                   <img
                     src={
-                      allMeals?.[0]?.images || // First meal image if available
-                      booking.image || // Booking-level image
-                      "" // Ultimate fallback
+                      allMeals?.[0]?.items.product.images || // First meal image if available
+                      booking.images || // Booking-level image
+                      {ActivityHero} // Ultimate fallback
                     }
                     alt={
                       allMeals?.[0]?.name || booking.reason || "Meal package"
@@ -456,9 +457,9 @@ const BookingDetailView: React.FC = () => {
                   />
 
                   {/* Image Count Badge if Multiple Images */}
-                  {allMeals?.[0]?.images?.length > 1 && (
+                  {allMeals?.[0]?.items.images?.length > 1 && (
                     <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
-                      +{Math.max(allMeals?.[0]?.images?.length || 0) - 1}
+                      +{Math.max(allMeals?.[0]?.items.images?.length || 0) - 1}
                     </div>
                   )}
                 </div>
@@ -466,7 +467,7 @@ const BookingDetailView: React.FC = () => {
               {/* Menu Items */}
               {booking.items && booking.items.length > 0 && (
                 <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Menu Items</h4>{" "}
+                  <h4 className="font-medium text-gray-900 mb-3">Items</h4>{" "}
                   <div className="space-y-2">
                     {booking.items.map((item: any, index: number) => {
                       // Handle both old and new API structure
@@ -653,7 +654,7 @@ const BookingDetailView: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Quantity</span>
                   <span className="font-medium text-sm">
-                    {booking.numberOfBookings || 1} meal(s)
+                    {booking.numberOfBookings || 1} item(s)
                   </span>
                 </div>
                 {booking.slotsTaken !== undefined && (
@@ -1051,9 +1052,9 @@ const BookingDetailView: React.FC = () => {
               isSubmitting={shareBookingMutation.isPending}
               submitLabel="Share Experience"
               title="Share Your BoookBox Experience"
-              description="Tell the community about your meal booking and spread the joy of sharing food!"
+              description="Tell the community about your booking and spread the joy of sharing packages!"
               suggestedTags={[
-                "BoookBox", "FoodSharing", "Community", "Meals", 
+                "BoookBox", "FoodSharing", "Community", "packages", 
                 restaurant?.name || "Restaurant", booking?.bookingType || "Booking",
                 "Giving", "Kindness", "FoodForAll", "Support", "Local", "Charity",
                 "GenerousEating", "ShareJoy", "FoodLove"

@@ -136,6 +136,21 @@ export interface ApiTicketResponse {
       accountType: string;
       badges: any[];
     };
+    bookedForRestaurant: {
+    _id: string;
+    name: string;
+    location: {
+      type: string;
+      coordinates: [number, number];
+    };
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    profileImage: string;
+    restaurantId: string;
+  };
     menuItems: {
       menu: {
         _id: string;
@@ -156,7 +171,7 @@ export interface ApiTicketResponse {
     isRefundableToUser: boolean;
     bookingId: string;
   };
-  bookedForRestaurant: {
+  bookedForBusiness: {
     _id: string;
     name: string;
     location: {
@@ -169,7 +184,7 @@ export interface ApiTicketResponse {
     state: string;
     country: string;
     profileImage: string;
-    restaurantId: string;
+    businessId: string;
   };
   claimedByUser?: {
     _id: string;
