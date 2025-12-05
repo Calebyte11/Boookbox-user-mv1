@@ -144,15 +144,6 @@ export const postService = {
     return response.data;
   },
 
-  // Get post by ID (legacy method - now uses public endpoint by default)
-  // getPostById: async (pid: string): Promise<Post> => {
-  //   const response = await apiClient.getPublic<Post>(API_ENDPOINTS.POSTS.GET_BY_ID(pid));
-  //   if (!response.data) {
-  //     throw new Error('Post not found');
-  //   }
-  //   return response.data;
-  // },
-
   // Share booking as post
   shareBookingAsPost: async (data: {
     bookingId: string;

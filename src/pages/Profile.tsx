@@ -82,7 +82,7 @@ const schema = yup.object({
 const RecipientProfile = () => {
 
   // =========== defining the referral urls =========
-  const userAppUrl = import.meta.env.VITE_USER_APP_URL;
+  const userAppUrl = import.meta.env.VITE_PUBLIC_APP_URL;
   const businessAppUrl = import.meta.env.VITE_BUSINESS_APP_URL;
 
   const { user, forceSignOut } = useAuth();
