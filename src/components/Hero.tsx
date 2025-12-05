@@ -5,19 +5,31 @@ import "swiper/swiper-bundle.css";
 // import slider4 from "@/assets/images/slider1.jpg"
 // import slider2 from "@/assets/images/slider2.jpg"
 // import slider3 from "@/assets/images/slider3.jpg"
-import slider1 from "@/assets/images/slider4.jpg"
-import start from "@/assets/images/start.jpg"
-import { useSpotlightImage, useSpotlightVideo } from "@/hooks/useSportlight";
+import slider1 from "@/assets/images/slider4.jpg";
+import start from "@/assets/images/start.jpg";
+import {
+  useSpotlightImageOne,
+  useSpotlightImageTwo,
+  useSpotlightImageThree,
+  useSpotlightVideoOne,
+  useSpotlightVideoTwo,
+} from "@/hooks/useSportlight";
 import { useState, useRef, useEffect } from "react";
 import { Play } from "lucide-react";
 import LoadingSpinner from "./LoadingSpinner";
 
 // Video component with loading state and audio toggle
-interface VideoWithLoadingProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
+interface VideoWithLoadingProps
+  extends React.VideoHTMLAttributes<HTMLVideoElement> {
   isActive?: boolean;
 }
 
-const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWithLoadingProps) => {
+const VideoWithLoading = ({
+  src,
+  className,
+  isActive = true,
+  ...props
+}: VideoWithLoadingProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -31,7 +43,6 @@ const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWi
       if (videoRef.current.paused) {
         videoRef.current.play();
       }
-      // console.log('🎬 Video mute toggled:', newMuted ? 'muted' : 'unmuted');
     }
   };
 
@@ -54,17 +65,17 @@ const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWi
       {/* Loading state */}
       {isLoading && !hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-lg">
-          <LoadingSpinner/>
+          <LoadingSpinner />
         </div>
       )}
-      
+
       {/* Error state */}
       {hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-800 rounded-lg">
           <span className="text-white">Video unavailable</span>
         </div>
       )}
-      
+
       {/* Central Play/Mute button */}
       {!isLoading && !hasError && (
         <button
@@ -72,16 +83,20 @@ const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWi
           className="absolute inset-0 flex items-center justify-center z-10 transition-all duration-300"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
-          {isMuted && <div className="bg-white/90 hover:bg-white p-4 rounded-full shadow-lg transition-all duration-200">
-            <Play size={32} className="text-primary ml-1" />
-          </div>}
+          {isMuted && (
+            <div className="bg-white/90 hover:bg-white p-4 rounded-full shadow-lg transition-all duration-200">
+              <Play size={32} className="text-primary ml-1" />
+            </div>
+          )}
         </button>
       )}
-      
+
       <video
         ref={videoRef}
         src={src}
-        className={`${className} ${(isLoading || hasError) ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        className={`${className} ${
+          isLoading || hasError ? "opacity-0" : "opacity-100"
+        } transition-opacity duration-300`}
         muted={isMuted}
         // controls={true}
         onLoadStart={() => {
@@ -101,12 +116,12 @@ const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWi
         }}
         onError={(e) => {
           const error = e.currentTarget.error;
-          console.error('Video failed to load:', {
+          console.error("Video failed to load:", {
             src,
-            error: error?.message || 'Unknown error',
+            error: error?.message || "Unknown error",
             code: error?.code,
             networkState: e.currentTarget.networkState,
-            readyState: e.currentTarget.readyState
+            readyState: e.currentTarget.readyState,
           });
           setIsLoading(false);
           setHasError(true);
@@ -118,20 +133,42 @@ const VideoWithLoading = ({ src, className, isActive = true, ...props }: VideoWi
 };
 
 const HeroCarousel = () => {
-  const { data: spotlightVideo, isLoading: videoLoading, error: videoError } = useSpotlightVideo();
-  const { data: spotlightImage, isLoading: imageLoading, error: imageError } = useSpotlightImage();
+  const {
+    data: spotlightVideo1,
+    isLoading: videoLoadingOne,
+    error: videoErrorOne,
+  } = useSpotlightVideoOne();
+
+  const {
+    data: spotlightVideo2,
+    isLoading: videoLoadingTwo,
+    error: videoErrorTwo,
+  } = useSpotlightVideoTwo();
+  const {
+    data: spotlightImage1,
+    isLoading: imageLoadingOne,
+    error: imageErrorOne,
+  } = useSpotlightImageOne();
+  const {
+    data: spotlightImage2,
+    isLoading: imageLoadingTwo,
+    error: imageErrorTwo,
+  } = useSpotlightImageTwo();
+  const {
+    data: spotlightImage3,
+    isLoading: imageLoadingThree,
+    error: imageErrorThree,
+  } = useSpotlightImageThree();
+
+
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   // Debug logging - can be removed in production
-  if (videoError) console.error('Video loading error:', videoError);
-  if (imageError) console.error('Image loading error:', imageError);
-  
-  // if (spotlightVideo?.url) {
-  //   // console.log('✅ Spotlight video loaded:', spotlightVideo.url);
-  // }
-  // if (spotlightImage?.url) {
-  //   console.log('✅ Spotlight image loaded:', spotlightImage.url);
-  // }
+  if (videoErrorOne) console.error("Video loading error:", videoErrorOne);
+  if (videoErrorTwo) console.error("Video loading error:", videoErrorTwo);
+  if (imageErrorOne) console.error("Image loading error:", imageErrorOne);
+  if (imageErrorTwo) console.error("Image loading error:", imageErrorTwo);
+  if (imageErrorThree) console.error("Image loading error:", imageErrorThree);
 
   // Static carousel images as fallback
   const staticCarouselImages = [
@@ -145,7 +182,7 @@ const HeroCarousel = () => {
   // Static carousel titles
   const carouselTitles = [
     "Unbox joy everywhere",
-    "Unbox joy in different places", 
+    "Unbox joy in different places",
     // "Unbox joy today",
     // "Unbox Joy Now",
     // "Bring your favourite Kitchen on BookBox"
@@ -163,54 +200,113 @@ const HeroCarousel = () => {
   // Build dynamic carousel items combining static and spotlight content
   const buildCarouselItems = () => {
     const items = [];
-    
+
     try {
-      // Add spotlight video with validation
-      if (spotlightVideo && !videoLoading && !videoError && spotlightVideo.url) {
-        if (isValidVideoUrl(spotlightVideo.url)) {
+      // Add spotlight video ONE with validation
+      if (
+        spotlightVideo1 &&
+        !videoLoadingOne &&
+        !videoErrorOne &&
+        spotlightVideo1.url
+      ) {
+        if (isValidVideoUrl(spotlightVideo1.url)) {
           items.push({
-            type: 'video' as const,
-            src: spotlightVideo.url,
+            type: "video" as const,
+            src: spotlightVideo1.url,
             title: "",
-            isSpotlight: true
+            isSpotlight: true,
           });
-        } 
-        // else {
-        //   console.warn('❌ Invalid video URL detected:', spotlightVideo.url);
-        // }
+        }
       }
-      
-      // Add spotlight image
-      if (spotlightImage && !imageLoading && !imageError && spotlightImage.url) {
+
+      // Add spotlight video TWO with validation
+      if (
+        spotlightVideo2 &&
+        !videoLoadingTwo &&
+        !videoErrorTwo &&
+        spotlightVideo2.url
+      ) {
+        if (isValidVideoUrl(spotlightVideo2.url)) {
+          items.push({
+            type: "video" as const,
+            src: spotlightVideo2.url,
+            title: "",
+            isSpotlight: true,
+          });
+        }
+      }
+    
+
+      // Add spotlight image ONE ======
+      if (
+        spotlightImage1 &&
+        !imageLoadingOne &&
+        !imageErrorOne &&
+        spotlightImage1.url
+      ) {
         items.push({
-          type: 'image' as const,
-          src: spotlightImage.url,
+          type: "image" as const,
+          src: spotlightImage1.url,
           title: "",
-          isSpotlight: true
+          isSpotlight: true,
+        });
+      }
+
+      // Add spotlight image TWO ======
+      if (
+        spotlightImage2 &&
+        !imageLoadingTwo &&
+        !imageErrorTwo &&
+        spotlightImage2.url
+      ) {
+        items.push({
+          type: "image" as const,
+          src: spotlightImage2.url,
+          title: "",
+          isSpotlight: true,
+        });
+      }
+
+      // Add spotlight image THREE ======
+      if (
+        spotlightImage3 &&
+        !imageLoadingThree &&
+        !imageErrorThree &&
+        spotlightImage3.url
+      ) {
+        items.push({
+          type: "image" as const,
+          src: spotlightImage3.url,
+          title: "",
+          isSpotlight: true,
         });
       }
     } catch (error) {
-      console.warn('Error loading spotlight content:', error);
-      // Continue with static content only
+      console.warn("Error loading spotlight content:", error);
     }
+
     
+
     // Always add static images as fallback
     staticCarouselImages.forEach((image, index) => {
-      items.push({
-        type: 'image' as const,
+      if (!spotlightImage1 && !spotlightImage2 && !spotlightImage3 && !spotlightVideo1 && !spotlightVideo2){
+        items.push({
+        type: "image" as const,
         src: image,
         title: carouselTitles[index] || "Unbox joy with BoookBox",
-        isSpotlight: false
+        isSpotlight: false,
       });
+      }
+      
     });
-    
+
     return items;
   };
 
   const carouselItems = buildCarouselItems();
 
   // Show loading state if still fetching spotlight content
-  const isLoading = videoLoading || imageLoading;
+  const isLoading = videoLoadingOne || imageLoadingOne;
 
   return (
     <div className="relative w-full z-0">
@@ -220,15 +316,11 @@ const HeroCarousel = () => {
           <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
         </div>
       )}
-      
+
       <Swiper
         modules={[Autoplay, Pagination]}
         spaceBetween={0}
         slidesPerView={1}
-        // autoplay={{
-        //   delay: 5000,
-        //   disableOnInteraction: false,
-        // }}
         pagination={{
           clickable: true,
           el: ".custom-pagination",
@@ -239,7 +331,6 @@ const HeroCarousel = () => {
         className="h-[300px] md:h-[500px] w-full"
         onSlideChange={(swiper) => {
           setActiveSlideIndex(swiper.realIndex);
-          // console.log('Slide changed to index:', swiper.realIndex);
         }}
         onSwiper={(swiper) => {
           setActiveSlideIndex(swiper.realIndex);
@@ -248,7 +339,7 @@ const HeroCarousel = () => {
         {carouselItems.map((item, index) => (
           <SwiperSlide key={`${item.type}-${index}`}>
             <div className="relative h-full w-full lg:flex lg:items-center lg:justify-center">
-              {item.type === 'video' ? (
+              {item.type === "video" ? (
                 <VideoWithLoading
                   src={item.src}
                   className="h-full w-full lg:object-fill rounded-lg"
@@ -259,19 +350,12 @@ const HeroCarousel = () => {
                   preload="metadata"
                   webkit-playsinline="true"
                   isActive={activeSlideIndex === index}
-                  // onStalled={() => console.warn('⚠️ Video stalled (network issue):', item.src)}
-                  // onSuspend={() => console.log('ℹ️ Video loading paused (normal behavior):', item.src)}
-                  // onWaiting={() => console.log('⏳ Video buffering:', item.src)}
                 />
               ) : (
                 <img
                   src={item.src}
                   alt={`Hero ${item.type} ${index + 1}`}
                   className="h-full w-full lg:object-fill rounded-lg"
-                  // onError={() => {
-                  //   console.warn('Image failed to load:', item.src);
-                  //   // Fallback is handled by keeping static images always available
-                  // }}
                 />
               )}
               <div className="absolute inset-0 lg:bg-black/20 flex items-center justify-center rounded-lg h-full p-6">

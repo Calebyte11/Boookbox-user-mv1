@@ -77,7 +77,7 @@ type DisplayReceiptData = {
 type ItemRaw = {
   _id?: string;
   id?: string;
-  menu?: { name?: string; price?: number; menuId?: string };
+  product?: { name?: string; price?: number; menuId?: string };
   item?: { name?: string; price?: number };
   mealId?: string;
   itemId?: string;
@@ -134,9 +134,9 @@ const Receipt = () => {
           recipientDetails: booking.recipientDetails || null,
           
           // Restaurant info
-          restaurantName: booking.restaurantName || booking.bookedAtRestaurant?.name || null,
-          restaurantAddress: booking.bookedAtRestaurant?.address,
-          restaurantPhone: booking.bookedAtRestaurant?.phone,
+          restaurantName: booking.bookedAtBusiness.name || booking.bookedAtBusiness?.name || null,
+          restaurantAddress: booking.bookedAtBusiness?.address,
+          restaurantPhone: booking.bookedAtBusiness?.phone,
           
           // Timing info
           deliveryDate: booking.deliveryDate || booking.validityDate?.start || null,
@@ -164,7 +164,7 @@ const Receipt = () => {
           // Map raw source items to canonical items and compute counts from mapped items
           items: (() => {
             const mapped = (sourceItems || []).map((itemRaw: ItemRaw) => {
-              const menu = itemRaw.menu || itemRaw.item || {};
+              const menu = itemRaw.product || itemRaw.item || {};
               const qty = itemRaw.quantity || itemRaw.qty || 1;
               const price = menu.price ?? itemRaw.price ?? itemRaw.pricePerUnit ?? 0;
 
@@ -405,7 +405,7 @@ const Receipt = () => {
               )}
               
               <div className="flex justify-between my-3 text-lg md:text-lg">
-                <p>Restaurant</p>
+                <p>Store</p>
                 <p className="font-mono text-sm">{restaurantName || "-"}</p>
               </div>
               
@@ -435,7 +435,7 @@ const Receipt = () => {
                 </div>
               )}
               
-              {includeUtensils !== undefined && (
+              {includeUtensils !== false && (
                 <div className="flex justify-between my-3 text-lg ">
                   <p>Include Utensils</p>
                   <p className="font-mono text-sm">{includeUtensils ? "Yes" : "No"}</p>
@@ -494,7 +494,7 @@ const Receipt = () => {
               
               <div className="flex justify-between my-3 text-lg md:text-lg">
                 <p>Items Ordered</p>
-                <p className="font-mono text-sm">{finalTotalMeals} meal(s)</p>
+                <p className="font-mono text-sm">{finalTotalMeals} item(s)</p>
               </div>
               
               {itemCount && itemCount !== finalTotalMeals && (

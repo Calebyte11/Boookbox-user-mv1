@@ -441,7 +441,7 @@ const BookingDetailView: React.FC = () => {
                 <div className="flex-shrink-0 relative rounded-lg bg-gray-100 w-full">
                   <img
                     src={
-                      allMeals?.[0]?.items.product.images || // First meal image if available
+                      allMeals?.[0]?.items[0].product.images[0] || // First meal image if available
                       booking.images || // Booking-level image
                       {ActivityHero} // Ultimate fallback
                     }

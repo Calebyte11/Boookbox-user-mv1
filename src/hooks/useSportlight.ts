@@ -1,16 +1,39 @@
 import { useQuery } from "@tanstack/react-query";
 import { spotlightService,type SpotlightAsset } from "@/services/spotlightService";
 
-// Get spotlight video
-export const useSpotlightVideo = () =>
+
+// Get spotlight videos
+export const useSpotlightVideoOne = () =>
   useQuery<SpotlightAsset | null>({
-    queryKey: ["spotlightVideo"],
-    queryFn: spotlightService.getSpotlightVideo,
+    queryKey: ["spotlightVideo1"],
+    queryFn: () => spotlightService.getSpotlightVideo(1),
   });
 
-// Get spotlight image
-export const useSpotlightImage = () =>
+
+export const useSpotlightVideoTwo = () =>
   useQuery<SpotlightAsset | null>({
-    queryKey: ["spotlightImage"],
-    queryFn: spotlightService.getSpotlightImage,
+    queryKey: ["spotlightVideo2"],
+    queryFn: () => spotlightService.getSpotlightVideo(2),
+  });
+
+
+
+// =========== Get spotlight images ========
+export const useSpotlightImageOne = () =>
+  useQuery<SpotlightAsset | null>({
+    queryKey: ["spotlightImage1"],
+    queryFn: () => spotlightService.getSpotlightImage(1),
+  });
+
+export const useSpotlightImageTwo = () =>
+  useQuery<SpotlightAsset | null>({
+    queryKey: ["spotlightImage2"],
+    queryFn: () => spotlightService.getSpotlightImage(2),
+  });
+
+
+export const useSpotlightImageThree = () =>
+  useQuery<SpotlightAsset | null>({
+    queryKey: ["spotlightImage3"],
+    queryFn: () => spotlightService.getSpotlightImage(3),
   });

@@ -3,72 +3,72 @@
 export const API_ENDPOINTS = {
   // User Authentication
   USER_AUTH: {
-    REGISTER: "/api/users/auth/register",
-    LOGIN: "/api/users/auth/login",
-    GOOGLE: "/api/users/auth/google",
-    FACEBOOK: "/api/users/auth/facebook",
-    SEND_VERIFICATION_EMAIL: "/api/users/auth/send-verf-code/email",
-    VERIFY_EMAIL: "/api/users/auth/verify-email",
-    LOGOUT: "/api/users/auth/logout",
-    PASSWORD_RESET_SEND_CODE: "/api/users/auth/password-reset/send-code",
-    PASSWORD_RESET_VERIFY_CODE: "/api/users/auth/password-reset/verify-code",
-    PASSWORD_RESET_RESET: "/api/users/auth/password-reset/reset",
+    REGISTER: "/u/auth/register",
+    LOGIN: "/u/auth/login",
+    GOOGLE: "/u/auth/google",
+    FACEBOOK: "/u/auth/facebook",
+    SEND_VERIFICATION_EMAIL: "/u/auth/send-verf-code/email",
+    VERIFY_EMAIL: "/u/auth/verify-email",
+    LOGOUT: "/u/auth/logout",
+    PASSWORD_RESET_SEND_CODE: "/u/auth/password-reset/send-code",
+    PASSWORD_RESET_VERIFY_CODE: "/u/auth/password-reset/verify-code",
+    PASSWORD_RESET_RESET: "/u/auth/password-reset/reset",
   },
 
   // User Profile
   USER_PROFILE: {
-    GET: "/api/users/profile",
-    UPDATE: "/api/users/profile/update",
+    GET: "/u/profile",
+    UPDATE: "/u/profile/update",
   },
 
   // User Search
   USER_SEARCH: {
-    SEARCH_USERS: (query: string) => `/api/users/search?q=${query}`,
+    SEARCH_USERS: (query: string) => `/u/search?q=${query}`,
   },
 
   // Bookings
   BOOKINGS: {
-    GET: "/api/users/bookings", // fetch all bookings (paginated)
-    GET_ALL: "/api/users/bookings/all", // if this exists separately
-    CREATE: "/api/users/bookings/create",
-    UPDATE: (bid: string) => `/api/users/bookings/update/${bid}`,
-    DELETE: (bid: string) => `/api/users/bookings/delete/${bid}`,
-    VIEW: (bid: string) => `/api/users/bookings/view/${bid}`,
-    CLAIM: (bid: string) => `/api/users/bookings/${bid}/claim`,
-    PAY: (bid: string) => `/api/users/bookings/pay/${bid}`,
+    GET: "/u/bookings", // fetch all bookings (paginated)
+    GET_ALL: "/u/bookings/all", // if this exists separately
+    CREATE: "/u/bookings/create",
+    UPDATE: (bid: string) => `/u/bookings/update/${bid}`,
+    DELETE: (bid: string) => `/u/bookings/delete/${bid}`,
+    VIEW: (bid: string) => `/u/bookings/view/${bid}`,
+    CLAIM: (bid: string) => `/u/bookings/${bid}/claim`,
+    PAY: (bid: string) => `/u/bookings/pay/${bid}`,
     // VERIFY_PAYMENT: (bid: string) =>
-    //   `/api/users/bookings/verify-payment/${bid}`,
+    //   `/u/bookings/verify-payment/${bid}`,
     VERIFY_PAYMENT: "/confirm-payment",
     VERIFY_PAYMENT_POST: "/confirm-payment",
-    INITIALIZE_PAYMENT: "/api/users/initialize-booking-payment",
+    INITIALIZE_PAYMENT: "/u/initialize-booking-payment",
     CONFIRM_PAYMENT: "/confirm-payment",
-    SELF: "/api/users/bookings/private/self",
-    OTHERS: "/api/users/bookings/private/others",
-    GIFTS: "/api/users/bookings/private/gifts",
-    PUBLIC: "/api/users/bookings/public",
-    NEARBY: "/api/users/bookings/nearby",
-    SEARCH: "/api/users/bookings/search", // search bookings by tag
+    SELF: "/u/bookings/private/self",
+    OTHERS: "/u/bookings/private/others",
+    GIFTS: "/u/bookings/private/gifts",
+    PUBLIC: "/u/bookings/public",
+    NEARBY: "/u/bookings/nearby",
+    SEARCH: "/u/bookings/search", // search bookings by tag
   },
   // Tickets
   TICKETS: {
-    GET_ALL: "/api/users/tickets",
-    VIEW: (tid: string) => `/api/users/tickets/view/${tid}`,
+    GET_ALL: "/u/tickets",
+    VIEW: (tid: string) => `/u/tickets/view/${tid}`,
     MESSAGES_BY_BOOKING: (bid: string) =>
-      `/api/users/tickets/messages/b/${bid}`,
-    POST_MESSAGE: (tid: string) => `/api/users/tickets/message/t/${tid}/post`,
-    POST_REACTION: (tid: string) => `/api/users/tickets/reaction/t/${tid}/post`,
-    GET_ENGAGEMENTS: (bid: string) => `/api/users/tickets/engagements/b/${bid}`,
-    NOTIFY_REDEMPTION: "/api/users/tickets/redemption/notify",
+      `/u/tickets/messages/b/${bid}`,
+    POST_MESSAGE: (tid: string) => `/u/tickets/message/t/${tid}/post`,
+    POST_REACTION: (tid: string) => `/u/tickets/reaction/t/${tid}/post`,
+    GET_ENGAGEMENTS: (bid: string) => `/u/tickets/engagements/b/${bid}`,
+    NOTIFY_REDEMPTION: "/u/tickets/redemption/notify",
   },
 
   // Notifications
   NOTIFICATIONS: {
-    GET_ALL: "/api/users/notifications",
-    MARK_READ: (nid: string) => `/api/users/notifications/${nid}/mark-read`,
-    MARK_ALL_READ: "/api/users/notifications/mark-all-read",
-    DELETE: (nid: string) => `/api/users/notifications/${nid}/delete`,
-    GET_UNREAD_COUNT: "/api/users/notifications/unread-count",
-    DELETE_ALL_NOTIFICATION: "/api/users/notifications/delete/all",
+    GET_ALL: "/u/notifications",
+    MARK_READ: (nid: string) => `/u/notifications/${nid}/mark-read`,
+    MARK_ALL_READ: "/u/notifications/mark-all-read",
+    DELETE: (nid: string) => `/u/notifications/${nid}/delete`,
+    GET_UNREAD_COUNT: "/u/notifications/unread-count",
+    DELETE_ALL_NOTIFICATION: "/u/notifications/delete/all",
   },
 
     // ======== FOR ALL BUSINESS ROUTES ======
@@ -110,7 +110,7 @@ export const API_ENDPOINTS = {
   },
 
   // User Search/Existence
-  FIND_USER: "/api/users/find",
+  FIND_USER: "/u/find",
 
   // File uploads
   FILES: {
@@ -150,16 +150,16 @@ export const API_ENDPOINTS = {
   },
   SPOTLIGHT: {
     // Get the active spotlight video (public)
-    GET_VIDEO: "/spotlight/video",
+    GET_VIDEO: (vid : number) => `/spotlight/video?id=${vid}`,
 
     // Get the active spotlight image (public)
-    GET_IMAGE: "/spotlight/image",
+    GET_IMAGE: (imid : number) => `/spotlight/image?id=${imid}`,
 
     // Update the spotlight video (admin)
-    UPDATE_VIDEO: "/files/upload/spotlight/video",
+    // UPDATE_VIDEO: "/files/upload/spotlight/video",
 
     // Update the spotlight image (admin)
-    UPDATE_IMAGE: "/files/upload/spotlight/image",
+    // UPDATE_IMAGE: "/files/upload/spotlight/image",
   },
 
   // POST

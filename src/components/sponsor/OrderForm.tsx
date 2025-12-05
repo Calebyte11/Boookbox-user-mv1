@@ -1197,10 +1197,10 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
                               register={register}
                               errors={errors}
                               placeholder={
-                                  isGiftRequest ? giftRequestData.user.accountType === "organization" 
-                                  ? giftRequestData.user.email : giftRequestData.user.email
-                                   : "Enter email address"
-                                }
+                                isGiftRequest ? giftRequestData.user.accountType === "organization" 
+                                ? giftRequestData.user.email : giftRequestData.user.email
+                                  : "Enter email address"
+                              }
                               inputClassName={isGiftRequest ? "bg-gray-100" : ""}
                               // disabled={isGiftRequest}
                             />

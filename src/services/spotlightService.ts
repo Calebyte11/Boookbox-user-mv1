@@ -14,17 +14,21 @@ export interface SpotlightAsset {
 const apiClient = new ApiClient();
 
 export const spotlightService = {
-  getSpotlightVideo: async (): Promise<SpotlightAsset | null> => {
+  getSpotlightVideo: async (
+    videoId: number
+  ): Promise<SpotlightAsset | null> => {
     const response = await apiClient.get<SpotlightAsset | null>(
-      API_ENDPOINTS.SPOTLIGHT.GET_VIDEO
+      API_ENDPOINTS.SPOTLIGHT.GET_VIDEO(videoId)
     );
     // console.log('Spotlight Video Response:', response.data);
     return  response.data || null;
   },
 
-  getSpotlightImage: async (): Promise<SpotlightAsset | null> => {
+  getSpotlightImage: async (
+    imageId: number
+  ): Promise<SpotlightAsset | null> => {
     const response = await apiClient.get<SpotlightAsset | null>(
-      API_ENDPOINTS.SPOTLIGHT.GET_IMAGE
+      API_ENDPOINTS.SPOTLIGHT.GET_IMAGE(imageId)
     );
     // console.log('Spotlight Image Response:', response.data);
     return  response.data || null;

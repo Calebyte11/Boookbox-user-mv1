@@ -504,7 +504,7 @@ const Recommended: React.FC<RecommendedType> = ({ count }) => {
                   px-3 py-1 text-[13px] font-medium transition-colors whitespace-nowrap h-full
                   ${
                     selectedCategory === category.id
-                      ? "bg-amber-50 text-gray-600 border-1 border-amber-100 rounded-t-sm rounded-b-sm"
+                      ? "bg-white-500 text-gray-600 border-1 border-gray-400 rounded-t-sm rounded-b-sm"
                       : "bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }
                 `}
