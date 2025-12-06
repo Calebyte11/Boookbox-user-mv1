@@ -42,6 +42,7 @@ const ssrRoutes = [
   /\/post\/[^\/]+/,
   /\/p\/[^\/]+/,
   /\/reel\/[^\/]+/,
+  /^\/gifting\/requests\/r\/[^\/]+/,
 ];
 
 // Serve HTML
