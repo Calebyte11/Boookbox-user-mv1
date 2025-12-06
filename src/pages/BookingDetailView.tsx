@@ -441,14 +441,14 @@ const BookingDetailView: React.FC = () => {
                 <div className="flex-shrink-0 relative rounded-lg bg-gray-100 w-full">
                   <img
                     src={
-                      allMeals?.[0]?.items[0].product.images[0] || // First meal image if available
+                      booking.items[0].product.images[0] || // First meal image if available
                       booking.images || // Booking-level image
                       {ActivityHero} // Ultimate fallback
                     }
                     alt={
                       allMeals?.[0]?.name || booking.reason || "Meal package"
                     }
-                    className="w-full h-full object-contain"
+                    className="w-full aspect-square object-contain"
                     onError={(e) => {
                       e.currentTarget.src = "";
                       e.currentTarget.onerror = null; // Prevent infinite loop
