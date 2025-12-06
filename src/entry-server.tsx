@@ -163,8 +163,6 @@
 //   return { head, html: appHtml };
 // }
 
-
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { renderToString } from "react-dom/server";
@@ -223,12 +221,14 @@ export async function render(url: string) {
 
   const isReferral =
     url.startsWith("/auth/signup") && url.includes("referralCode=");
-  
+
   // Match /post/:id, /p/:id, or /reel/:id
   const ssrMatch = url.match(/^\/(post|p|reel)\/([a-zA-Z0-9]+)$/);
-  
+
   // Match /gifting/requests/r/:id
-  const giftRequestMatch = url.match(/^\/gifting\/requests\/r\/([a-zA-Z0-9]+)$/);
+  const giftRequestMatch = url.match(
+    /^\/gifting\/requests\/r\/([a-zA-Z0-9]+)$/
+  );
 
   let meta;
   if (url.startsWith("/auth/")) {
@@ -257,33 +257,103 @@ export async function render(url: string) {
     // 🎁 Handle Gift Request SSR
     try {
       const [, requestId] = giftRequestMatch;
-      console.log("🎁 SSR: Fetching gift request for ID:", requestId);
-      
-      const giftRequestResponse = await giftRequestService.getGiftRequestByIdPublic(requestId);
-      
+      console.log("🎁 SSR: ========================================");
+      console.log("🎁 SSR: Matched gift request URL");
+      console.log("🎁 SSR: Full URL:", url);
+      console.log("🎁 SSR: Request ID:", requestId);
+      console.log("🎁 SSR: ========================================");
+
+      console.log(
+        "🎁 SSR: About to call giftRequestService.getGiftRequestByIdPublic..."
+      );
+      const giftRequestResponse =
+        await giftRequestService.getGiftRequestByIdPublic(requestId);
+
+      console.log("🎁 SSR: ========================================");
+      console.log("🎁 SSR: Got response!");
+      console.log("🎁 SSR: Response type:", typeof giftRequestResponse);
+      console.log(
+        "🎁 SSR: Response keys:",
+        Object.keys(giftRequestResponse || {})
+      );
+      console.log("🎁 SSR: Response.success:", giftRequestResponse?.success);
+      console.log("🎁 SSR: Response.data exists:", !!giftRequestResponse?.data);
+
+      if (giftRequestResponse?.data) {
+        console.log("🎁 SSR: Data._id:", giftRequestResponse.data._id);
+        console.log(
+          "🎁 SSR: Data.product.name:",
+          giftRequestResponse.data.product?.name
+        );
+        console.log(
+          "🎁 SSR: Data.business.name:",
+          giftRequestResponse.data.business?.name
+        );
+        console.log(
+          "🎁 SSR: Data.product.images:",
+          giftRequestResponse.data.product?.images
+        );
+        console.log(
+          "🎁 SSR: Data.business.profileImage:",
+          giftRequestResponse.data.business?.profileImage
+        );
+      }
+      console.log("🎁 SSR: ========================================");
+
       if (giftRequestResponse.success && giftRequestResponse.data) {
+        console.log("🎁 SSR: Validation passed! Generating meta tags...");
+
         const tags = generateSsrGiftRequestMetaTags(giftRequestResponse.data);
-        console.log("🎁 SSR: Generated gift request meta tags");
-        
+
+        console.log("🎁 SSR: ========================================");
+        console.log("🎁 SSR: Generated tags:");
+        console.log("🎁 SSR: Title:", tags.title);
+        console.log("🎁 SSR: Description:", tags.description);
+        console.log("🎁 SSR: OG Image:", tags.og.image);
+        console.log("🎁 SSR: OG URL:", tags.og.url);
+        console.log("🎁 SSR: ========================================");
+
         metaTags = `
-          <title>${tags.title}</title>
-          <meta name="description" content="${tags.description}" />
-          <meta property="og:title" content="${tags.og.title}" />
-          <meta property="og:description" content="${tags.og.description}" />
-          <meta property="og:type" content="${tags.og.type}" />
-          <meta property="og:url" content="${tags.og.url}" />
-          <meta property="og:image" content="${tags.og.image}" />
-          <meta property="og:site_name" content="${tags.og.site_name}" />
-          <meta name="twitter:card" content="${tags.twitter.card}" />
-          <meta name="twitter:title" content="${tags.twitter.title}" />
-          <meta name="twitter:description" content="${tags.twitter.description}" />
-          <meta name="twitter:image" content="${tags.twitter.image}" />
-        `;
+        <title>${tags.title}</title>
+        <meta name="description" content="${tags.description}" />
+        <meta property="og:title" content="${tags.og.title}" />
+        <meta property="og:description" content="${tags.og.description}" />
+        <meta property="og:type" content="${tags.og.type}" />
+        <meta property="og:url" content="${tags.og.url}" />
+        <meta property="og:image" content="${tags.og.image}" />
+        <meta property="og:site_name" content="${tags.og.site_name}" />
+        <meta name="twitter:card" content="${tags.twitter.card}" />
+        <meta name="twitter:title" content="${tags.twitter.title}" />
+        <meta name="twitter:description" content="${tags.twitter.description}" />
+        <meta name="twitter:image" content="${tags.twitter.image}" />
+      `;
+
+        console.log("🎁 SSR: Meta tags HTML generated successfully!");
+        console.log("🎁 SSR: Meta tags length:", metaTags.length, "characters");
       } else {
-        console.error("🎁 SSR: Failed to get valid gift request response");
+        console.error("🎁 SSR: ❌ Validation FAILED!");
+        console.error(
+          "🎁 SSR: Response.success:",
+          giftRequestResponse?.success
+        );
+        console.error("🎁 SSR: Response.data:", giftRequestResponse?.data);
+        console.error(
+          "🎁 SSR: Full response:",
+          JSON.stringify(giftRequestResponse, null, 2)
+        );
       }
     } catch (error) {
-      console.error("🎁 SSR: Failed to fetch gift request data for SSR", error);
+      console.error("🎁 SSR: ❌❌❌ EXCEPTION CAUGHT! ❌❌❌");
+      console.error("🎁 SSR: Error type:", error?.constructor?.name);
+      console.error(
+        "🎁 SSR: Error message:",
+        error instanceof Error ? error.message : "Unknown"
+      );
+      console.error(
+        "🎁 SSR: Error stack:",
+        error instanceof Error ? error.stack : "No stack"
+      );
+      console.error("🎁 SSR: Full error object:", error);
     }
   } else if (ssrMatch) {
     try {
