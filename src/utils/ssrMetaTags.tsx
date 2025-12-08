@@ -216,7 +216,7 @@ export const generateSsrMetaTags = (post: Post) => {
   const fullTitle = post.title ? `${post.title} | ${siteTitle}` : siteTitle;
   const description =
     post.message ||
-    "order, gift, redeem meal tickets and more around the world";
+    "order, gift, request and redeem package tickets and more around the world";
   const imageUrl = post.data?.resource?.customImage || post.images?.[0] || logo;
   
   const absoluteOgImage = toAbsoluteUrl(imageUrl) ?? logo;
@@ -305,7 +305,7 @@ export const generateSsrStaticMetaTags = (meta: { title: string; description: st
 
 export const generateSsrReferralMetaTags = (url: string) => {
   const title = "Join me on BoookBox!";
-  const description = "Sign up using my referral link and let's connect on BoookBox. Gift and redeem meal tickets globally.";
+  const description = "Sign up using my referral link and let's connect on BoookBox. Gift and redeem package tickets globally.";
   const imageUrl = logo || `${PUBLIC_APP_URL}/pwa-192x192.png`;
   const pageUrl = `${PUBLIC_APP_URL}${url}`;
 
@@ -334,14 +334,16 @@ export const generateSsrGiftRequestMetaTags = (giftRequest: GiftRequestDataPubli
   const siteTitle = "BoookBox";
   const productName = giftRequest.product.name;
   const businessName = giftRequest.business.name;
-  
+ const recipientName = giftRequest.user.accountType === "organization" 
+  ? giftRequest.user.organizationName 
+  : giftRequest.user.fullName;
   // Create engaging title
-  const fullTitle = `Gift Request: ${productName} from ${businessName} | ${siteTitle}`;
+  const fullTitle = `Gift Request: ${productName} for ${recipientName} from ${businessName} | ${siteTitle}`;
   
   // Create descriptive text
   const description = giftRequest.product.description
-    ? `${giftRequest.product.description} - Help fulfill this gift request from ${businessName} on BoookBox`
-    : `Help fulfill this gift request for ${productName} from ${businessName}. Gift and redeem meal tickets globally on BoookBox.`;
+    ? `${giftRequest.product.description} - Help fulfill this gift request for ${recipientName} from ${businessName} on BoookBox`
+    : `Help fulfill this gift request for ${recipientName} from ${businessName}. Gift and redeem meal tickets globally on BoookBox.`;
   
   // Get the best image (product first, then business logo)
   const imageUrl = giftRequest.product.images?.[0] || giftRequest.business.profileImage || logo;

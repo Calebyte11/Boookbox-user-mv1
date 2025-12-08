@@ -205,6 +205,12 @@ export interface GiftRequestDataPublic {
   _id: string;
   business: GiftRequestBusiness;
   product: GiftRequestProduct;
+  user: {
+    fullName: string;
+    profileImage: string;
+    accountType: string;
+    organizationName: string;
+  }
   quantity: number;
   totalAmount: number;
   currency: string;
