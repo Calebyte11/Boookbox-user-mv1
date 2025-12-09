@@ -19,6 +19,12 @@ class LocationErrorBoundary extends Component<Props, State> {
   static getDerivedStateFromError(error: Error): State {
     console.error('LocationErrorBoundary - Error caught:', error.message);
     
+    // Ignore NotFoundError from DOM manipulation (removeChild issues)
+    if (error.name === 'NotFoundError' && error.message.includes('removeChild')) {
+      console.warn('DOM cleanup error (removeChild) - ignoring and continuing:', error.message);
+      return { hasError: false };
+    }
+    
     // Only catch actual location-related errors, not all JavaScript errors
     const isLocationError = error.message.includes('location') || 
                            error.message.includes('GPS') || 

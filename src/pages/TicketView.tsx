@@ -161,8 +161,18 @@ const TicketView = () => {
         }
         input.select();
         document.execCommand("copy");
-        if (input.parentNode === document.body) {
-          document.body.removeChild(input);
+        
+        // Use try-catch for safe removal with fallback to element.remove()
+        try {
+          if (input.parentNode === document.body) {
+            document.body.removeChild(input);
+          } else if (input.remove) {
+            input.remove();
+          }
+        } catch (error) {
+          console.warn('Error removing input element:', error);
+          // Attempt safer removal method
+          if (input.remove) input.remove();
         }
       }
       toast({

@@ -213,8 +213,14 @@ export const captureAndViewTicket = async (
               document.body.appendChild(link);
             }
             link.click();
-            if (link.parentNode === document.body) {
-              document.body.removeChild(link);
+            try {
+              if (link.parentNode === document.body) {
+                document.body.removeChild(link);
+              } else if (link.remove) {
+                link.remove();
+              }
+            } catch (error) {
+              console.warn('Error removing download link:', error);
             }
           }
         </script>
@@ -286,8 +292,18 @@ export const captureAndDownloadTicket = async (
         document.body.appendChild(link);
       }
       link.click();
-      if (link.parentNode === document.body) {
-        document.body.removeChild(link);
+      
+      // Use try-catch for safe removal with fallback to element.remove()
+      try {
+        if (link.parentNode === document.body) {
+          document.body.removeChild(link);
+        } else if (link.remove) {
+          link.remove();
+        }
+      } catch (error) {
+        console.warn('Error removing download link:', error);
+        // Attempt safer removal method
+        if (link.remove) link.remove();
       }
     } finally {
       // Always clean up the CSS changes

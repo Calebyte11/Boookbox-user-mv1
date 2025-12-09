@@ -308,6 +308,10 @@ const HeroCarousel = () => {
   // Show loading state if still fetching spotlight content
   const isLoading = videoLoadingOne || imageLoadingOne;
 
+  // Swiper loop should only be enabled if there are enough slides (at least 2)
+  // Swiper requires at least 2 slides for loop mode to work properly
+  const shouldEnableLoop = carouselItems.length >= 2;
+
   return (
     <div className="relative w-full z-0">
       {/* Show loading indicator if needed */}
@@ -327,7 +331,7 @@ const HeroCarousel = () => {
           bulletClass: "swiper-pagination-bullet !bg-gray-300 !opacity-100 ",
           bulletActiveClass: "!bg-primary !w-3 !h-3",
         }}
-        loop={true}
+        loop={shouldEnableLoop}
         className="h-[300px] md:h-[500px] w-full"
         onSlideChange={(swiper) => {
           setActiveSlideIndex(swiper.realIndex);

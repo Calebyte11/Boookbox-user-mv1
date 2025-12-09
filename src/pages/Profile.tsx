@@ -217,8 +217,18 @@ const RecipientProfile = () => {
         } catch (fallbackErr) {
           console.error("Fallback copy failed:", fallbackErr);
         }
-        if (textArea.parentNode === document.body) {
-          document.body.removeChild(textArea);
+        
+        // Use try-catch for safe removal with fallback to element.remove()
+        try {
+          if (textArea.parentNode === document.body) {
+            document.body.removeChild(textArea);
+          } else if (textArea.remove) {
+            textArea.remove();
+          }
+        } catch (error) {
+          console.warn('Error removing textarea element:', error);
+          // Attempt safer removal method
+          if (textArea.remove) textArea.remove();
         }
       }
     }

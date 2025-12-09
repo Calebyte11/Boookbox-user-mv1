@@ -46,7 +46,7 @@ function App() {
   useScrollToTop("root", ["/home"]);
   
   React.useEffect(() => {
-    // Add global error handler for notification-related errors
+    // Add global error handler for notification-related errors and DOM cleanup errors
     const handleGlobalError = (event: ErrorEvent) => {
       if (
         event.message.includes("Notification") ||
@@ -54,6 +54,19 @@ function App() {
       ) {
         console.warn(
           "Notification-related error caught and ignored:",
+          event.message
+        );
+        event.preventDefault();
+        return false;
+      }
+
+      // Ignore DOM cleanup errors (removeChild issues from React Strict Mode or concurrent rendering)
+      if (
+        event.message.includes("removeChild") &&
+        event.message.includes("NotFoundError")
+      ) {
+        console.warn(
+          "DOM cleanup error (removeChild) caught and ignored:",
           event.message
         );
         event.preventDefault();
