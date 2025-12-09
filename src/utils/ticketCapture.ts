@@ -209,9 +209,13 @@ export const captureAndViewTicket = async (
             const link = document.createElement('a');
             link.href = '${imageUrl}';
             link.download = '${filename || "meal-ticket"}.png';
-            document.body.appendChild(link);
+            if (link.parentNode !== document.body) {
+              document.body.appendChild(link);
+            }
             link.click();
-            document.body.removeChild(link);
+            if (link.parentNode === document.body) {
+              document.body.removeChild(link);
+            }
           }
         </script>
           </body>
@@ -278,9 +282,13 @@ export const captureAndDownloadTicket = async (
       link.href = canvas.toDataURL("image/png");
 
       // Trigger download
-      document.body.appendChild(link);
+      if (link.parentNode !== document.body) {
+        document.body.appendChild(link);
+      }
       link.click();
-      document.body.removeChild(link);
+      if (link.parentNode === document.body) {
+        document.body.removeChild(link);
+      }
     } finally {
       // Always clean up the CSS changes
       cleanup();

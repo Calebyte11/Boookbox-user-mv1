@@ -206,7 +206,9 @@ const RecipientProfile = () => {
         textArea.value = profile.referralCode;
         textArea.style.position = "fixed";
         textArea.style.left = "-999999px";
-        document.body.appendChild(textArea);
+        if (textArea.parentNode !== document.body) {
+          document.body.appendChild(textArea);
+        }
         textArea.select();
         try {
           document.execCommand("copy");
@@ -215,7 +217,9 @@ const RecipientProfile = () => {
         } catch (fallbackErr) {
           console.error("Fallback copy failed:", fallbackErr);
         }
-        document.body.removeChild(textArea);
+        if (textArea.parentNode === document.body) {
+          document.body.removeChild(textArea);
+        }
       }
     }
   };

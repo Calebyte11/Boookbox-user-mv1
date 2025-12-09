@@ -156,10 +156,14 @@ const TicketView = () => {
         // Fallback for insecure context
         const input = document.createElement("input");
         input.value = ticket.ticketId;
-        document.body.appendChild(input);
+        if (input.parentNode !== document.body) {
+          document.body.appendChild(input);
+        }
         input.select();
         document.execCommand("copy");
-        document.body.removeChild(input);
+        if (input.parentNode === document.body) {
+          document.body.removeChild(input);
+        }
       }
       toast({
         title: "Copied!",

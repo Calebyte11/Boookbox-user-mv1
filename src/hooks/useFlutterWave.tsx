@@ -115,12 +115,16 @@ export const useFlutterWave = (
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup function
+      // Cleanup function - safely remove the script
       const scriptToRemove = document.querySelector(
         'script[src="https://checkout.flutterwave.com/v3.js"]'
       );
       if (scriptToRemove && scriptToRemove.parentNode) {
-        scriptToRemove.parentNode.removeChild(scriptToRemove);
+        try {
+          scriptToRemove.parentNode.removeChild(scriptToRemove);
+        } catch (error) {
+          console.error("Error removing Flutterwave script:", error);
+        }
       }
     };
   }, []);
