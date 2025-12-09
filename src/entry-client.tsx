@@ -9,7 +9,7 @@ import { queryClient } from "@/services/queryClient";
 
 ReactDOM.hydrateRoot(
   document.getElementById('root') as HTMLElement,
-  <React.StrictMode>
+  // <React.StrictMode>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
@@ -17,5 +17,5 @@ ReactDOM.hydrateRoot(
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

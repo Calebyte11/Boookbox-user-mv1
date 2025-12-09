@@ -33,6 +33,7 @@ export interface OrderFormValues {
   reason: string;
   bookingType: string;
   redemptionMode: string;
+  numberOfBookings: string;
   includeUtensils: boolean;
   deliveryType?: string;
   recipientName?: string;
