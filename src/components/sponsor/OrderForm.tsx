@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 // import { useRef, useState, useEffect } from "react";
 // import {
@@ -2247,7 +2248,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
 
     if (bookingTypeWatched === "public") {
       // For public: cart total * number of bookings
-      return cartTotal * numBookings;
+      return cartTotal * numBookings * numRecipients;
     } else if (bookingTypeWatched === "others") {
       if (deliveryTypeWatched === "multiple") {
         // For multiple recipients: cart total * number of recipients * number of bookings
@@ -4123,6 +4124,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
                   ? "Fulfill Gift Request"
                   : "Proceed to Checkout"
               }
+              price={`₦${calculateTotalAmount().toLocaleString()}`}
               textClassName="text-center"
               isValid={!updateBookingMutation.isPending && !isLoadingBooking}
               onClick={!errors && handleBookingSubmit}
