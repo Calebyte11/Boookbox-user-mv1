@@ -32,26 +32,39 @@ class LocationErrorBoundary extends Component<Props, State> {
     
     // For non-location errors, don't trigger the error boundary
     console.log('Non-location error, allowing normal error handling');
-    throw error; // Re-throw non-location errors
+    // throw error; // Re-throw non-location errors
+    return null;
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Location Error Boundary caught an error:', error, errorInfo);
+  // componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  //   console.error('Location Error Boundary caught an error:', error, errorInfo);
     
-    // Log specific location-related errors
-    if (error.message.includes('location') || error.message.includes('GPS') || error.message.includes('geolocation')) {
-      console.error('Location service error detected:', error.message);
-    }
+  //   // Log specific location-related errors
+  //   if (error.message.includes('location') || error.message.includes('GPS') || error.message.includes('geolocation')) {
+  //     console.error('Location service error detected:', error.message);
+  //   }
     
-    // Don't let the error boundary trigger for minor location issues that can be recovered
-    if (error.message.includes('timeout') || 
-        error.message.includes('Network request failed') ||
-        error.message.includes('fetching location') ||
-        error.message.includes('User denied') ||
-        'code' in error && (error as { code: number }).code === 1) { // PERMISSION_DENIED
-      // Reset error state to allow app to continue
-      console.log('Recoverable location error, allowing app to continue');
-      this.setState({ hasError: false });
+  //   // Don't let the error boundary trigger for minor location issues that can be recovered
+  //   if (error.message.includes('timeout') || 
+  //       error.message.includes('Network request failed') ||
+  //       error.message.includes('fetching location') ||
+  //       error.message.includes('User denied') ||
+  //       'code' in error && (error as { code: number }).code === 1) { // PERMISSION_DENIED
+  //     // Reset error state to allow app to continue
+  //     console.log('Recoverable location error, allowing app to continue');
+  //     this.setState({ hasError: false });
+  //   }
+  // }
+
+  componentDidCatch(error: Error) {
+    const isLocationError =
+      error.message.includes('location') ||
+      error.message.includes('GPS') ||
+      error.message.includes('geolocation');
+  
+    if (!isLocationError) {
+      // Re-throw AFTER commit so React can handle it safely
+      throw error;
     }
   }
 
