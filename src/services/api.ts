@@ -3,8 +3,8 @@ export async function fetcher<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-  // const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ""; ====== THE orignal ======
-  const baseUrl = "https://boookbox-backend-cpvu.onrender.com"; // ====== for development ======
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  // const baseUrl = "https://boookbox-backend-cpvu.onrender.com"; // ====== for development ======
 
   const response = await fetch(`${baseUrl}${url}`, {
     headers: { "Content-Type": "application/json" },

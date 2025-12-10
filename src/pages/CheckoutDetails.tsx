@@ -1089,7 +1089,8 @@ const CheckoutDetails = () => {
         <div className="flex flex-col mx-4 gap-2">
           <h3 className="text-black text-lg capitalize inline-flex gap-2 items-center justify-between">
             <span>
-              Subtotal (
+              Subtotal 
+              {/* (
               {urlBookingId && bookingData
                 ? (() => {
                     const booking = Array.isArray(bookingData)
@@ -1112,7 +1113,7 @@ const CheckoutDetails = () => {
               {numberOfRecipients && numberOfRecipients > 1
                 ? ` × ${numberOfRecipients} recipients`
                 : ""}
-              ):
+              ): */}
             </span>
             <span>{formatCurrency(subtotal, restaurantCurrency)}</span>
           </h3>

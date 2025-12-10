@@ -10,10 +10,10 @@ import { generateTicketQRCodeWithLogo } from "@/utils/qrCode";
 
 
 // ======= FOR PROCUTION ====== Base URL for API calls=======
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ======= FOR DEVELOPMENT ====== Base URL for API calls=======
-const API_BASE_URL = "https://boookbox-backend-cpvu.onrender.com";
+// const API_BASE_URL = "https://boookbox-backend-cpvu.onrender.com";
 
 // --- Type Definitions ---
 export type RegisterBody = {
