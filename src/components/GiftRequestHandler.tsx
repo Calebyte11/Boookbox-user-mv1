@@ -191,8 +191,8 @@ const GiftRequestHandler: React.FC = () => {
       });
 
       // NOW validate the status (we have it from the authenticated endpoint)
-      if (fullGiftRequest.status !== "pending") {
-        console.warn("⚠️ Gift request is not pending:", fullGiftRequest.status);
+      if (fullGiftRequest.status !== "open") {
+        console.warn("⚠️ Gift request is not OPEN:", fullGiftRequest.status);
         console.groupEnd();
         
         toast({

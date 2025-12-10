@@ -2227,8 +2227,9 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
     bookingTypeWatched !== "public" &&
     (bookingTypeWatched === "yourself" ||
       bookingTypeWatched === "others" ||
-      bookingTypeWatched === "date") &&
-    items.reduce((total, item) => total + item.quantity, 0) > 1;
+      bookingTypeWatched === "date") && 
+    (numberOfBookingsWatched !== "1" && numberOfBookingsWatched !== "0");
+    // items.reduce((total, item) => total + item.quantity, 0) > 1;
 
   const showAutoGenerateTicket = bookingTypeWatched !== "public";
 
@@ -2450,383 +2451,376 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
 
 
   // ============================ Handle form submission and create/update booking
-  const handleBookingSubmit = async (data: any) => {
-    console.log("🎁 Gift Request Data:", giftRequestData);
-    console.log("✅ Is Gift Request:", isGiftRequest);
+  // Replace your handleBookingSubmit function with this corrected version:
 
-    try {
-      if (items.length === 0) {
+const handleBookingSubmit = async (data: any) => {
+  console.log("🎁 Gift Request Data:", giftRequestData);
+  console.log("✅ Is Gift Request:", isGiftRequest);
+
+  try {
+    if (items.length === 0) {
+      toast({
+        title: "No items in cart",
+        description:
+          "Please add at least one item to your cart before proceeding.",
+        variant: "error",
+        duration: 1000,
+      });
+      return;
+    }
+
+    let uploadedImageUrl = "";
+
+    // Upload image if one is selected
+    if (uploadedTicketDesign?.file && !uploadedTicketDesign.url) {
+      try {
+        setUploadedTicketDesign((prev) =>
+          prev ? { ...prev, isUploading: true } : null
+        );
+
+        const uploadResult = await new Promise<ImageUploadResponse>(
+          (resolve, reject) => {
+            uploadImage(
+              { file: uploadedTicketDesign.file },
+              {
+                onSuccess: (result: ImageUploadResponse) => {
+                  resolve(result);
+                },
+                onError: (error: Error) => {
+                  reject(error);
+                },
+              }
+            );
+          }
+        );
+
+        if (!uploadResult || !uploadResult.url) {
+          throw new Error("Upload result is invalid.");
+        }
+
+        uploadedImageUrl = uploadResult.url;
+
+        setUploadedTicketDesign((prev) =>
+          prev
+            ? {
+                ...prev,
+                url: uploadedImageUrl,
+                isUploading: false,
+              }
+            : null
+        );
+      } catch (uploadError) {
+        console.error("Image upload failed:", uploadError);
+        setUploadedTicketDesign((prev) =>
+          prev ? { ...prev, isUploading: false } : null
+        );
+
+        const errorMessage =
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Unknown error";
+
         toast({
-          title: "No items in cart",
-          description:
-            "Please add at least one item to your cart before proceeding.",
+          title: "Image Upload Failed",
+          description: `Your custom ticket design could not be uploaded. Reason: ${errorMessage}. Please try again or proceed without it.`,
           variant: "error",
-          duration: 1000,
+          duration: 5000,
         });
+
         return;
       }
-
-      let uploadedImageUrl = "";
-
-      // Upload image if one is selected
-      if (uploadedTicketDesign?.file && !uploadedTicketDesign.url) {
-        try {
-          setUploadedTicketDesign((prev) =>
-            prev ? { ...prev, isUploading: true } : null
-          );
-
-          const uploadResult = await new Promise<ImageUploadResponse>(
-            (resolve, reject) => {
-              uploadImage(
-                { file: uploadedTicketDesign.file },
-                {
-                  onSuccess: (result: ImageUploadResponse) => {
-                    resolve(result);
-                  },
-                  onError: (error: Error) => {
-                    reject(error);
-                  },
-                }
-              );
-            }
-          );
-
-          if (!uploadResult || !uploadResult.url) {
-            throw new Error("Upload result is invalid.");
-          }
-
-          uploadedImageUrl = uploadResult.url;
-
-          setUploadedTicketDesign((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  url: uploadedImageUrl,
-                  isUploading: false,
-                }
-              : null
-          );
-        } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-          setUploadedTicketDesign((prev) =>
-            prev ? { ...prev, isUploading: false } : null
-          );
-
-          const errorMessage =
-            uploadError instanceof Error
-              ? uploadError.message
-              : "Unknown error";
-
-          toast({
-            title: "Image Upload Failed",
-            description: `Your custom ticket design could not be uploaded. Reason: ${errorMessage}. Please try again or proceed without it.`,
-            variant: "error",
-            duration: 5000,
-          });
-
-          return;
-        }
-      } else if (uploadedTicketDesign?.url) {
-        uploadedImageUrl = uploadedTicketDesign.url;
-      }
-
-      // Calculate the real number of bookings to send to backend
-      const realNumberOfBookings = calculateRealNumberOfBookings();
-
-      if (isEditMode && editBookingId) {
-        // Update existing booking logic remains similar but uses new calculations
-        const updatePayload = {
-          menuItems: items.map((item) => ({
-            menuId: item.mealId,
-            quantity: item.quantity,
-          })),
-          reason: data.reason || "Booking",
-          bookingType:
-            data.bookingType === "yourself"
-              ? "self"
-              : data.bookingType === "public"
-              ? "public"
-              : "others",
-          bookedFor:
-            data.bookingType === "yourself"
-              ? { type: "self" }
-              : data.bookingType === "public"
-              ? { type: "public" }
-              : {
-                  type: "contact",
-                  contact:
-                    data.deliveryType === "single"
-                      ? [
-                          {
-                            name:
-                              isGiftRequest && giftRequestData
-                                ? giftRequestData.user.accountType ===
-                                  "organization"
-                                  ? giftRequestData.user.organizationName
-                                  : giftRequestData.user.fullName
-                                : data.recipientName || "",
-                            email:
-                              isGiftRequest && giftRequestData
-                                ? giftRequestData.user.email
-                                : data.recipientEmail || "",
-                            phoneNumber:
-                              isGiftRequest && giftRequestData
-                                ? giftRequestData.user.phoneNumber
-                                : data.recipientPhone || "",
-                            remark: data.recipientRemark || "",
-                          },
-                        ]
-                      : (data.multipleRecipients || []).map(
-                          (recipient: any) => ({
-                            name: recipient.name || "",
-                            email: recipient.email || "",
-                            phoneNumber: recipient.phone || "",
-                            remark: recipient.remark || "",
-                          })
-                        ),
-                },
-          restaurantId: restaurantId,
-          numberOfBookings: realNumberOfBookings,
-          validityDate: data.redemptionDate
-            ? {
-                start: new Date(data.redemptionDate).toISOString(),
-                stop: new Date(
-                  new Date(data.redemptionDate).getTime() +
-                    7 * 24 * 60 * 60 * 1000
-                ).toISOString(),
-              }
-            : {
-                start: new Date(
-                  Date.now() + 7 * 24 * 60 * 60 * 1000
-                ).toISOString(),
-                stop: new Date(
-                  Date.now() + 14 * 24 * 60 * 60 * 1000
-                ).toISOString(),
-              },
-          image: items[0]?.mealImage || "",
-          ...(data.bookingType === "public" && {
-            tags: data.publicTags
-              ? data.publicTags
-                  .split(",")
-                  .map((tag: string) => tag.trim().replace(/^#/, ""))
-                  .filter((tag: string) => tag)
-              : [],
-          }),
-        };
-
-        await updateBookingMutation.mutateAsync(updatePayload);
-        toast({
-          title: "Booking updated successfully!",
-          description: "Your booking has been updated.",
-          variant: "success",
-        });
-
-        navigate(`/booking/${editBookingId}`);
-      } else {
-        // Continue to Part 8 for new booking creation...
-        // This is the continuation of handleBookingSubmit for new booking creation
-        // Insert this in the else block after edit mode handling in Part 7
-
-        const createNewBooking = async (
-          data: any,
-          uploadedImageUrl: string
-        ) => {
-          const realNumberOfBookings = calculateRealNumberOfBookings();
-
-          const bookingPayload = {
-            menuItems: items.map((item) => ({
-              menuId: item.mealId,
-              quantity: item.quantity,
-              instructions: item.userInstruction || "",
-            })),
-            reason:
-              data.reason ||
-              `${data.redemptionMode} order${
-                data.includeUtensils ? " with utensils" : ""
-              }`,
-            redemptionMode: data.redemptionMode,
-            includeUtensils: data.includeUtensils,
-            deliveryType: data.deliveryType,
-            bookingType:
-              data.bookingType === "yourself"
-                ? "self"
-                : data.bookingType === "public"
-                ? "public"
-                : "others",
-            bookedFor:
-              data.bookingType === "yourself"
-                ? { type: "self" }
-                : data.bookingType === "public"
-                ? { type: "public" }
-                : {
-                    type: "contact",
-                    contact:
-                      data.deliveryType === "single"
-                        ? [
-                            {
-                              name:
-                                isGiftRequest && giftRequestData
-                                  ? giftRequestData.user.accountType ===
-                                    "organization"
-                                    ? giftRequestData.user.organizationName
-                                    : giftRequestData.user.fullName
-                                  : data.recipientName || "",
-                              phone:
-                                isGiftRequest && giftRequestData
-                                  ? giftRequestData.user.phoneNumber
-                                  : data.recipientPhone || "",
-                              email:
-                                isGiftRequest && giftRequestData
-                                  ? giftRequestData.user.email
-                                  : data.recipientEmail || "",
-                              message: data.reason || "",
-                            },
-                          ]
-                        : (data.multipleRecipients || []).map(
-                            (recipient: any) => ({
-                              name: recipient.name || "",
-                              email: recipient.email || "",
-                              phoneNumber: recipient.phone || "",
-                              remark: recipient.remark || "",
-                            })
-                          ),
-                  },
-            restaurantId: restaurantId,
-            numberOfBookings: realNumberOfBookings,
-            validityDate: data.redemptionDate
-              ? {
-                  start: new Date(data.redemptionDate).toISOString(),
-                  stop: new Date(
-                    new Date(data.redemptionDate).getTime() +
-                      7 * 24 * 60 * 60 * 1000
-                  ).toISOString(),
-                }
-              : {
-                  start: new Date(
-                    Date.now() + 7 * 24 * 60 * 60 * 1000
-                  ).toISOString(),
-                  stop: new Date(
-                    Date.now() + 14 * 24 * 60 * 60 * 1000
-                  ).toISOString(),
-                },
-            image: items[0]?.mealImage || "",
-            ...(data.bookingType === "public" && {
-              tags: data.publicTags
-                ? data.publicTags
-                    .split(",")
-                    .map((tag: string) =>
-                      tag.trim().replace(/^#/, "").toLowerCase()
-                    )
-                    .filter((tag: string) => tag)
-                : [],
-            }),
-            customImage: uploadedImageUrl || "",
-            supportsMultipleClaims: data.supportsMultipleClaims || false,
-            autoGenerateTicket: data.autoGenerateTicket || false,
-            ...(isGiftRequest &&
-              giftRequestData && {
-                giftRequestId: giftRequestData._id,
-                isGiftRequestFulfillment: true,
-                giftRequestDetails: {
-                  requesterId: giftRequestData.user._id,
-                  requesterName: giftRequestData.user.fullName,
-                  requesterEmail: giftRequestData.user.email,
-                  originalQuantity: giftRequestData.quantity,
-                  originalAmount: giftRequestData.totalAmount,
-                },
-              }),
-          };
-
-          setBookingPayload(bookingPayload);
-          console.log("Booking payload is " + bookingPayload);
-
-          const recipientDetails =
-            data.bookingType === "yourself"
-              ? null
-              : data.bookingType === "public"
-              ? null
-              : data.deliveryType === "single"
-              ? {
-                  name:
-                    isGiftRequest && giftRequestData
-                      ? giftRequestData.user.accountType === "organization"
-                        ? giftRequestData.user.organizationName
-                        : giftRequestData.user.fullName
-                      : data.recipientName || "",
-                  phone:
-                    isGiftRequest && giftRequestData
-                      ? giftRequestData.user.phoneNumber
-                      : data.recipientPhone || "",
-                  email:
-                    isGiftRequest && giftRequestData
-                      ? giftRequestData.user.email
-                      : data.recipientEmail || "",
-                  message: data.reason || "",
-                }
-              : {
-                  name: `${data.numberOfRecipients} recipients`,
-                  phone: "Multiple phone numbers",
-                  email: "Multiple email addresses",
-                  message: `Booking for ${data.numberOfRecipients} recipients`,
-                };
-
-          updateBookingDetails({
-            bookingType: data.bookingType,
-            numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
-            recipientDetails,
-            deliveryDate: data.redemptionDate
-              ? new Date(data.redemptionDate).toISOString()
-              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            deliveryTime: null,
-            specialInstructions: data.reason || "",
-            isGift:
-              data.bookingType !== "yourself" && data.bookingType !== "public",
-            paymentMethod: "",
-            restaurantId,
-            restaurantName:
-              restaurantData?.name || items[0]?.restaurantName || "",
-            location:
-              restaurantData?.address ||
-              (typeof restaurantData?.location === "string"
-                ? restaurantData.location
-                : restaurantData?.location
-                ? `${restaurantData.location.coordinates[1]},${restaurantData.location.coordinates[0]}`
-                : ""),
-          });
-
-          onSubmit(data);
-
-          if (isGiftRequest) {
-            sessionStorage.removeItem("giftRequestData");
-          }
-
-          navigate("/checkout");
-
-          if (uploadedTicketDesign?.preview) {
-            URL.revokeObjectURL(uploadedTicketDesign.preview);
-          }
-          setUploadedTicketDesign(null);
-        };
-      }
-    } catch (error: unknown) {
-      console.error(
-        isEditMode ? "Booking update failed:" : "Booking failed:",
-        error
-      );
-      setUploadedTicketDesign((prev) =>
-        prev ? { ...prev, isUploading: false } : null
-      );
-
-      toast({
-        title: isEditMode ? "Update failed" : "Booking failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-        variant: "error",
-      });
+    } else if (uploadedTicketDesign?.url) {
+      uploadedImageUrl = uploadedTicketDesign.url;
     }
-  };
+
+    // Calculate the real number of bookings to send to backend
+    const realNumberOfBookings = calculateRealNumberOfBookings();
+
+    if (isEditMode && editBookingId) {
+      // Update existing booking logic
+      const updatePayload = {
+        menuItems: items.map((item) => ({
+          menuId: item.mealId,
+          quantity: item.quantity,
+        })),
+        reason: data.reason || "Booking",
+        bookingType:
+          data.bookingType === "yourself"
+            ? "self"
+            : data.bookingType === "public"
+            ? "public"
+            : "others",
+        bookedFor:
+          data.bookingType === "yourself"
+            ? { type: "self" }
+            : data.bookingType === "public"
+            ? { type: "public" }
+            : {
+                type: "contact",
+                contact:
+                  data.deliveryType === "single"
+                    ? [
+                        {
+                          name:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.accountType ===
+                                "organization"
+                                ? giftRequestData.user.organizationName
+                                : giftRequestData.user.fullName
+                              : data.recipientName || "",
+                          email:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.email
+                              : data.recipientEmail || "",
+                          phoneNumber:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.phoneNumber
+                              : data.recipientPhone || "",
+                          remark: data.recipientRemark || "",
+                        },
+                      ]
+                    : (data.multipleRecipients || []).map(
+                        (recipient: any) => ({
+                          name: recipient.name || "",
+                          email: recipient.email || "",
+                          phoneNumber: recipient.phone || "",
+                          remark: recipient.remark || "",
+                        })
+                      ),
+              },
+        restaurantId: restaurantId,
+        numberOfBookings: realNumberOfBookings,
+        validityDate: data.redemptionDate
+          ? {
+              start: new Date(data.redemptionDate).toISOString(),
+              stop: new Date(
+                new Date(data.redemptionDate).getTime() +
+                  7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }
+          : {
+              start: new Date(
+                Date.now() + 7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              stop: new Date(
+                Date.now() + 14 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+        image: items[0]?.mealImage || "",
+        ...(data.bookingType === "public" && {
+          tags: data.publicTags
+            ? data.publicTags
+                .split(",")
+                .map((tag: string) => tag.trim().replace(/^#/, ""))
+                .filter((tag: string) => tag)
+            : [],
+        }),
+      };
+
+      await updateBookingMutation.mutateAsync(updatePayload);
+      toast({
+        title: "Booking updated successfully!",
+        description: "Your booking has been updated.",
+        variant: "success",
+      });
+
+      navigate(`/booking/${editBookingId}`);
+    } else {
+      // NEW BOOKING CREATION - This was missing the actual execution
+      const bookingPayload = {
+        menuItems: items.map((item) => ({
+          menuId: item.mealId,
+          quantity: item.quantity,
+          instructions: item.userInstruction || "",
+        })),
+        reason:
+          data.reason ||
+          `${data.redemptionMode} order${
+            data.includeUtensils ? " with utensils" : ""
+          }`,
+        redemptionMode: data.redemptionMode,
+        includeUtensils: data.includeUtensils,
+        deliveryType: data.deliveryType,
+        bookingType:
+          data.bookingType === "yourself"
+            ? "self"
+            : data.bookingType === "public"
+            ? "public"
+            : "others",
+        bookedFor:
+          data.bookingType === "yourself"
+            ? { type: "self" }
+            : data.bookingType === "public"
+            ? { type: "public" }
+            : {
+                type: "contact",
+                contact:
+                  data.deliveryType === "single"
+                    ? [
+                        {
+                          name:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.accountType ===
+                                "organization"
+                                ? giftRequestData.user.organizationName
+                                : giftRequestData.user.fullName
+                              : data.recipientName || "",
+                          phone:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.phoneNumber
+                              : data.recipientPhone || "",
+                          email:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.email
+                              : data.recipientEmail || "",
+                          message: data.reason || "",
+                        },
+                      ]
+                    : (data.multipleRecipients || []).map(
+                        (recipient: any) => ({
+                          name: recipient.name || "",
+                          email: recipient.email || "",
+                          phoneNumber: recipient.phone || "",
+                          remark: recipient.remark || "",
+                        })
+                      ),
+              },
+        restaurantId: restaurantId,
+        numberOfBookings: realNumberOfBookings,
+        validityDate: data.redemptionDate
+          ? {
+              start: new Date(data.redemptionDate).toISOString(),
+              stop: new Date(
+                new Date(data.redemptionDate).getTime() +
+                  7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            }
+          : {
+              start: new Date(
+                Date.now() + 7 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+              stop: new Date(
+                Date.now() + 14 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+        image: items[0]?.mealImage || "",
+        ...(data.bookingType === "public" && {
+          tags: data.publicTags
+            ? data.publicTags
+                .split(",")
+                .map((tag: string) =>
+                  tag.trim().replace(/^#/, "").toLowerCase()
+                )
+                .filter((tag: string) => tag)
+            : [],
+        }),
+        customImage: uploadedImageUrl || "",
+        supportsMultipleClaims: data.supportsMultipleClaims || false,
+        autoGenerateTicket: data.autoGenerateTicket || false,
+        ...(isGiftRequest &&
+          giftRequestData && {
+            giftRequestId: giftRequestData._id,
+            isGiftRequestFulfillment: true,
+            giftRequestDetails: {
+              requesterId: giftRequestData.user._id,
+              requesterName: giftRequestData.user.fullName,
+              requesterEmail: giftRequestData.user.email,
+              originalQuantity: giftRequestData.quantity,
+              originalAmount: giftRequestData.totalAmount,
+            },
+          }),
+      };
+
+      setBookingPayload(bookingPayload);
+      console.log("Booking payload:", bookingPayload);
+
+      const recipientDetails =
+        data.bookingType === "yourself"
+          ? null
+          : data.bookingType === "public"
+          ? null
+          : data.deliveryType === "single"
+          ? {
+              name:
+                isGiftRequest && giftRequestData
+                  ? giftRequestData.user.accountType === "organization"
+                    ? giftRequestData.user.organizationName
+                    : giftRequestData.user.fullName
+                  : data.recipientName || "",
+              phone:
+                isGiftRequest && giftRequestData
+                  ? giftRequestData.user.phoneNumber
+                  : data.recipientPhone || "",
+              email:
+                isGiftRequest && giftRequestData
+                  ? giftRequestData.user.email
+                  : data.recipientEmail || "",
+              message: data.reason || "",
+            }
+          : {
+              name: `${data.numberOfRecipients} recipients`,
+              phone: "Multiple phone numbers",
+              email: "Multiple email addresses",
+              message: `Booking for ${data.numberOfRecipients} recipients`,
+            };
+
+      updateBookingDetails({
+        bookingType: data.bookingType,
+        numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
+        recipientDetails,
+        deliveryDate: data.redemptionDate
+          ? new Date(data.redemptionDate).toISOString()
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        deliveryTime: null,
+        specialInstructions: data.reason || "",
+        isGift:
+          data.bookingType !== "yourself" && data.bookingType !== "public",
+        paymentMethod: "",
+        restaurantId,
+        restaurantName:
+          restaurantData?.name || items[0]?.restaurantName || "",
+        location:
+          restaurantData?.address ||
+          (typeof restaurantData?.location === "string"
+            ? restaurantData.location
+            : restaurantData?.location
+            ? `${restaurantData.location.coordinates[1]},${restaurantData.location.coordinates[0]}`
+            : ""),
+      });
+
+      onSubmit(data);
+
+      if (isGiftRequest) {
+        sessionStorage.removeItem("giftRequestData");
+      }
+
+      navigate("/checkout");
+
+      // Clean up the preview URL after successful booking
+      if (uploadedTicketDesign?.preview) {
+        URL.revokeObjectURL(uploadedTicketDesign.preview);
+      }
+      setUploadedTicketDesign(null);
+    }
+  } catch (error: unknown) {
+    console.error(
+      isEditMode ? "Booking update failed:" : "Booking failed:",
+      error
+    );
+    setUploadedTicketDesign((prev) =>
+      prev ? { ...prev, isUploading: false } : null
+    );
+
+    toast({
+      title: isEditMode ? "Update failed" : "Booking failed",
+      description:
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      variant: "error",
+    });
+  }
+};
 
   // Show notification when delivery is selected
   useEffect(() => {
