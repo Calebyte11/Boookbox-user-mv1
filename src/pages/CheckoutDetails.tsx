@@ -1187,7 +1187,7 @@ const CheckoutDetails = () => {
                   breakdownTotal = calculatedCartTotal * numBookings;
                   breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings = ₦${breakdownTotal.toLocaleString()}`;
                 }
-              } else if (bookingTypeVal === "yourself") {
+              } else if (bookingTypeVal === "yourself" ||bookingTypeVal === "self") {
                 // For yourself: cartTotal * numBookings
                 breakdownTotal = calculatedCartTotal * numBookings;
                 breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings = ₦${breakdownTotal.toLocaleString()}`;
