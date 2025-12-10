@@ -76,7 +76,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   // Extract user info from the nested structure
   const postUser = post.postedBy?.id;
   const bookingData = post.type === "gifting" ? post.data?.resource ?? null : null;
-  const menuData = post.type === "restaurant-offer" ? post.data?.resource ?? null : null;
+  const menuData = post.type === "business-offer" ? post.data?.resource ?? null : null;
 
   // Get display name based on account type
   const getDisplayName = () => {
@@ -302,7 +302,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
     }
   };
 
-  // Handle restaurant-offer actions
+  // Handle business-offer actions
   const handleBuyNow = (e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
       const targetMealOrMenuId = menuData?.menuId || menuData?._id;
@@ -412,7 +412,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       </div>
 
       {/* Post Content */}
-      {(post.title || post.subtitle || post.message || (post.type === "gifting" && bookingData) || (post.type === "restaurant-offer" && menuData) || (post.tags && post.tags.length > 0)) && (
+      {(post.title || post.subtitle || post.message || (post.type === "gifting" && bookingData) || (post.type === "business-offer" && menuData) || (post.tags && post.tags.length > 0)) && (
         <div 
           className="px-4 pb-3 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={handlePostClick}
@@ -443,7 +443,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           )}
 
           {/* Restaurant Offer Content */}
-          {post.type === "restaurant-offer" && menuData && (
+          {post.type === "business-offer" && menuData && (
             <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 mb-3 border border-orange-100">
               <div className="flex items-start gap-4">
                 <div className="shrink-0 hidden lg:block">
@@ -591,8 +591,8 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           allImages.unshift(bookingData.customImage);
         }
         
-        // Add menu item images for restaurant-offer posts
-        if (post.type === "restaurant-offer" && menuData?.images) {
+        // Add menu item images for business-offer posts
+        if (post.type === "business-offer" && menuData?.images) {
           allImages.unshift(...(menuData.images || []));
         }
 
