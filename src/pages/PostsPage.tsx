@@ -51,7 +51,7 @@ const PostsPage: React.FC = () => {
 
             {/* Center: Posts Title */}
             <div className="mt-1 flex flex-1 justify-center">
-              <h1 className="text-sm font-semibold text-gray-700">Community Posts</h1>
+              <h1 className="text-[13px] font-semibold text-gray-700">Community Posts</h1>
             </div>
 
             {/* Right: Search and Notification Icons */}
