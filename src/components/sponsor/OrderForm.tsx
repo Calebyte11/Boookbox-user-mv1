@@ -2247,26 +2247,38 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
     const numBookings = parseInt(numberOfBookingsWatched || "1", 10);
     const numRecipients = parseInt(numberOfRecipientsValueWatched || "1", 10);
 
+    let total = 0;
     if (bookingTypeWatched === "public") {
       // For public: cart total * number of bookings
-      return cartTotal * numBookings * numRecipients;
+      total = cartTotal * numBookings * numRecipients;
     } else if (bookingTypeWatched === "others") {
       if (deliveryTypeWatched === "multiple") {
         // For multiple recipients: cart total * number of recipients * number of bookings
-        return cartTotal * numRecipients * numBookings;
+        total = cartTotal * numRecipients * numBookings;
       } else {
         // For single recipient: cart total * number of bookings
-        return cartTotal * numBookings;
+        total = cartTotal * numBookings;
       }
     } else if (
       bookingTypeWatched === "yourself" ||
       bookingTypeWatched === "date"
     ) {
       // For yourself/date: cart total * number of bookings
-      return cartTotal * numBookings;
+      total = cartTotal * numBookings;
+    } else {
+      total = cartTotal;
     }
-
-    return cartTotal;
+    
+    console.log("📊 OrderForm calculateTotalAmount:", {
+      cartTotal,
+      numBookings,
+      numRecipients,
+      bookingTypeWatched,
+      deliveryTypeWatched,
+      calculatedTotal: total,
+    });
+    
+    return total;
   };
 
   // Calculate real number of bookings for backend
@@ -2764,6 +2776,13 @@ const handleBookingSubmit = async (data: any) => {
               message: `Booking for ${data.numberOfRecipients} recipients`,
             };
 
+      const calculatedTotal = calculateTotalAmount();
+      console.log("💾 Saving to Zustand store:", {
+        calculatedTotalAmount: calculatedTotal,
+        bookingType: data.bookingType,
+        numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
+      });
+      
       updateBookingDetails({
         bookingType: data.bookingType,
         numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
@@ -2786,6 +2805,7 @@ const handleBookingSubmit = async (data: any) => {
             : restaurantData?.location
             ? `${restaurantData.location.coordinates[1]},${restaurantData.location.coordinates[0]}`
             : ""),
+        calculatedTotalAmount: calculatedTotal,
       });
 
       onSubmit(data);

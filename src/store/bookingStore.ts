@@ -22,6 +22,7 @@ export interface BookingDetails {
   restaurantName?: string;
   location?: string; // Store the complete booking payload for API call
   bookingPayload?: Record<string, unknown>;
+  calculatedTotalAmount?: number; // Store the total amount calculated from OrderForm
 }
 
 export interface BookingState extends BookingDetails {
@@ -48,6 +49,7 @@ const initialState: BookingDetails = {
   specialInstructions: "",
   paymentMethod: "",
   isGift: true, // Default to gift since this is BoookBox
+  calculatedTotalAmount: undefined,
 };
 
 export const useBookingStore = create<BookingState>()(
@@ -108,6 +110,7 @@ export const useBookingStore = create<BookingState>()(
         paymentMethod: state.paymentMethod,
         isGift: state.isGift,
         bookingPayload: state.bookingPayload,
+        calculatedTotalAmount: state.calculatedTotalAmount,
       }),
     }
   )

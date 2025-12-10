@@ -53,6 +53,7 @@ const CheckoutDetails = () => {
     restaurantName,
     specialInstructions,
     bookingPayload,
+    calculatedTotalAmount,
     updateBookingDetails,
   } = useBookingStore((state) => state);
   const navigate = useNavigate();
@@ -147,11 +148,23 @@ const CheckoutDetails = () => {
   const totalDisplayAmount = computedBreakdown.totalPayable;
   const totalInSmallestUnit = computedBreakdown.totalPayableInSmallestUnit;
 
-  const totalAmountValue =
-    typeof totalInSmallestUnit === "number" && totalInSmallestUnit > 0
-      ? totalInSmallestUnit / 100
-      : totalDisplayAmount;
+  // Use stored calculated total if available (from OrderForm) - it's the source of truth
+  // This overrides the computed breakdown because OrderForm has the exact calculation logic
+  const hasValidStoredAmount = calculatedTotalAmount && calculatedTotalAmount > 0;
+  
+  const totalAmountValue = hasValidStoredAmount
+    ? calculatedTotalAmount
+    : typeof totalInSmallestUnit === "number" && totalInSmallestUnit > 0
+    ? totalInSmallestUnit / 100
+    : totalDisplayAmount;
+  
   const normalizedTotalAmount = Number(totalAmountValue.toFixed(2));
+  
+  // When using stored calculated total, display it directly
+  // Otherwise use the computed breakdown display amount
+  const displayTotalAmount = hasValidStoredAmount 
+    ? normalizedTotalAmount 
+    : totalDisplayAmount;
   // Get restaurant currency from various sources
   const booking = Array.isArray(bookingData) ? bookingData[0] : bookingData;
   const restaurantFromBooking = booking?.bookedAtRestaurant;
@@ -213,6 +226,42 @@ const CheckoutDetails = () => {
       setPaymentInitializing(false);
     }
   }, [hostedPaymentStatus]);
+
+  // Debug: Log when using stored calculated total amount
+  useEffect(() => {
+    // Check localStorage for booking data
+    const bookingStorage = localStorage.getItem("booking-storage");
+    const parsedStorage = bookingStorage ? JSON.parse(bookingStorage) : null;
+    
+    console.log("🔍 Checkout Debug Info:", {
+      calculatedTotalAmount,
+      normalizedTotalAmount,
+      bookingType,
+      numberOfRecipients,
+      subtotal,
+      totalDisplayAmount,
+      hasStoredAmount: !!calculatedTotalAmount && calculatedTotalAmount > 0,
+    });
+    
+    console.log("📦 LocalStorage booking-storage:", parsedStorage);
+    
+    if (calculatedTotalAmount && calculatedTotalAmount > 0) {
+      console.log("✅ Using stored calculated total from OrderForm:", {
+        calculatedTotalAmount,
+        normalizedTotalAmount,
+        bookingType,
+        numberOfRecipients,
+      });
+    } else {
+      console.log("⚠️ No stored calculated total found, using computed breakdown");
+      console.log("📊 Fallback calculation using:", {
+        subtotal,
+        totalDisplayAmount,
+        totalInSmallestUnit,
+      });
+    }
+  }, [calculatedTotalAmount, normalizedTotalAmount, bookingType, numberOfRecipients, subtotal, totalDisplayAmount, totalInSmallestUnit]);
+
   const createBookingMutation = useCreateBooking();
   const isLoading = loadingRestaurant || loadingBooking;
 
@@ -236,6 +285,7 @@ const CheckoutDetails = () => {
         numberOfRecipients: 1,
         bookingType: undefined,
         bookingPayload: undefined,
+        calculatedTotalAmount: undefined,
       });
 
       // Clear cart
@@ -574,7 +624,7 @@ const CheckoutDetails = () => {
           restaurantAmount: computedBreakdown.restaurantAmount,
           gatewayCharge: computedBreakdown.gatewayCharge,
           totalBeforeGateway: computedBreakdown.totalBeforeGateway,
-          totalPayable: totalDisplayAmount,
+          totalPayable: displayTotalAmount || totalDisplayAmount,
           totalPayableInSmallestUnit: computedBreakdown.totalPayableInSmallestUnit,
           transactionCharge: computedBreakdown.transactionCharge,
         },
@@ -1100,9 +1150,34 @@ const CheckoutDetails = () => {
           <h2 className="text-primary text-2xl capitalize inline-flex gap-2 items-center">
             Total payable:
             <span>
-              {formatCurrency(totalDisplayAmount, restaurantCurrency)}
+              {formatCurrency(displayTotalAmount || totalDisplayAmount, restaurantCurrency)}
             </span>
           </h2>
+          
+          {/* Show breakdown calculation - when numberOfBookings > 1 OR numberOfRecipients > 1 */}
+          {(() => {
+            const numRecipients = Number(bookingPayload?.numberOfRecipients || numberOfRecipients || 1);
+            const numBookings = Number(bookingPayload?.numberOfBookings || 1);
+            
+            // Show breakdown when EITHER condition is met
+            if (numBookings > 1 || numRecipients > 1) {
+              const calculatedCartTotal = items.reduce(
+                (total, item) => total + (item.pricePerUnit || 0) * (item.quantity || 1),
+                0
+              );
+              const breakdownTotal = calculatedCartTotal * numBookings * numRecipients;
+              
+              return (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">Breakdown: </span>
+                    ₦{calculatedCartTotal.toLocaleString()} × {numBookings} bookings × {numRecipients} recipients = ₦{breakdownTotal.toLocaleString()}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
       </div>
 
@@ -1156,7 +1231,7 @@ const CheckoutDetails = () => {
               ? "Pay Securely"
               : "Create Booking & Pay"
           }
-          customPrice={totalDisplayAmount}
+          customPrice={displayTotalAmount || totalDisplayAmount}
           customCount={
             urlBookingId && bookingData
               ? (() => {
