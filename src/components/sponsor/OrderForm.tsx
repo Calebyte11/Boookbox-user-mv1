@@ -130,6 +130,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
         ? String(giftRequestData?.quantity || 1)
         : "1",
       numberOfBookings: "1", // NEW: Add number of bookings field
+      numberOfPeople: "2", // Default to 2 people for date bookings
       multipleRecipients: [],
       redemptionDate: new Date(),
       reason: isGiftRequest
@@ -140,6 +141,9 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
           }`
         : "",
       publicTags: "",
+      datePartnerName: "",
+      datePartnerPhone: "",
+      datePartnerEmail: "",
       refundable: true, // Changed to true by default
       supportsMultipleClaims: false,
       autoGenerateTicket: true,
@@ -180,7 +184,8 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
       redemptionModeWatched === "pick-up" ||
       redemptionModeWatched === "dine-in" ||
       redemptionModeWatched === "dine-with-me") &&
-    bookingTypeWatched !== "public";
+    bookingTypeWatched !== "public" &&
+    bookingTypeWatched !== "date";
 
   const showRedemptionDatePicker =
     redemptionModeWatched === "pick-up" ||
@@ -224,10 +229,12 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
   const calculateTotalAmount = () => {
     const numBookings = parseInt(numberOfBookingsWatched || "1", 10);
     const numRecipients = parseInt(numberOfRecipientsValueWatched || "1", 10);
+    const numberOfPeopleWatched = watch("numberOfPeople");
+    const numPeople = parseInt(numberOfPeopleWatched || "2", 10);
 
     let total = 0;
     if (bookingTypeWatched === "public") {
-      // For public: cart total * number of bookings
+      // For public: cart total * number of bookings * number of recipients
       total = cartTotal * numBookings * numRecipients;
     } else if (bookingTypeWatched === "others") {
       if (deliveryTypeWatched === "multiple") {
@@ -237,11 +244,11 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
         // For single recipient: cart total * number of bookings
         total = cartTotal * numBookings;
       }
-    } else if (
-      bookingTypeWatched === "yourself" ||
-      bookingTypeWatched === "date"
-    ) {
-      // For yourself/date: cart total * number of bookings
+    } else if (bookingTypeWatched === "date") {
+      // For date: cart total * number of people
+      total = cartTotal * numPeople;
+    } else if (bookingTypeWatched === "yourself") {
+      // For yourself: cart total * number of bookings
       total = cartTotal * numBookings;
     } else {
       total = cartTotal;
@@ -263,6 +270,13 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
   const calculateRealNumberOfBookings = () => {
     const numBookings = parseInt(numberOfBookingsWatched || "1", 10);
     const numRecipients = parseInt(numberOfRecipientsValueWatched || "1", 10);
+    const numberOfPeopleWatched = watch("numberOfPeople");
+    const numPeople = parseInt(numberOfPeopleWatched || "2", 10);
+
+    // For date bookings: use number of people
+    if (bookingTypeWatched === "date") {
+      return numPeople;
+    }
 
     if (bookingTypeWatched === "others" && deliveryTypeWatched === "multiple") {
       // For multiple recipients: number of bookings * number of recipients
@@ -359,6 +373,23 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
       setValue("supportsMultipleClaims", false);
     }
   }, [numberOfBookingsWatched, bookingTypeWatched, setValue]);
+
+  // Effect to ensure autoGenerateTicket is always true for "yourself" bookings
+  useEffect(() => {
+    if (bookingTypeWatched === "yourself") {
+      setValue("autoGenerateTicket", true);
+    }
+  }, [bookingTypeWatched, setValue]);
+
+  // Auto-fill user info for date bookings
+  useEffect(() => {
+    if (bookingTypeWatched === "date" && user) {
+      setValue("recipientName", user.fullName || "");
+      setValue("recipientPhone", user.phoneNumber || "");
+      setValue("recipientEmail", user.email || "");
+    }
+  }, [bookingTypeWatched, user, setValue]);
+
   // Handle number of recipients change (for multiple recipients)
   const handleNumberOfRecipientsChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -636,12 +667,34 @@ const handleBookingSubmit = async (data: any) => {
             ? "self"
             : data.bookingType === "public"
             ? "public"
+            : data.bookingType === "date"
+            ? "date"
             : "others",
         bookedFor:
           data.bookingType === "yourself"
             ? { type: "self" }
             : data.bookingType === "public"
             ? { type: "public" }
+            : data.bookingType === "date"
+            ? {
+                type: "contact",
+                contact: [
+                  // User's info (auto-filled)
+                  {
+                    name: user?.fullName || "",
+                    phone: user?.phoneNumber || "",
+                    email: user?.email || "",
+                    message: data.reason || "Date booking",
+                  },
+                  // Date partner info
+                  {
+                    name: data.datePartnerName || "",
+                    phone: data.datePartnerPhone || "",
+                    email: data.datePartnerEmail || "",
+                    message: data.reason || "Date booking",
+                  },
+                ],
+              }
             : {
                 type: "contact",
                 contact:
@@ -707,6 +760,7 @@ const handleBookingSubmit = async (data: any) => {
         customImage: uploadedImageUrl || "",
         supportsMultipleClaims: data.supportsMultipleClaims || false,
         autoGenerateTicket: data.autoGenerateTicket || false,
+        numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
         ...(isGiftRequest &&
           giftRequestData && {
             giftRequestId: giftRequestData._id,
@@ -1102,8 +1156,40 @@ const handleBookingSubmit = async (data: any) => {
           </>
         )}
 
-        {/* Number of Bookings Section - Show for all booking types */}
-        {showNumberOfBookings && (
+        {/* Number of People Section - ONLY for date bookings */}
+        {bookingTypeWatched === "date" && (
+          <div className="m-4">
+            <div className="border-t border-gray-300 my-4" />
+            <p className="text-xl font-medium mb-2">Number of People</p>
+            <p className="text-sm text-gray-600 mb-4">
+              How many people are going on this date? (Minimum 2)
+            </p>
+            <div className="relative">
+              <FormField<OrderFormValues>
+                name="numberOfPeople"
+                type="number"
+                register={register}
+                errors={errors}
+                placeholder="Enter number of people"
+                inputClassName="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm h-[44px]"
+              />
+            </div>
+            {/* Show total amount calculation */}
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">Total Amount: </span>₦
+                {calculateTotalAmount().toLocaleString()}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Cart Total (₦{cartTotal.toLocaleString()}) ×{" "}
+                {watch("numberOfPeople") || 2} people
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Number of Bookings Section - Show for all booking types EXCEPT date */}
+        {showNumberOfBookings && bookingTypeWatched !== "date" && (
           <div className="m-4">
             <div className="border-t border-gray-300 my-4" />
             <p className="text-xl font-medium mb-2">Number of Bookings</p>
@@ -1642,6 +1728,76 @@ const handleBookingSubmit = async (data: any) => {
                   : "Please select an option"}
               </p>
             )}
+          </div>
+        )}
+
+        {/* Date Partner Information Section - Only for date bookings */}
+        {bookingTypeWatched === "date" && (
+          <div className="m-4">
+            <div className="border-t border-gray-300 my-4" />
+            <p className="text-xl font-medium mb-4">Date Partner Information</p>
+            
+            {/* User's Info - Auto-filled and disabled */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-3">Your Information (Auto-filled)</p>
+              <div className="space-y-3">
+                <FormField<OrderFormValues>
+                  name="recipientName"
+                  type="text"
+                  register={register}
+                  errors={errors}
+                  placeholder={user?.fullName || "Your full name"}
+                  inputClassName="bg-gray-100"
+                  disabled
+                />
+                <FormField<OrderFormValues>
+                  name="recipientPhone"
+                  type="tel"
+                  register={register}
+                  errors={errors}
+                  placeholder={user?.phoneNumber || "Your phone number"}
+                  inputClassName="bg-gray-100"
+                  disabled
+                />
+                <FormField<OrderFormValues>
+                  name="recipientEmail"
+                  type="email"
+                  register={register}
+                  errors={errors}
+                  placeholder={user?.email || "Your email"}
+                  inputClassName="bg-gray-100"
+                  disabled
+                />
+              </div>
+            </div>
+
+            {/* Date Partner's Info */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 mb-3">Date Partner Information</p>
+              <div className="space-y-3">
+                <FormField<OrderFormValues>
+                  name="datePartnerName"
+                  type="text"
+                  register={register}
+                  errors={errors}
+                  placeholder="Date partner's full name"
+                />
+                <FormField<OrderFormValues>
+                  name="datePartnerPhone"
+                  type="tel"
+                  register={register}
+                  errors={errors}
+                  placeholder="Date partner's phone number"
+                />
+                <FormField<OrderFormValues>
+                  name="datePartnerEmail"
+                  type="email"
+                  register={register}
+                  errors={errors}
+                  placeholder="Date partner's email address"
+                />
+              </div>
+            </div>
           </div>
         )}
 

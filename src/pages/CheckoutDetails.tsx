@@ -1158,6 +1158,8 @@ const CheckoutDetails = () => {
           {(() => {
             const numRecipients = Number(bookingPayload?.numberOfRecipients || numberOfRecipients || 1);
             const numBookings = Number(bookingPayload?.numberOfBookings || 1);
+            const bookingTypeVal = bookingPayload?.bookingType || bookingType;
+            const deliveryTypeVal = bookingPayload?.deliveryType || "single";
             
             // Show breakdown when EITHER condition is met
             if (numBookings > 1 || numRecipients > 1) {
@@ -1165,13 +1167,43 @@ const CheckoutDetails = () => {
                 (total, item) => total + (item.pricePerUnit || 0) * (item.quantity || 1),
                 0
               );
-              const breakdownTotal = calculatedCartTotal * numBookings * numRecipients;
+              
+              // Calculate breakdown based on booking type and delivery type
+              let breakdownTotal = 0;
+              let breakdownText = "";
+              
+              if (bookingTypeVal === "public") {
+                // For public: cartTotal * numBookings * numRecipients
+                breakdownTotal = calculatedCartTotal * numBookings * numRecipients;
+                breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings × ${numRecipients} recipients = ₦${breakdownTotal.toLocaleString()}`;
+              } else if (bookingTypeVal === "others") {
+                if (deliveryTypeVal === "multiple") {
+                  // For multiple recipients: cartTotal * numBookings * numRecipients
+                  breakdownTotal = calculatedCartTotal * numBookings * numRecipients;
+                  breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings × ${numRecipients} recipients = ₦${breakdownTotal.toLocaleString()}`;
+                } else {
+                  // For single recipient: cartTotal * numBookings
+                  breakdownTotal = calculatedCartTotal * numBookings;
+                  breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings = ₦${breakdownTotal.toLocaleString()}`;
+                }
+              } else if (bookingTypeVal === "yourself") {
+                // For yourself: cartTotal * numBookings
+                breakdownTotal = calculatedCartTotal * numBookings;
+                breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} bookings = ₦${breakdownTotal.toLocaleString()}`;
+              } else if (bookingTypeVal === "date") {
+                // For date: cartTotal * numPeople
+                breakdownTotal = calculatedCartTotal * numBookings;
+                breakdownText = `₦${calculatedCartTotal.toLocaleString()} × ${numBookings} people = ₦${breakdownTotal.toLocaleString()}`;
+              } else {
+                breakdownTotal = calculatedCartTotal;
+                breakdownText = `₦${calculatedCartTotal.toLocaleString()}`;
+              }
               
               return (
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <span className="font-medium">Breakdown: </span>
-                    ₦{calculatedCartTotal.toLocaleString()} × {numBookings} bookings × {numRecipients} recipients = ₦{breakdownTotal.toLocaleString()}
+                    {breakdownText}
                   </p>
                 </div>
               );

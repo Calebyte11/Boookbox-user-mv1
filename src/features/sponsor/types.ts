@@ -54,6 +54,12 @@ export interface OrderFormValues {
   refundable?: boolean; // Toggle for refundable booking
   supportsMultipleClaims?: boolean; // Whether the ticket supports multiple claims
   autoGenerateTicket?: boolean; // Toggle for automatically generating tickets
+  
+  // Date booking fields
+  numberOfPeople?: string; // Number of people for date bookings (minimum 2)
+  datePartnerName?: string; // Name of the date partner
+  datePartnerPhone?: string; // Phone of the date partner
+  datePartnerEmail?: string; // Email of the date partner
 
   // New fields matching backend payload
   menuItems?: Array<{

@@ -183,6 +183,47 @@ export const orderFormSchema = yup.object().shape({
     then: (schema) => schema.required("Tags are required"),
     otherwise: (schema) => schema.notRequired(),
   }),
+  numberOfPeople: yup
+    .string()
+    .when("bookingType", {
+      is: "date",
+      then: (schema) =>
+        schema
+          .required("Number of people is required for date bookings")
+          .test(
+            "is-gte-2",
+            "Minimum 2 people required for a date",
+            (value) => !value || parseInt(value, 10) >= 2
+          ),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  datePartnerName: yup
+    .string()
+    .when("bookingType", {
+      is: "date",
+      then: (schema) => schema.required("Date partner name is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  datePartnerPhone: yup
+    .string()
+    .when("bookingType", {
+      is: "date",
+      then: (schema) =>
+        schema
+          .required("Date partner phone is required")
+          .matches(/^[0-9+-]{7,15}$/, "Enter a valid phone number"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+  datePartnerEmail: yup
+    .string()
+    .when("bookingType", {
+      is: "date",
+      then: (schema) =>
+        schema
+          .required("Date partner email is required")
+          .email("Enter a valid email address"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   refundable: yup.boolean().default(true),
   supportsMultipleClaims: yup.boolean().default(false),
   autoGenerateTicket: yup.boolean().default(false),
