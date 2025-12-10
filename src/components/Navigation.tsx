@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   // { name: "search", icon: Search, label: "Search", path: "/#search" },
   { name: "gift", icon: Gift, label: "Gifts", path: "/gifts" },
   { name: "reels", icon: Clapperboard, label: "Reels", path: "/reels" },
-  { name: "posts", icon: MessageSquare, label: "Posts", path: "/home/posts" },
+  { name: "posts", icon: MessageSquare, label: "Posts", path: "/posts" },
   { name: "profile", icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -58,7 +58,7 @@ const Navigation = () => {
       return pathname === "/gifts" || pathname.startsWith("/gifts/") || pathname === "/tickets" || pathname.startsWith("/tickets/");
     }
     if (itemName === "posts") {
-      return pathname === "/home/posts" || (pathname === "/home" && activeNav === "posts");
+      return pathname === "/posts" || pathname.startsWith("/posts/");
     }
     if (itemName === "profile") {
       return pathname === "/profile" || pathname.startsWith("/profile/");

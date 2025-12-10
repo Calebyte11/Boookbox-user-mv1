@@ -47,6 +47,7 @@ import AboutUs from "@/pages/AboutUs";
 import Reel from "@/pages/Reel";
 import ReelView from "@/pages/ReelView";
 import PostDetail from "@/pages/PostDetail";
+import PostsPage from "@/pages/PostsPage";
 import VerifyPayment from "@/pages/VerifyPayment";
 import NotFound from "@/pages/NotFound";
 import GiftRequestHandler from "@/components/GiftRequestHandler"; // Add this import
@@ -220,6 +221,16 @@ export const routes: RouteObject[] = [
       <ProtectedRoute>
         <Layout>
           <RecipientTickets />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/posts",
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <PostsPage />
         </Layout>
       </ProtectedRoute>
     ),
