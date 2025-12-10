@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { Container } from "@radix-ui/themes";
 import { useBookingDetailQuery } from "@/hooks/useUserQueries";
+import { useReceiptStore } from "@/store/receiptStore";
 
 // Enhanced receipt data structure with comprehensive booking information
 type DisplayReceiptData = {
@@ -101,6 +102,9 @@ const Receipt = () => {
   const { data: bookingData, isLoading: loadingBooking, error: bookingError } = 
     useBookingDetailQuery(bookingId || "", { enabled: !!bookingId });
   
+  // Get receipt store data (which has the calculated total amount from CheckoutDetails)
+  const receipt = useReceiptStore((state) => state.receipt);
+  
   const [displayData, setDisplayData] = useState<DisplayReceiptData | null>(null);
 
   useEffect(() => {
@@ -150,7 +154,8 @@ const Receipt = () => {
           supportsMultipleClaims: booking.supportsMultipleClaims,
           
           // Financial info
-          totalAmount: booking.totalAmount || booking.paymentAmount || 0,
+          // Prioritize receipt store total amount (calculated in CheckoutDetails) over API data
+          totalAmount: receipt?.bookingDetails?.totalAmount || booking.totalAmount || booking.paymentAmount || 0,
           deliveryFee: booking.deliveryFee,
           boookboxFee: booking.boookboxFee,
           
@@ -190,7 +195,7 @@ const Receipt = () => {
       
       setDisplayData(transformedData);
     }
-  }, [bookingData, loadingBooking, bookingId]);
+  }, [bookingData, loadingBooking, bookingId, receipt]);
 
   // Show loading state
   if (loadingBooking) {

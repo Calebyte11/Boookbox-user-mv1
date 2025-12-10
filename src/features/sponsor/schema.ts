@@ -224,6 +224,21 @@ export const orderFormSchema = yup.object().shape({
           .email("Enter a valid email address"),
       otherwise: (schema) => schema.notRequired(),
     }),
+  numberOfBookings: yup
+    .string()
+    .when("bookingType", {
+      is: (val: string) =>
+        val === "yourself" || val === "others" || val === "public",
+      then: (schema) =>
+        schema
+          .required("Number of bookings is required")
+          .test(
+            "is-gte-1",
+            "Minimum 1 booking required",
+            (value) => !value || parseInt(value, 10) >= 1
+          ),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   refundable: yup.boolean().default(true),
   supportsMultipleClaims: yup.boolean().default(false),
   autoGenerateTicket: yup.boolean().default(false),

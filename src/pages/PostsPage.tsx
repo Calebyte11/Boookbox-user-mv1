@@ -30,9 +30,9 @@ const PostsPage: React.FC = () => {
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          name: "BoookBox Community Posts",
+          name: "BoookBox Posts",
           description:
-            "Explore community posts, gifts, and engagements around the world.",
+            "Explore posts, gifts, and engagements around the world.",
         }}
         ogImage="/pwa-192x192.png"
       />
@@ -51,7 +51,7 @@ const PostsPage: React.FC = () => {
 
             {/* Center: Posts Title */}
             <div className="mt-1 flex flex-1 justify-center">
-              <h1 className="text-[13px] font-semibold text-gray-700">Community Posts</h1>
+              <h1 className="text-sm font-semibold text-gray-700">Posts</h1>
             </div>
 
             {/* Right: Search and Notification Icons */}

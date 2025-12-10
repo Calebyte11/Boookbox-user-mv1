@@ -1203,6 +1203,7 @@ const handleBookingSubmit = async (data: any) => {
                 errors={errors}
                 placeholder="Enter number of people"
                 inputClassName="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm h-[44px]"
+                min="2" // Minimum value of 2
               />
             </div>
             {/* Show total amount calculation */}
@@ -1238,6 +1239,7 @@ const handleBookingSubmit = async (data: any) => {
                 placeholder="Enter number of bookings"
                 inputClassName="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm h-[44px]"
                 disabled={bookingTypeWatched === "public"} // Disabled for public bookings, editable for others
+                min="1" // Minimum value of 1
               />
             </div>
             {/* Show total amount calculation */}
