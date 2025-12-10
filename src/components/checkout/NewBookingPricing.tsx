@@ -10,6 +10,7 @@ export const NewBookingPricing: React.FC<NewBookingPricingProps> = ({
   cartItems,
   bookingType,
   numberOfRecipients,
+  numberOfBookings,
   bookingData,
   defaultServiceFeePercent,
   defaultTaxAmount,
@@ -19,12 +20,17 @@ export const NewBookingPricing: React.FC<NewBookingPricingProps> = ({
     // Calculate base total from cart items
     const baseTotal = cartItems.reduce((total, item) => total + item.totalPrice, 0);
     
-    // Apply recipient multiplier for genuine multi-recipient scenarios
+    // Apply multiplier based on booking type
     let subtotal: number;
     if (bookingType === "public" && numberOfRecipients && numberOfRecipients > 1) {
+      // For public bookings, multiply by number of recipients
       subtotal = baseTotal * numberOfRecipients;
+    } else if ((bookingType === "yourself" || bookingType === "date") && numberOfBookings) {
+      // For yourself/date bookings, multiply by number of bookings
+      const numBookings = parseInt(String(numberOfBookings), 10) || 1;
+      subtotal = baseTotal * numBookings;
     } else {
-      // For single recipient, "yourself", or undefined booking types, just use base total
+      // For single recipient, "others", or undefined booking types, just use base total
       subtotal = baseTotal;
     }
 
@@ -66,6 +72,7 @@ export const NewBookingPricing: React.FC<NewBookingPricingProps> = ({
     cartItems,
     bookingType,
     numberOfRecipients,
+    numberOfBookings,
     bookingData,
     defaultServiceFeePercent,
     defaultTaxAmount,

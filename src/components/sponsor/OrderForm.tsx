@@ -350,16 +350,16 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
       }
     } else if (bookingTypeWatched === "yourself" && user) {
       // For yourself bookings
-      setValue("recipientName", user.username || "");
+      setValue("recipientName", user.fullName || user.username || "");
       setValue("recipientEmail", user.email || "");
-      setValue("recipientPhone", user.phone || "");
+      setValue("recipientPhone", user.phoneNumber || user.phone || "");
       setValue("deliveryType", "single");
     } else if (bookingTypeWatched === "date" && user) {
       // For date bookings
       setValue("redemptionMode", "dine-with-me");
-      setValue("recipientName", user.username || "");
+      setValue("recipientName", user.fullName || user.username || "");
       setValue("recipientEmail", user.email || "");
-      setValue("recipientPhone", user.phone || "");
+      setValue("recipientPhone", user.phoneNumber || user.phone || "");
     }
   }, [bookingTypeWatched, user, setValue, isGiftRequest]);
 
@@ -381,14 +381,7 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
     }
   }, [bookingTypeWatched, setValue]);
 
-  // Auto-fill user info for date bookings
-  useEffect(() => {
-    if (bookingTypeWatched === "date" && user) {
-      setValue("recipientName", user.fullName || "");
-      setValue("recipientPhone", user.phoneNumber || "");
-      setValue("recipientEmail", user.email || "");
-    }
-  }, [bookingTypeWatched, user, setValue]);
+
 
   // Handle number of recipients change (for multiple recipients)
   const handleNumberOfRecipientsChange = (
@@ -576,6 +569,35 @@ const handleBookingSubmit = async (data: any) => {
             ? { type: "self" }
             : data.bookingType === "public"
             ? { type: "public" }
+            : data.bookingType === "date"
+            ? {
+                type: "contact",
+                contact: [
+                  // User's info (auto-filled)
+                  {
+                    name: user?.fullName || "",
+                    phone: user?.phoneNumber || "",
+                    email: user?.email || "",
+                    message: data.reason || "Date booking",
+                  },
+                  // Date partner info (first participant)
+                  {
+                    name: data.datePartnerName || "",
+                    phone: data.datePartnerPhone || "",
+                    email: data.datePartnerEmail || "",
+                    message: data.reason || "Date booking",
+                  },
+                  // Additional date participants (if numberOfPeople > 2)
+                  ...(data.multipleRecipients || []).map(
+                    (recipient: any) => ({
+                      name: recipient.name || "",
+                      phone: recipient.phone || "",
+                      email: recipient.email || "",
+                      message: data.reason || "Date booking",
+                    })
+                  ),
+                ],
+              }
             : {
                 type: "contact",
                 contact:
@@ -686,13 +708,22 @@ const handleBookingSubmit = async (data: any) => {
                     email: user?.email || "",
                     message: data.reason || "Date booking",
                   },
-                  // Date partner info
+                  // Date partner info (first participant)
                   {
                     name: data.datePartnerName || "",
                     phone: data.datePartnerPhone || "",
                     email: data.datePartnerEmail || "",
                     message: data.reason || "Date booking",
                   },
+                  // Additional date participants (if numberOfPeople > 2)
+                  ...(data.multipleRecipients || []).map(
+                    (recipient: any) => ({
+                      name: recipient.name || "",
+                      phone: recipient.phone || "",
+                      email: recipient.email || "",
+                      message: data.reason || "Date booking",
+                    })
+                  ),
                 ],
               }
             : {
@@ -1206,7 +1237,7 @@ const handleBookingSubmit = async (data: any) => {
                 errors={errors}
                 placeholder="Enter number of bookings"
                 inputClassName="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm h-[44px]"
-                disabled={bookingTypeWatched === "public" && false} // Editable for all types
+                disabled={bookingTypeWatched === "public"} // Disabled for public bookings, editable for others
               />
             </div>
             {/* Show total amount calculation */}
@@ -1219,7 +1250,7 @@ const handleBookingSubmit = async (data: any) => {
                 {bookingTypeWatched === "public" && (
                   <>
                     Cart Total (₦{cartTotal.toLocaleString()}) ×{" "}
-                    {numberOfBookingsWatched || 1} bookings
+                    {numberOfRecipientsValueWatched || 1} recipients
                   </>
                 )}
                 {bookingTypeWatched === "others" &&
@@ -1735,7 +1766,7 @@ const handleBookingSubmit = async (data: any) => {
         {bookingTypeWatched === "date" && (
           <div className="m-4">
             <div className="border-t border-gray-300 my-4" />
-            <p className="text-xl font-medium mb-4">Date Partner Information</p>
+            <p className="text-xl font-medium mb-4">Date Participants Information</p>
             
             {/* User's Info - Auto-filled and disabled */}
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -1746,16 +1777,17 @@ const handleBookingSubmit = async (data: any) => {
                   type="text"
                   register={register}
                   errors={errors}
-                  placeholder={user?.fullName || "Your full name"}
+                  placeholder="Full Name"
                   inputClassName="bg-gray-100"
                   disabled
                 />
                 <FormField<OrderFormValues>
                   name="recipientPhone"
                   type="tel"
+                  control={control}
                   register={register}
                   errors={errors}
-                  placeholder={user?.phoneNumber || "Your phone number"}
+                  placeholder="Phone Number"
                   inputClassName="bg-gray-100"
                   disabled
                 />
@@ -1764,40 +1796,126 @@ const handleBookingSubmit = async (data: any) => {
                   type="email"
                   register={register}
                   errors={errors}
-                  placeholder={user?.email || "Your email"}
+                  placeholder="Your email"
                   inputClassName="bg-gray-100"
                   disabled
                 />
               </div>
             </div>
 
-            {/* Date Partner's Info */}
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-3">Date Partner Information</p>
-              <div className="space-y-3">
-                <FormField<OrderFormValues>
-                  name="datePartnerName"
-                  type="text"
-                  register={register}
-                  errors={errors}
-                  placeholder="Date partner's full name"
-                />
-                <FormField<OrderFormValues>
-                  name="datePartnerPhone"
-                  type="tel"
-                  register={register}
-                  errors={errors}
-                  placeholder="Date partner's phone number"
-                />
-                <FormField<OrderFormValues>
-                  name="datePartnerEmail"
-                  type="email"
-                  register={register}
-                  errors={errors}
-                  placeholder="Date partner's email address"
-                />
-              </div>
-            </div>
+            {/* Dynamic Date Participants - Based on numberOfPeople */}
+            {(() => {
+              const numberOfPeopleWatched = watch("numberOfPeople");
+              const numPeople = parseInt(numberOfPeopleWatched || "2", 10);
+              const numberOfParticipants = Math.max(0, numPeople - 1); // Subtract 1 for the user
+
+              return Array.from({ length: numberOfParticipants }, (_, index) => (
+                <div key={`date-partner-${index}`} className="bg-blue-50 p-4 rounded-lg mb-4">
+                  <p className="text-sm font-medium text-blue-900 mb-3">
+                    {index === 0 ? "Search and Select Date Partner" : `Participant ${index + 1} Information`}
+                  </p>
+                  <p className="text-xs text-blue-700 mb-4">Start typing to search for your date by name</p>
+                  
+                  {/* Search Combobox for Date Partner - Available for all participants */}
+                  <div className="mb-3">
+                    {index === 0 ? (
+                      <UserSearchCombobox
+                        value={watch("datePartnerName") || ""}
+                        onChange={(value) => {
+                          setValue("datePartnerName", value);
+                        }}
+                        onUserSelect={(user: UserSearchResult) => {
+                          setValue("datePartnerName", user.fullName);
+                          setValue("datePartnerEmail", user.email);
+                          setValue("datePartnerPhone", user.phoneNumber);
+                        }}
+                        placeholder="Search for participant 1 by name, email, or phone"
+                        error={errors.datePartnerName?.message}
+                      />
+                    ) : (
+                      <UserSearchCombobox
+                        value={watch(`multipleRecipients.${index - 1}.name`) || ""}
+                        onChange={(value) => {
+                          setValue(`multipleRecipients.${index - 1}.name`, value);
+                        }}
+                        onUserSelect={(user: UserSearchResult) => {
+                          setValue(`multipleRecipients.${index - 1}.name`, user.fullName);
+                          setValue(`multipleRecipients.${index - 1}.email`, user.email);
+                          setValue(`multipleRecipients.${index - 1}.phone`, user.phoneNumber);
+                        }}
+                        placeholder={`Search for participant ${index + 1} by name, email, or phone`}
+                        error={errors.multipleRecipients?.[index - 1]?.name?.message}
+                      />
+                    )}
+                  </div>
+
+                  {/* Participant Name */}
+                  {index === 0 ? (
+                    <FormField<OrderFormValues>
+                      name="datePartnerName"
+                      type="text"
+                      register={register}
+                      errors={errors}
+                      placeholder="Participant 1's full name"
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  ) : (
+                    <FormField<OrderFormValues>
+                      name={`multipleRecipients.${index - 1}.name` as const}
+                      type="text"
+                      register={register}
+                      errors={errors}
+                      placeholder={`Participant ${index + 1}'s full name`}
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  )}
+
+                  {/* Participant Phone */}
+                  {index === 0 ? (
+                    <FormField<OrderFormValues>
+                      name="datePartnerPhone"
+                      type="tel"
+                      control={control}
+                      register={register}
+                      errors={errors}
+                      placeholder="Participant 1's phone number"
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  ) : (
+                    <FormField<OrderFormValues>
+                      name={`multipleRecipients.${index - 1}.phone` as const}
+                      type="tel"
+                      control={control}
+                      register={register}
+                      errors={errors}
+                      placeholder={`Participant ${index + 1}'s phone number`}
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  )}
+                  
+                  {/* Participant Email */}
+                  {index === 0 ? (
+                    <FormField<OrderFormValues>
+                      name="datePartnerEmail"
+                      type="email"
+                      register={register}
+                      errors={errors}
+                      placeholder="Participant 1's email address"
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  ) : (
+                    <FormField<OrderFormValues>
+                      name={`multipleRecipients.${index - 1}.email` as const}
+                      type="email"
+                      register={register}
+                      errors={errors}
+                      placeholder={`Participant ${index + 1}'s email address`}
+                      inputClassName="mt-1 block w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  )}
+                </div>
+              ));
+            })()}
           </div>
         )}
 

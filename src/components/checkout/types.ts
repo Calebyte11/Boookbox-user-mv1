@@ -17,6 +17,7 @@ export interface NewBookingPricingProps {
   cartItems: CartItem[];
   bookingType?: string;
   numberOfRecipients?: number;
+  numberOfBookings?: number | string;
   bookingData?: BookingDetail[] | BookingDetail;
   defaultServiceFeePercent: number;
   defaultTaxAmount: number;
