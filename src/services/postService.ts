@@ -26,11 +26,11 @@ export interface Post {
       isAvailable?: boolean;
       customizations?: Array<{ name: string }>;
       // Restaurant reference for menu items
-      restaurant?: {
+      business?: {
         _id: string;
         name?: string;
         profileImage?: string;
-        restaurantId?: string;
+        businessId?: string;
         badges?:string[];
         paymentCurrency?:string;
       };

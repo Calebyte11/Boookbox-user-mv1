@@ -306,7 +306,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   const handleBuyNow = (e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
       const targetMealOrMenuId = menuData?.menuId || menuData?._id;
-      const restaurantId = menuData?.restaurant?.restaurantId;
+      const restaurantId = menuData?.business?._id;
       if (targetMealOrMenuId) {
         navigate(`/restaurants/${restaurantId}/meals/${targetMealOrMenuId}`);
         return;
@@ -321,7 +321,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   const handleViewMenu = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent post click navigation
     const targetMealOrMenuId = menuData?.menuId || menuData?._id;
-      const restaurantId = menuData?.restaurant?.restaurantId;
+      const restaurantId = menuData?.business?._id;
     if (menuData && targetMealOrMenuId) {
       navigate(`/restaurants/${restaurantId}/meals/${targetMealOrMenuId}`);
       return;
@@ -333,7 +333,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   return (
     <div className="bg-white border-b border-gray-900 mb-0">
       {/* Post Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-3 py-3">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10"
             
@@ -414,7 +414,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       {/* Post Content */}
       {(post.title || post.subtitle || post.message || (post.type === "gifting" && bookingData) || (post.type === "business-offer" && menuData) || (post.tags && post.tags.length > 0)) && (
         <div 
-          className="px-4 pb-3 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="px-4 pb-3 ml-13 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={handlePostClick}
         >
           {/* Title and Subtitle Section */}
@@ -450,28 +450,28 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (menuData.restaurant?.profileImage) {
+                      if (menuData.business?.profileImage) {
                         openImageModal(
-                          menuData.restaurant.profileImage,
-                          `${menuData.restaurant.name} profile image`
+                          menuData.business.profileImage,
+                          `${menuData.business.name} profile image`
                         );
                       }
                     }}
                     className="hover:opacity-80 transition-opacity"
                   >
                     <Avatar
-                      src={menuData.restaurant?.profileImage}
-                      alt={menuData.restaurant?.name}
-                      fallback={menuData.restaurant?.name?.charAt(0).toUpperCase() || "R"}
+                      src={menuData.business?.profileImage}
+                      alt={menuData.business?.name}
+                      fallback={menuData.business?.name?.charAt(0).toUpperCase() || "R"}
                       className="w-8 h-8 cursor-pointer"
                       radius="full"
                     />
                   </button>
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 bg-b">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-gray-900 text-lg">{menuData.restaurant?.name}</h4>
+                    <h4 className="font-bold text-gray-900 text-lg">{menuData.business?.name}</h4>
                   </div>
 
                   <p className="text-sm text-gray-600 mb-2">
@@ -496,7 +496,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
                           {formatCurrency(
                             menuData.price,
                            
-                            menuData.restaurant?.paymentCurrency ?? bookingData?.bookedAtRestaurant?.paymentCurrency ?? "NGN"
+                            menuData.business?.paymentCurrency ?? bookingData?.bookedAtRestaurant?.paymentCurrency ?? "NGN"
                           )}
                         </span>
                       )}
@@ -597,7 +597,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
         }
 
         return allImages.length > 0 && (
-          <div className="mb-0">
+          <div className="mb-0 ml-11">
             {allImages.length === 1 ? (
               <img
                 src={allImages[0]}
@@ -637,7 +637,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       })()}
 
       {/* Post Actions */}
-      <div className="px-4 py-3">
+      <div className="px-3 py-3 ml-11">
         {/* Action Buttons Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-4">
