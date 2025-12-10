@@ -1,5 +1,6 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
+import { SegmentedControl } from "@radix-ui/themes";
 import GiftList from "@/components/GiftList";
 import ActivityHero from "@/assets/images/sponsorbanner.png";
 import TicketNearYou from "@/components/TicketNearYou";
@@ -32,6 +33,7 @@ const RecipientTickets = () => {
   const locationStore = useLocationStore();
   const location = locationStore.position;
   const [loading, setLoading] = useState<boolean>(true);
+  const [activeView, setActiveView] = useState<"gifts" | "tickets">("tickets");
   // Removed unused setError state
 
   // Get location data directly from the store
@@ -274,6 +276,27 @@ const RecipientTickets = () => {
 
   return (
     <section className="mx-2 md:mx-5">
+      {/* Segmented Control for Gifts and Tickets */}
+      <div className="mt-4 mb-6 flex justify-center w-full">
+        <SegmentedControl.Root
+          value={activeView}
+          onValueChange={(value) => {
+            setActiveView(value as "gifts" | "tickets");
+            if (value === "gifts") {
+              navigate("/gifts");
+            }
+          }}
+          className="w-full max-w-md mx-auto"
+        >
+          <SegmentedControl.Item value="gifts" className="flex-1 text-center">
+            Gifts
+          </SegmentedControl.Item>
+          <SegmentedControl.Item value="tickets" className="flex-1 text-center">
+            Tickets
+          </SegmentedControl.Item>
+        </SegmentedControl.Root>
+      </div>
+
       {isTicketsError && <p>Error loading tickets: {ticketsError?.message}</p>}
       {isTicketsLoading ? (
         <TicketsSkeleton />

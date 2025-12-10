@@ -1,6 +1,7 @@
-import { Home, Gift, Ticket, User, LogOut, Clapperboard } from "lucide-react";
+import { Home, Gift, User, LogOut, Clapperboard, MessageSquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks";
 import { useNavStore } from "@/store/navStore";
 import { useUIStore } from "@/store/uiStore";
@@ -11,7 +12,7 @@ const NAV_ITEMS = [
   // { name: "search", icon: Search, label: "Search", path: "/#search" },
   { name: "gift", icon: Gift, label: "Gifts", path: "/gifts" },
   { name: "reels", icon: Clapperboard, label: "Reels", path: "/reels" },
-  { name: "ticket", icon: Ticket, label: "Tickets", path: "/tickets" },
+  { name: "posts", icon: MessageSquare, label: "Posts", path: "/home/posts" },
   { name: "profile", icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -22,15 +23,28 @@ const Navigation = () => {
   const { activeNav, setActiveNav } = useNavStore();
   const { openHeaderSearch } = useUIStore();
   const { data: profileData } = useUserProfileQuery();
+  const [showGiftFilter, setShowGiftFilter] = useState(false);
+  const [giftFilter, setGiftFilter] = useState<"gifts" | "tickets">("gifts");
 
   const handleNavClick = (path: string, name: string) => {
     if (name === "search") {
       openHeaderSearch();
       setActiveNav(name);
+    } else if (name === "gift") {
+      // Show filter modal for gift navigation
+      setShowGiftFilter(true);
+      setActiveNav(name);
     } else {
       setActiveNav(name);
       navigate(path);
     }
+  };
+
+  const handleGiftFilterChange = (filter: "gifts" | "tickets") => {
+    setGiftFilter(filter);
+    setShowGiftFilter(false);
+    setActiveNav("gift");
+    navigate(filter === "gifts" ? "/gifts" : "/tickets");
   };
 
   const isActive = (itemName: string) => {
@@ -41,10 +55,10 @@ const Navigation = () => {
       return pathname === "/home" || pathname === "/";
     }
     if (itemName === "gift") {
-      return pathname === "/gifts" || pathname.startsWith("/gifts/");
+      return pathname === "/gifts" || pathname.startsWith("/gifts/") || pathname === "/tickets" || pathname.startsWith("/tickets/");
     }
-    if (itemName === "ticket") {
-      return pathname === "/tickets" || pathname.startsWith("/tickets/");
+    if (itemName === "posts") {
+      return pathname === "/home/posts" || (pathname === "/home" && activeNav === "posts");
     }
     if (itemName === "profile") {
       return pathname === "/profile" || pathname.startsWith("/profile/");
@@ -103,6 +117,40 @@ const Navigation = () => {
         </ul>
       </nav>
 
+      {/* Gift Filter Modal */}
+      {showGiftFilter && (
+        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setShowGiftFilter(false)}>
+          <div 
+            className="fixed bottom-20 left-4 right-4 bg-white rounded-lg shadow-lg p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold mb-3">View</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleGiftFilterChange("gifts")}
+                className={`flex-1 py-2 px-3 rounded-md font-medium text-sm transition-colors ${
+                  giftFilter === "gifts"
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                Gifts
+              </button>
+              <button
+                onClick={() => handleGiftFilterChange("tickets")}
+                className={`flex-1 py-2 px-3 rounded-md font-medium text-sm transition-colors ${
+                  giftFilter === "tickets"
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                Tickets
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Desktop Navigation (Sidebar) */}
       <nav className="fixed left-0 top-0 z-40 hidden h-full w-64 flex-col bg-white pt-20 shadow-lg md:flex">
         <div className="flex flex-1 flex-col overflow-y-auto px-4">
@@ -118,7 +166,7 @@ const Navigation = () => {
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
               >
-                <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                <Icon className="mr-3 h-5 w-5 shrink-0" />
                 <span className="font-medium">{label}</span>
               </button>
             ))}

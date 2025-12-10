@@ -2,6 +2,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { SegmentedControl } from "@radix-ui/themes";
 import GiftList from "@/components/GiftList";
 import { canClaimBooking} from "@/utils/claim"
 import ActivityHero from "@/assets/images/sponsorbanner.png";
@@ -41,6 +42,7 @@ const Gifts = () => {
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeView, setActiveView] = useState<"gifts" | "tickets">("gifts");
   const [filterBy, setFilterBy] = useState<
     | "all"
     | "recent"
@@ -544,6 +546,28 @@ const Gifts = () => {
           </span> */}
         </h1>
       </div>
+
+      {/* Segmented Control for Gifts and Tickets */}
+      <div className="mt-4 mb-6 flex justify-center w-full">
+        <SegmentedControl.Root
+          value={activeView}
+          onValueChange={(value) => {
+            setActiveView(value as "gifts" | "tickets");
+            if (value === "tickets") {
+              navigate("/tickets");
+            }
+          }}
+          className="w-full max-w-md mx-auto"
+        >
+          <SegmentedControl.Item value="gifts" className="flex-1 text-center">
+            Gifts
+          </SegmentedControl.Item>
+          <SegmentedControl.Item value="tickets" className="flex-1 text-center">
+            Tickets
+          </SegmentedControl.Item>
+        </SegmentedControl.Root>
+      </div>
+
       {/* Search Bar */}
       <div className="mb-4">
         <form className="relative" onSubmit={(e) => e.preventDefault()}>
