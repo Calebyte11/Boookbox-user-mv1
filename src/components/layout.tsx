@@ -26,6 +26,7 @@ const Layout: FC<LayoutProps> = ({
   const hideMobileHeader =
     location.pathname.startsWith("/gifts") ||
     location.pathname.startsWith("/tickets/") || // hides for /tickets/* subroutes only
+    location.pathname.startsWith("/posts") ||
     location.pathname.startsWith("/recipt") ||
     location.pathname.startsWith("/receivedTicket") ||
     location.pathname.startsWith("/map");
