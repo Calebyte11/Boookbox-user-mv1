@@ -27,10 +27,10 @@ const createGiftRequest = async (
 ): Promise<CreateGiftRequestResponse> => {
 
 // ===== FOR PRODUCTION =====
-//   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http:localhost:5000';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http:localhost:5000';
 
 // ===== FOR DEVELOPMENT =====
-    const baseUrl = "https://boookbox-backend-cpvu.onrender.com";
+    // const baseUrl = "https://boookbox-backend-cpvu.onrender.com";
   
 
   function getHeaders(auth = false, isJson = true) {
