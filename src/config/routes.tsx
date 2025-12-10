@@ -11,8 +11,6 @@ import AllGiftView from "@/pages/AllGiftView";
 import TicketView from "@/pages/TicketView";
 import ClaimTicketView from "@/pages/ClaimTicketView";
 import ConfirmAddress from "@/features/auth/components/ConfirmAddress";
-import RecipientGifts from "@/pages/Gifts";
-import RecipientTickets from "@/pages/Tickets";
 import RecipientProfile from "@/pages/Profile";
 import RestaurantProfilePage from "@/pages/RestaurantProfilePage";
 import RestaurantRatingsPage from "@/pages/RestaurantRatingsPage";
@@ -48,6 +46,7 @@ import Reel from "@/pages/Reel";
 import ReelView from "@/pages/ReelView";
 import PostDetail from "@/pages/PostDetail";
 import PostsPage from "@/pages/PostsPage";
+import AllBookingsPage from "@/pages/AllBookingsPage";
 import VerifyPayment from "@/pages/VerifyPayment";
 import NotFound from "@/pages/NotFound";
 import GiftRequestHandler from "@/components/GiftRequestHandler"; // Add this import
@@ -210,7 +209,7 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <Layout>
-          <RecipientGifts />
+          <AllBookingsPage />
         </Layout>
       </ProtectedRoute>
     ),
@@ -220,7 +219,7 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <Layout>
-          <RecipientTickets />
+          <AllBookingsPage />
         </Layout>
       </ProtectedRoute>
     ),

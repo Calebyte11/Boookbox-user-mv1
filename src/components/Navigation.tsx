@@ -1,7 +1,6 @@
 import { Home, Gift, User, LogOut, Clapperboard, MessageSquare } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks";
 import { useNavStore } from "@/store/navStore";
 import { useUIStore } from "@/store/uiStore";
@@ -10,7 +9,7 @@ import { useUserProfileQuery } from "@/hooks/useUserQueries";
 const NAV_ITEMS = [
   { name: "home", icon: Home, label: "Home", path: "/home" },
   // { name: "search", icon: Search, label: "Search", path: "/#search" },
-  { name: "gift", icon: Gift, label: "Gifts", path: "/gifts" },
+  { name: "gift", icon: Gift, label: "Bookings", path: "/gifts" },
   { name: "reels", icon: Clapperboard, label: "Reels", path: "/reels" },
   { name: "posts", icon: MessageSquare, label: "Posts", path: "/posts" },
   { name: "profile", icon: User, label: "Profile", path: "/profile" },
@@ -23,28 +22,15 @@ const Navigation = () => {
   const { activeNav, setActiveNav } = useNavStore();
   const { openHeaderSearch } = useUIStore();
   const { data: profileData } = useUserProfileQuery();
-  const [showGiftFilter, setShowGiftFilter] = useState(false);
-  const [giftFilter, setGiftFilter] = useState<"gifts" | "tickets">("gifts");
 
   const handleNavClick = (path: string, name: string) => {
     if (name === "search") {
       openHeaderSearch();
       setActiveNav(name);
-    } else if (name === "gift") {
-      // Show filter modal for gift navigation
-      setShowGiftFilter(true);
-      setActiveNav(name);
     } else {
       setActiveNav(name);
       navigate(path);
     }
-  };
-
-  const handleGiftFilterChange = (filter: "gifts" | "tickets") => {
-    setGiftFilter(filter);
-    setShowGiftFilter(false);
-    setActiveNav("gift");
-    navigate(filter === "gifts" ? "/gifts" : "/tickets");
   };
 
   const isActive = (itemName: string) => {
@@ -116,40 +102,6 @@ const Navigation = () => {
           ))}
         </ul>
       </nav>
-
-      {/* Gift Filter Modal */}
-      {showGiftFilter && (
-        <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setShowGiftFilter(false)}>
-          <div 
-            className="fixed bottom-20 left-4 right-4 bg-white rounded-lg shadow-lg p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-semibold mb-3">View</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleGiftFilterChange("gifts")}
-                className={`flex-1 py-2 px-3 rounded-md font-medium text-sm transition-colors ${
-                  giftFilter === "gifts"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                Gifts
-              </button>
-              <button
-                onClick={() => handleGiftFilterChange("tickets")}
-                className={`flex-1 py-2 px-3 rounded-md font-medium text-sm transition-colors ${
-                  giftFilter === "tickets"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700"
-                }`}
-              >
-                Tickets
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Desktop Navigation (Sidebar) */}
       <nav className="fixed left-0 top-0 z-40 hidden h-full w-64 flex-col bg-white pt-20 shadow-lg md:flex">
