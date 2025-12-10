@@ -444,7 +444,7 @@ const Receipt = () => {
               
               {numberOfRecipients && numberOfRecipients > 1 && (
                 <div className="flex justify-between my-3 text-lg ">
-                  <p>Number of Recipients</p>
+                  <p>Number of Bookings</p>
                   <p className="font-mono text-sm">{numberOfRecipients}</p>
                 </div>
               )}

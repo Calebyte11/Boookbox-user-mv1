@@ -923,20 +923,22 @@ const BusinessProfilePage: React.FC = () => {
                   filteredItems.map((items: any, key: number) => (
                     <SignatureBowelCard
                       key={key}
-                      restaurantID={`${businessId}`}
-                      title={items.name}
-                      description={items.description}
-                      price={items.price}
-                      currency={
-                        items.currency ||
-                        businessInfo.paymentInfo?.paymentCurrency ||
-                        "NGN"
-                      }
-                      image={
-                        Array.isArray(items.images)
+                      item={{
+                        id: items._id || items.id,
+                        title: items.name || items.title,
+                        price: items.price,
+                        image: Array.isArray(items.images)
                           ? items.images[0]
-                          : items.image || refuel
-                      }
+                          : items.image || refuel,
+                        description: items.description,
+                        currency:
+                          items.currency ||
+                          businessInfo.paymentInfo?.paymentCurrency ||
+                          "NGN",
+                      }}
+                      restaurantId={businessId}
+                      restaurantName={businessInfo.name}
+                      businessCategory={normalizedCategory}
                       handleClick={() => {
                         console.log("item id " + items._id);
                         navigate(
@@ -947,6 +949,7 @@ const BusinessProfilePage: React.FC = () => {
                               }`
                         );
                       }}
+                      onRequestClick={handleRequestClick}
                     />
                   ))
                 ) : (
@@ -1059,20 +1062,22 @@ const BusinessProfilePage: React.FC = () => {
                     (items: any, key: number) => (
                       <SignatureBowelCard
                         key={key}
-                        restaurantID={`${businessId}`}
-                        title={items.name}
-                        description={items.description}
-                        price={items.price}
-                        currency={
-                          items.currency ||
-                          businessInfo.paymentInfo?.paymentCurrency ||
-                          "NGN"
-                        }
-                        image={
-                          Array.isArray(items.images)
+                        item={{
+                          id: items._id || items.id,
+                          title: items.name || items.title,
+                          price: items.price,
+                          image: Array.isArray(items.images)
                             ? items.images[0]
-                            : items.image || refuel
-                        }
+                            : items.image || refuel,
+                          description: items.description,
+                          currency:
+                            items.currency ||
+                            businessInfo.paymentInfo?.paymentCurrency ||
+                            "NGN",
+                        }}
+                        restaurantId={businessId}
+                        restaurantName={businessInfo.name}
+                        businessCategory={normalizedCategory}
                         handleClick={() => {
                           console.log("item is " + items._id);
                           navigate(
@@ -1083,6 +1088,7 @@ const BusinessProfilePage: React.FC = () => {
                                 }`
                           );
                         }}
+                        onRequestClick={handleRequestClick}
                       />
                     )
                   )
