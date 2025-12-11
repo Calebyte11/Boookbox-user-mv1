@@ -486,7 +486,7 @@ const RequestPackageForm: React.FC<RequestPackageFormProps> = ({
             <textarea
               value={message}
               onChange={(e) => setmessage(e.target.value)}
-              placeholder="Hey, want to help get this package"
+              placeholder="Hey! kindly want you to help get this package for me using the link below"
               disabled={isPending}
               maxLength={500}
               rows={4}
