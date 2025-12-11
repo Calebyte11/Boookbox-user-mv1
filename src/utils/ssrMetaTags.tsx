@@ -221,13 +221,17 @@ export const generateSsrMetaTags = (post: Post) => {
   const imageUrl = post.data?.resource?.customImage || post.images?.[0] || logo;
   
   const absoluteOgImage = toAbsoluteUrl(imageUrl) ?? logo;
+  
+  // Escape special characters for HTML attributes
+  const escapedTitle = escapeHtml(fullTitle);
+  const escapedDescription = escapeHtml(description);
 
   return {
-    title: fullTitle,
-    description,
+    title: escapedTitle,
+    description: escapedDescription,
     og: {
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       type: "article",
       url: `${PUBLIC_APP_URL}/post/${post._id}`,
       image: absoluteOgImage,
@@ -235,8 +239,8 @@ export const generateSsrMetaTags = (post: Post) => {
     },
     twitter: {
       card: "summary_large_image",
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       image: absoluteOgImage,
     },
   };
@@ -258,12 +262,16 @@ export const generateSsrReelMetaTags = (reel: Clip) => {
     toAbsoluteUrl(imageUrl) ?? logo;
   const absoluteOgVideo = toAbsoluteUrl(videoUrl);
 
+  // Escape special characters for HTML attributes
+  const escapedTitle = escapeHtml(fullTitle);
+  const escapedDescription = escapeHtml(description);
+
   return {
-    title: fullTitle,
-    description,
+    title: escapedTitle,
+    description: escapedDescription,
     og: {
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       type: "video.other",
       url: `${PUBLIC_APP_URL}/reel/${reel._id}`,
       image: absoluteOgImage,
@@ -272,8 +280,8 @@ export const generateSsrReelMetaTags = (reel: Clip) => {
     },
     twitter: {
       card: "player",
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       image: absoluteOgImage,
       player: absoluteOgVideo,
     },
@@ -284,12 +292,16 @@ export const generateSsrStaticMetaTags = (meta: { title: string; description: st
   const pageUrl = `${PUBLIC_APP_URL}${url}`;
   const imageUrl = logo || `${PUBLIC_APP_URL}/pwa-192x192.png`;
 
+  // Escape special characters for HTML attributes
+  const escapedTitle = escapeHtml(meta.title);
+  const escapedDescription = escapeHtml(meta.description);
+
   return {
-    title: meta.title,
-    description: meta.description,
+    title: escapedTitle,
+    description: escapedDescription,
     og: {
-      title: meta.title,
-      description: meta.description,
+      title: escapedTitle,
+      description: escapedDescription,
       url: pageUrl,
       image: imageUrl,
       type: "website",
@@ -297,11 +309,23 @@ export const generateSsrStaticMetaTags = (meta: { title: string; description: st
     },
     twitter: {
       card: "summary_large_image",
-      title: meta.title,
-      description: meta.description,
+      title: escapedTitle,
+      description: escapedDescription,
       image: imageUrl,
     },
   };
+};
+
+// Helper function to escape special characters for HTML attributes
+const escapeHtml = (text: string): string => {
+  const map: { [key: string]: string } = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char]);
 };
 
 export const generateSsrReferralMetaTags = (
@@ -313,23 +337,26 @@ export const generateSsrReferralMetaTags = (
   const pageUrl = `${PUBLIC_APP_URL}/auth/signup`;
   const absoluteOgImage = toAbsoluteUrl(imageUrl) ?? logo;
 
+  // Escape special characters for HTML attributes
+  const escapedTitle = escapeHtml(title);
+  const escapedDescription = escapeHtml(description);
+
   return {
-    title,
-    description,
+    title: escapedTitle,
+    description: escapedDescription,
     og: {
-      title: title,
-      description: description,
+      title: escapedTitle,
+      description: escapedDescription,
       url: pageUrl,
-      // image: imageUrl,
       image: absoluteOgImage,
       type: "website",
       site_name: "BoookBox",
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-      image: imageUrl,
+      title: escapedTitle,
+      description: escapedDescription,
+      image: absoluteOgImage,
     },
   };
 };
@@ -357,12 +384,16 @@ export const generateSsrGiftRequestMetaTags = (giftRequest: GiftRequestDataPubli
   // Construct the page URL
   const pageUrl = `${PUBLIC_APP_URL}/gifting/requests/r/${giftRequest._id}`;
 
+  // Escape special characters for HTML attributes
+  const escapedTitle = escapeHtml(fullTitle);
+  const escapedDescription = escapeHtml(description);
+
   return {
-    title: fullTitle,
-    description,
+    title: escapedTitle,
+    description: escapedDescription,
     og: {
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       type: "website",
       url: pageUrl,
       image: absoluteOgImage,
@@ -370,8 +401,8 @@ export const generateSsrGiftRequestMetaTags = (giftRequest: GiftRequestDataPubli
     },
     twitter: {
       card: "summary_large_image",
-      title: fullTitle,
-      description,
+      title: escapedTitle,
+      description: escapedDescription,
       image: absoluteOgImage,
     },
   };

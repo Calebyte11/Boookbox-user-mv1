@@ -252,6 +252,7 @@ export async function render(url: string) {
       <meta name="twitter:title" content="${tags.twitter.title}" />
       <meta name="twitter:description" content="${tags.twitter.description}" />
       <meta name="twitter:image" content="${tags.twitter.image}" />
+      <meta property="og:url" content="${tags.og.url}" />
     `;
   } else if (giftRequestMatch) {
     // 🎁 Handle Gift Request SSR
