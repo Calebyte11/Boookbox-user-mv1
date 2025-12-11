@@ -308,6 +308,7 @@ export const generateSsrReferralMetaTags = (url: string) => {
   const description = "Sign up using my referral link and let's connect on BoookBox. Gift and redeem package tickets globally.";
   const imageUrl = logo || `${PUBLIC_APP_URL}/pwa-192x192.png`;
   const pageUrl = `${PUBLIC_APP_URL}${url}`;
+  const absoluteOgImage = toAbsoluteUrl(imageUrl) ?? logo;
 
   return {
     title,
@@ -316,7 +317,8 @@ export const generateSsrReferralMetaTags = (url: string) => {
       title,
       description,
       url: pageUrl,
-      image: imageUrl,
+      // image: imageUrl,
+      image: absoluteOgImage,
       type: "website",
       site_name: "BoookBox",
     },
