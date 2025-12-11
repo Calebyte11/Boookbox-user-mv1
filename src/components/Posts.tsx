@@ -414,7 +414,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       {/* Post Content */}
       {(post.title || post.subtitle || post.message || (post.type === "gifting" && bookingData) || (post.type === "business-offer" && menuData) || (post.tags && post.tags.length > 0)) && (
         <div 
-          className="px-4 pb-3 ml-13 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="px-4 pb-3 ml-2 cursor-pointer hover:bg-gray-50 transition-colors"
           onClick={handlePostClick}
         >
           {/* Title and Subtitle Section */}
@@ -469,7 +469,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
                   </button>
                 </div>
 
-                <div className="flex-1 min-w-0 bg-b">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-bold text-gray-900 text-lg">{menuData.business?.name}</h4>
                   </div>
@@ -597,7 +597,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
         }
 
         return allImages.length > 0 && (
-          <div className="mb-0 ml-11">
+          <div className="mb-0 ml-2">
             {allImages.length === 1 ? (
               <img
                 src={allImages[0]}
@@ -637,7 +637,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       })()}
 
       {/* Post Actions */}
-      <div className="px-3 py-3 ml-11">
+      <div className="px-3 py-3 ml-2">
         {/* Action Buttons Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-4">
