@@ -170,6 +170,7 @@ import type { Post } from "@/types/post";
 import type { Clip } from "@/types/reel";
 import type { GiftRequestDataPublic } from "@/services/giftRequestService";
 import logo from '/pwa-192x192.png';
+// import { image } from "html2canvas/dist/types/css/types/image";
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$|^\/+/, "");
 
@@ -303,11 +304,13 @@ export const generateSsrStaticMetaTags = (meta: { title: string; description: st
   };
 };
 
-export const generateSsrReferralMetaTags = (url: string) => {
+export const generateSsrReferralMetaTags = (
+  // url: string
+) => {
   const title = "Join me on BoookBox!";
   const description = "Sign up using my referral link and let's connect on BoookBox. Gift and redeem package tickets globally.";
   const imageUrl = logo || `${PUBLIC_APP_URL}/pwa-192x192.png`;
-  const pageUrl = `${PUBLIC_APP_URL}${url}`;
+  const pageUrl = `${PUBLIC_APP_URL}/auth/signup`;
   const absoluteOgImage = toAbsoluteUrl(imageUrl) ?? logo;
 
   return {

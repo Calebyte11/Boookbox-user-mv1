@@ -238,7 +238,7 @@ export async function render(url: string) {
   }
 
   if (isReferral) {
-    const tags = generateSsrReferralMetaTags(url);
+    const tags = generateSsrReferralMetaTags();
     metaTags = `
       <title>${tags.title}</title>
       <meta name="description" content="${tags.description}" />
