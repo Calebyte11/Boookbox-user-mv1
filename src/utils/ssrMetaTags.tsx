@@ -317,8 +317,8 @@ export const generateSsrReferralMetaTags = (
     title,
     description,
     og: {
-      title,
-      description,
+      title: title,
+      description: description,
       url: pageUrl,
       // image: imageUrl,
       image: absoluteOgImage,
