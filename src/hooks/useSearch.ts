@@ -6,7 +6,8 @@ import { useSearchContext } from "./useSearchContext";
 export interface UseSearchOptions {
   debounceMs?: number;
   minQueryLength?: number;
-  restaurantId?: string; // For menu search context
+  initialPage?: number;
+  initialLimit?: number;
 }
 
 export interface UseSearchReturn {
@@ -20,10 +21,19 @@ export interface UseSearchReturn {
   handleSearchSubmit: (e: React.FormEvent) => void;
   clearSearch: () => void;
   searchContext: ReturnType<typeof useSearchContext>;
+  page: number;
+  setPage: (page: number) => void;
+  hasMore: boolean;
+  loadMore: () => void;
 }
 
 export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
-  const { debounceMs = 300, minQueryLength = 2 } = options;
+  const { 
+    debounceMs = 300, 
+    minQueryLength = 2,
+    initialPage = 1,
+    initialLimit = 10
+  } = options;
 
   const navigate = useNavigate();
   const searchContext = useSearchContext();
@@ -31,61 +41,87 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  // Debounced search function
+  const [page, setPage] = useState(initialPage);
+  const [hasMore, setHasMore] = useState(false);
+
+  /**
+   * Perform search using the unified backend endpoint
+   */
   const performSearch = useCallback(
-    async (query: string) => {
+    async (query: string, pageNum: number = 1) => {
       if (!query.trim() || query.length < minQueryLength) {
         setSearchResults([]);
+        setHasMore(false);
         return;
       }
 
       setIsSearching(true);
 
       try {
-        let results: SearchResult[] = [];
-
-        // Always use global search for comprehensive results
-        // This allows users to find everything regardless of current page context
-        results = await SearchService.globalSearch(query);
-
-        setSearchResults(results);
+        const results = await SearchService.search(query, pageNum, initialLimit);
+        
+        if (pageNum === 1) {
+          setSearchResults(results);
+          console.log(results);
+          
+        } else {
+          // Append results for pagination
+          setSearchResults((prev) => [...prev, ...results]);
+        }
+        
+        // Determine if there are more results
+        // You can adjust this logic based on your backend's pagination response
+        setHasMore(results.length === initialLimit);
       } catch (error) {
         console.error("Search error:", error);
         setSearchResults([]);
+        setHasMore(false);
       } finally {
         setIsSearching(false);
       }
     },
-    [minQueryLength]
+    [minQueryLength, initialLimit]
   );
 
-  // Debounce effect
+  /**
+   * Debounce effect for search query changes
+   */
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      performSearch(searchQuery);
+      if (searchQuery) {
+        setPage(1);
+        performSearch(searchQuery, 1);
+      }
     }, debounceMs);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery, performSearch, debounceMs]);
 
-  // Handle search input change
+  /**
+   * Handle search input change
+   */
   const handleSearch = useCallback((query: string) => {
-    // Clean hashtags from the query
     const cleanedQuery = cleanSearchQuery(query);
     setSearchQuery(cleanedQuery);
+    setPage(1);
   }, []);
 
-  // Handle result click
+  /**
+   * Handle result click - navigate to the result's route
+   */
   const handleResultClick = useCallback(
     (result: SearchResult) => {
       navigate(result.route);
-      setSearchQuery(""); // Clear search after navigation
+      setSearchQuery("");
       setSearchResults([]);
+      setPage(1);
     },
     [navigate]
   );
 
-  // Handle search form submission
+  /**
+   * Handle search form submission
+   */
   const handleSearchSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -94,21 +130,34 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         // Navigate to first result
         handleResultClick(searchResults[0]);
       } else if (searchQuery.trim()) {
-        // Navigate to search results page based on context
-        const searchRoute = getSearchResultsRoute(searchContext, searchQuery);
-        if (searchRoute) {
-          navigate(searchRoute);
-        }
+        // Navigate to search results page
+        const searchRoute = `/search?q=${encodeURIComponent(searchQuery)}`;
+        navigate(searchRoute);
       }
     },
-    [searchResults, searchQuery, searchContext, handleResultClick, navigate]
+    [searchResults, searchQuery, handleResultClick, navigate]
   );
 
-  // Clear search
+  /**
+   * Clear search state
+   */
   const clearSearch = useCallback(() => {
     setSearchQuery("");
     setSearchResults([]);
+    setPage(1);
+    setHasMore(false);
   }, []);
+
+  /**
+   * Load more results (pagination)
+   */
+  const loadMore = useCallback(() => {
+    if (!isSearching && hasMore && searchQuery) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      performSearch(searchQuery, nextPage);
+    }
+  }, [isSearching, hasMore, searchQuery, page, performSearch]);
 
   return {
     searchQuery,
@@ -121,45 +170,21 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     handleSearchSubmit,
     clearSearch,
     searchContext,
+    page,
+    setPage,
+    hasMore,
+    loadMore,
   };
 }
 
-// Helper function to get search results route based on context
-function getSearchResultsRoute(
-  _searchContext: ReturnType<typeof useSearchContext>,
-  query: string
-): string | null {
-  const encodedQuery = encodeURIComponent(query);
-
-  if (_searchContext.type === "menus" && _searchContext?.restaurantId) {
-    // If searching within a restaurant's menu
-    return `/restaurants/${_searchContext.restaurantId}/menu?search=${encodedQuery}`;
-  }
-
-  if (_searchContext.type === "gifts") {
-    // If searching for gifts
-    return `/gifts?search=${encodedQuery}`;
-  }
-
-  if (_searchContext.type === "bookings") {
-    // If searching for bookings
-    return `/bookings?search=${encodedQuery}`;
-  }
-
-  if (_searchContext.type === "tickets") {
-    // If searching for tickets
-    return `/tickets?search=${encodedQuery}`;
-  }
-  // Add more context types as needed
-  return `/restaurants/view-all?search=${encodedQuery}`;
-}
-
-// Helper function to clean search query from hashtags and other unwanted characters
+/**
+ * Helper function to clean search query from hashtags and other unwanted characters
+ */
 function cleanSearchQuery(query: string): string {
   if (!query) return query;
 
   return query
-    .replace(/#/g, "") // Remove hashtags
-    .replace(/[@]/g, "") // Remove @ symbols
-    .trim(); // Remove leading/trailing whitespace
+    .replace(/#/g, "")
+    .replace(/[@]/g, "")
+    .trim();
 }

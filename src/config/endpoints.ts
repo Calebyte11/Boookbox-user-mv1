@@ -22,8 +22,12 @@ export const API_ENDPOINTS = {
   },
 
   // User Search
+  // USER_SEARCH: {
+  //   SEARCH_USERS: (query: string) => `/u/search/boookbox?q=${query}`,
+  // },
   USER_SEARCH: {
-    SEARCH_USERS: (query: string) => `/u/search?q=${query}`,
+    GLOBAL: (query: string, page: number = 1, limit: number = 10) => 
+      `/u/search/boookbox?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
   },
 
   // Bookings

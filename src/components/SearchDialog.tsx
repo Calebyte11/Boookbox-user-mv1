@@ -8,6 +8,7 @@ import {
   History,
   Loader2,
 } from "lucide-react";
+import ActivityHero from  "@/assets/images/sponsorbanner.png"
 import type { SearchResult } from "@/services/searchService";
 
 interface SearchDialogProps {
@@ -44,13 +45,33 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
     // Allow typing hashtags but clean them when processing
     const cleanedValue = value.replace(/[@]/g, ""); // Remove @ symbols immediately
     onSearchQueryChange(cleanedValue);
+
+    console.log(searchResults);
+    
   };
+
+  // Log search results for debugging
+  React.useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      console.log("🔍 SearchDialog Debug:", {
+        searchQuery,
+        isSearching,
+        resultsCount: searchResults.length,
+        results: searchResults,
+      });
+    }
+  }, [searchQuery, searchResults, isSearching]);
+  console.log(searchResults);
+  
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 md:hidden" />
-        <Dialog.Content className="fixed left-0 right-0 top-0 h-auto min-h-[30vh] z-50 bg-white p-4 focus:outline-none md:hidden">
+        <Dialog.Content className="fixed left-0 right-0 top-0 h-auto min-h-[30vh] max-h-[90vh] overflow-y-auto z-50 bg-white p-4 focus:outline-none md:hidden">
+          {/* Add DialogTitle for accessibility */}
+          <Dialog.Title className="sr-only">Search</Dialog.Title>
+          
           <div className="flex items-center justify-between my-4">
             <Dialog.Close className="rounded-xl p-2 bg-[#ECE6F0]">
               <ChevronLeft className="h-6 w-6 text-black text-xl" />
@@ -62,7 +83,8 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
             >
               <Settings2 className="h-6 w-6 text-black text-xl" />
             </div>
-          </div>{" "}
+          </div>
+          
           <form onSubmit={onSearchSubmit} className="relative">
             <input
               type="text"
@@ -70,7 +92,7 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
               className="w-full rounded-xl bg-[#ECE6F0] py-3 px-10 text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               value={searchQuery}
               onChange={(e) => handleInputChange(e.target.value)}
-              // autoFocus
+              autoFocus
             />
             <Search className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F]" />
             {searchQuery && (
@@ -79,7 +101,8 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                 onClick={() => onSearchQueryChange("")}
               />
             )}
-          </form>{" "}
+          </form>
+          
           {/* Search Results */}
           {searchQuery.trim() && searchQuery.length >= 2 && (
             <div className="mt-6">
@@ -88,33 +111,68 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                   <Loader2 className="animate-spin h-6 w-6 text-primary" />
                   <span className="ml-2 text-gray-600">Searching...</span>
                 </div>
-              ) : searchResults.length > 0 ? (
+              ) : searchResults && searchResults.length > 0 ? (
                 <div>
                   <h3 className="text-xl font-medium text-black mb-4">
-                    Search Results
+                    Search Results ({searchResults.length})
                   </h3>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {" "}
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto">
                     {searchResults.map((result, index) => (
                       <div
-                        key={`${result.type}-${result.route}-${index}`}
+                        key={`${result.type}-${result.id}-${index}`}
                         className="py-3 px-2 hover:bg-gray-100 rounded-lg cursor-pointer flex items-center space-x-3"
-                        onClick={() => onResultClick?.(result)}
+                        onClick={() => {
+                          console.log("Clicking result:", result);
+                          onResultClick?.(result);
+                        }}
                       >
                         {result.image && (
                           <img
-                            src={result.image}
+                            src={result.image || ActivityHero}
                             alt={result.title}
-                            className="w-12 h-12 rounded-lg object-cover"
+                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                            onError={(e) => {
+                              // Hide broken images
+                              e.currentTarget.style.display = "none";
+                            }}
                           />
-                        )}{" "}
+                        )}
+                        
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate">
-                            {result.title}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-medium text-gray-900 truncate flex-1">
+                              {result.title}
+                            </p>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary flex-shrink-0">
+                              {result.type}
+                            </span>
+                          </div>
+                          
+                          <p className="text-sm text-gray-500 truncate mt-1">
                             {result.description}
                           </p>
+                          
+                          {/* Display business info for products */}
+                          {result.type === "product" && result.metadata?.businessName && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              📍 {result.metadata.businessName}
+                            </p>
+                          )}
+                          
+                          {/* Display price for products */}
+                          {result.type === "product" && result.metadata?.price && (
+                            <p className="text-sm font-semibold text-primary mt-1">
+                              {result.metadata.currency} {result.metadata.price.toLocaleString()}
+                            </p>
+                          )}
+                          
+                          {/* Display category badges */}
+                          {result.metadata?.category && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800 mt-1">
+                              {result.metadata.category}
+                            </span>
+                          )}
+                          
                           {/* Display kitchen type and cuisine type if available */}
                           {(result.metadata?.kitchenType ||
                             result.metadata?.cuisineType) && (
@@ -133,15 +191,17 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                               )}
                             </div>
                           )}
+                          
                           {/* Display tags if available */}
                           {result.metadata?.tags &&
+                            Array.isArray(result.metadata.tags) &&
                             result.metadata.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {result.metadata.tags
                                   .slice(0, 3)
-                                  .map((tag: string, index: number) => (
+                                  .map((tag: string, tagIndex: number) => (
                                     <span
-                                      key={index}
+                                      key={`tag-${tagIndex}`}
                                       className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
                                     >
                                       #{tag}
@@ -154,9 +214,6 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                                 )}
                               </div>
                             )}
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 mt-1">
-                            {result.type}
-                          </span>
                         </div>
                       </div>
                     ))}
@@ -164,24 +221,29 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
                 </div>
               ) : (
                 <div className="text-center py-8">
+                  <Search className="mx-auto h-12 w-12 text-gray-300 mb-2" />
                   <p className="text-gray-500">
                     No results found for "{searchQuery}"
+                  </p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Try different keywords or check your spelling
                   </p>
                 </div>
               )}
             </div>
           )}
+          
           {/* Recent Searches - Show only when no search query */}
           {!searchQuery.trim() && searchHistory.length > 0 && (
             <div className="mt-6">
               <h3 className="text-xl font-medium text-black mb-4 mt-3">
                 Recent Searches
               </h3>
-              <div className="space-y-2 ">
+              <div className="space-y-2">
                 {searchHistory.map((item, index) => (
                   <div
-                    key={index}
-                    className="py-3 hover:bg-gray-100 rounded-lg cursor-pointer inline-flex justify-between w-full items-center"
+                    key={`history-${index}`}
+                    className="py-3 hover:bg-gray-100 rounded-lg cursor-pointer inline-flex justify-between w-full items-center px-2"
                     onClick={() => onRecentSearchClick(item)}
                   >
                     <span className="inline-flex capitalize items-center">
@@ -194,11 +256,15 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
               </div>
             </div>
           )}
+          
           {/* Empty state - Show when no search query and no history */}
           {!searchQuery.trim() && searchHistory.length === 0 && (
-            <div className="mt-6 text-center text-gray-500">
-              <History className="mx-auto h-8 w-8 mb-2" />
+            <div className="mt-6 text-center text-gray-500 py-8">
+              <History className="mx-auto h-12 w-12 text-gray-300 mb-2" />
               <p>No recent searches.</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Start typing to search for businesses, products, and more
+              </p>
             </div>
           )}
         </Dialog.Content>

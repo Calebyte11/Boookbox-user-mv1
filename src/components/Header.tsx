@@ -181,15 +181,27 @@ const Header: React.FC = () => {
     [locationStore, locationRetryCount]
   );
 
+  // const {
+  //   searchQuery,
+  //   setSearchQuery,
+  //   searchResults,
+  //   isSearching,
+  //   placeholder,
+  //   handleSearchSubmit,
+  //   handleResultClick,
+  // } = useSearch({});
   const {
-    searchQuery,
-    setSearchQuery,
-    searchResults,
-    isSearching,
-    placeholder,
-    handleSearchSubmit,
-    handleResultClick,
-  } = useSearch({});
+  searchQuery,
+  setSearchQuery,  // ✅ This is already the correct function from the hook
+  searchResults,
+  isSearching,
+  placeholder,
+  handleSearchSubmit,
+  handleResultClick,
+} = useSearch({
+  minQueryLength: 2,
+  debounceMs: 300,
+});
 
   // Only fetch geolocation if both are missing and not denied, with graceful iOS handling
   useEffect(() => {
@@ -591,7 +603,8 @@ const Header: React.FC = () => {
                   placeholder={placeholder}
                   className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-[#F8F8F8]"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
+                  // onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchOpen(true)}
                 />
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
