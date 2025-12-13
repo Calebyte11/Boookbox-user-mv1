@@ -28,6 +28,8 @@ export const API_ENDPOINTS = {
   USER_SEARCH: {
     GLOBAL: (query: string, page: number = 1, limit: number = 10) => 
       `/u/search/boookbox?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
+    SEARCH_USERS: (query: string) => `/u/search?q=${query}`, // ==== To search for users ==
+    
   },
 
   // Bookings
