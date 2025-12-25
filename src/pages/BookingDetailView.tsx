@@ -23,7 +23,7 @@ import {
   Share2,
   Mail,
 } from "lucide-react";
-import ActivityHero from "@/assets/images/sponsorbanner.png"
+import ActivityHero from "@/assets/images/sponsorbanner.png";
 import { BookingDetailViewSkeleton } from "@/components/SkeletonLoader";
 import IdDisplay from "@/components/IdDisplay";
 import {
@@ -41,6 +41,7 @@ import { formatCurrency } from "@/utils/formatCurrency";
 import PostForm from "@/components/PostForm";
 import type { PostFormData } from "@/components/PostForm";
 import { Avatar } from "@radix-ui/themes";
+
 const BookingDetailView: React.FC = () => {
   const navigate = useNavigate();
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -53,9 +54,8 @@ const BookingDetailView: React.FC = () => {
     title: "",
     subtitle: "",
     message: "",
-    tags: [] as string[]
+    tags: [] as string[],
   });
-
 
   // Query hook for booking details
   const {
@@ -68,6 +68,10 @@ const BookingDetailView: React.FC = () => {
   });
   // console.log("Booking Data:", bookingData);
 
+  // ====== See more hooks =========
+  const [seeMoreInfo, setSeeMoreInfo] = useState(false);
+  const [seeMoreSummary, setSeeMoreSummary] = useState(false);
+
   // Mutation hooks
   const deleteBookingMutation = useDeleteBooking(bookingId || "");
   const shareBookingMutation = useShareBookingAsPost();
@@ -78,7 +82,6 @@ const BookingDetailView: React.FC = () => {
 
   const restaurantFromBooking = booking?.bookedAtBusiness;
   console.log(restaurantFromBooking);
-  
 
   // Prefer embedded restaurant data over separate query result
   const restaurant = restaurantFromBooking;
@@ -98,7 +101,6 @@ const BookingDetailView: React.FC = () => {
       booking?.bookingId || bookingId || "",
       !!(booking?.bookingId || bookingId) && isBookingCreator
     );
-    
 
   // Check if booking can be edited (only pending bookings by the creator)
   const canEditBooking =
@@ -158,9 +160,7 @@ const BookingDetailView: React.FC = () => {
         };
     }
   };
-  const mealIds =
-    booking?.items?.map((item: any) => item.product?._id) ||
-    [];
+  const mealIds = booking?.items?.map((item: any) => item.product?._id) || [];
   // 2. Fetch all meals in one query (assuming your API supports batch fetching)
   const { data: allMeals } = useRestaurantMenuInfoQuery(
     booking?.restaurantId || booking?.bookedAtBusiness?.businessId || "",
@@ -168,7 +168,7 @@ const BookingDetailView: React.FC = () => {
   );
 
   console.log(allMeals);
-  
+
   // Handle claim booking
 
   const canClaim = canClaimBooking(user, booking);
@@ -202,10 +202,16 @@ const BookingDetailView: React.FC = () => {
 
     // Pre-populate form with default values
     setShareFormData({
-      title: `Shared my BoookBox experience at ${restaurant?.name || "a restaurant"}!`,
-      subtitle: `${booking.menuItems?.length || 0} meals booked • Spreading joy through food`,
-      message: `Just booked ${booking.menuItems?.length || 0} delicious meals through BoookBox. Join me in spreading joy through food! 🍽️❤️`,
-      tags: ["BoookBox", "FoodSharing", "Community"]
+      title: `Shared my BoookBox experience at ${
+        restaurant?.name || "a restaurant"
+      }!`,
+      subtitle: `${
+        booking.menuItems?.length || 0
+      } meals booked • Spreading joy through food`,
+      message: `Just booked ${
+        booking.menuItems?.length || 0
+      } delicious meals through BoookBox. Join me in spreading joy through food! 🍽️❤️`,
+      tags: ["BoookBox", "FoodSharing", "Community"],
     });
     setIsShareDialogOpen(true);
   };
@@ -221,7 +227,7 @@ const BookingDetailView: React.FC = () => {
         subtitle: shareFormData.subtitle,
         message: shareFormData.message,
         tags: shareFormData.tags,
-        visibility: "public"
+        visibility: "public",
       });
 
       toast({
@@ -229,7 +235,7 @@ const BookingDetailView: React.FC = () => {
         description: "Your booking has been shared to the community feed.",
         variant: "success",
       });
-      
+
       setIsShareDialogOpen(false);
     } catch (error) {
       toast({
@@ -240,8 +246,6 @@ const BookingDetailView: React.FC = () => {
       });
     }
   };
-
-
 
   // Handle edit booking - navigate to restaurant page
   const handleEditBooking = () => {
@@ -321,12 +325,12 @@ const BookingDetailView: React.FC = () => {
   }
 
   const statusDisplay = getStatusDisplay(booking.status);
-
+  
   return (
-    <div className="min-h-screen bg-gray-50 ">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gray-50 p-0 mt-0 ">
+      {/*===== the page's Header ===========*/}
+      <div className="border-gray-200">
+        <div className="max-w-4xl  mx-auto mr-0 w-[100%] px-2 mt-0 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -372,82 +376,410 @@ const BookingDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="mx-auto px-4 py-6">
-        <div className="grid gap-6 lg:grid-cols-3">
+      {/*================  Main Content container =================  */}
+      <div className="mx-auto px-4 mt-1 pt-2 pr-0 pl-0">
+        {/* ===== the child container ======= */}
+        <div className="bg-white grid gap-6 lg:grid-cols-3 rounded-lg shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
           {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2">
             {" "}
-            {/* Restaurant Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                  {restaurant?.profileImage ? (
+            {/* ====== Basic Info Card (1st card) ===== */}
+            <div className="flex bg-inherit">
+              <div className="flex items-start gap-4 w-full p-3">
+                <div className="w-28 aspect-square rounded-lg flex items-center justify-center overflow-hidden">
+                  {booking.bookedByUser.profileImage ? (
                     <img
-                      src={restaurant.profileImage}
-                      alt={restaurant.name || "Restaurant"}
+                      src={booking.bookedByUser.profileImage}
+                      alt={
+                        booking.bookedByUser.fullName ||
+                        booking.bookedByUser.organizationName
+                      }
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xl">
-                      {restaurant?.name?.charAt(0) || "R"}
+                      {booking?.bookedByUser.fullName?.charAt(0) ||
+                        booking?.bookedByUser.organizationName?.charAt(0) ||
+                        "U"}
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  {" "}
-                  <h2 className="text-xl font-semibold text-gray-900 mb-1">
-                    {isLoading
-                      ? "Loading..."
-                      : restaurant?.name || "Restaurant"}
-                  </h2>
-                  {restaurant?.address && (
-                    <p className="text-gray-600 flex items-center gap-1 mb-2">
-                      <MapPin className="h-4 w-4" />
-                      {restaurant.address}
-                    </p>
-                  )}
-                  {restaurant?.phone && (
-                    <p className="text-gray-600 flex items-center gap-1 mb-2">
-                      <Phone className="h-4 w-4" />
-                      {restaurant.phone}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusDisplay.color}`}
-                    >
-                      {statusDisplay.icon}
-                      {statusDisplay.text}
+                {/* ======== The Details container after the image --bookedFor and bookedBy ========= */}
+                <div>
+                  {(booking.bookedByName || booking.bookedByUser?.fullName) && (
+                    <div>
+                      <p className="text-sm font-bold text-gray-700">
+                        Booked By :
+                      </p>
+                      <div className="mt-0 text-gray-600">
+                        <p>
+                          {booking.bookedByName ||
+                            booking.bookedByUser?.fullName}
+                        </p>
+                        {booking.bookedByUser?.email && (
+                          <p className="text-sm text-gray-500">
+                            {booking.bookedByUser.email}
+                          </p>
+                        )}
+                        {booking.bookedByUser?.phoneNumber && (
+                          <p className="text-sm text-gray-500">
+                            {booking.bookedByUser.phoneNumber}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      {getBookingTypeIcon(booking.bookingType)}
-                      <span className="capitalize">
-                        {booking.bookingType || "self"}
-                      </span>
+                  )}
+                  {booking.bookedFor && booking.bookedFor.type !== "seelf" && (
+                    <div>
+                      <div className="flex-col">
+                        <p className="text-sm  font-bold text-gray-700">
+                          <span className="flex items-center gap-2 py-1 text-sm text-gray-600 capitalize">
+                            Booked For :
+                            {getBookingTypeIcon(booking.bookingType)}
+                            {`  ${booking.bookedFor.type}`}
+                          </span>
+                        </p>
+                      </div>
+                      {booking.bookedFor.contact &&
+                        booking.bookedFor.contact.length > 0 && (
+                          <div className="mt-0 mb-0 space-y-1">
+                            {booking.bookedFor.contact.map(
+                              (contact: any, index: number) => {
+                                // Only the booker can see full contact info
+                                if (isBookingCreator) {
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="text-sm text-gray-600"
+                                    >
+                                      <p>
+                                        {contact.name} - {contact.email}
+                                      </p>
+                                      {contact.phoneNumber && (
+                                        <p>{contact.phoneNumber}</p>
+                                      )}
+                                      {contact.address && (
+                                        <p>{contact.address}</p>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                                // Others see only name and number of recipients
+                                return (
+                                  <div
+                                    key={index}
+                                    className="text-sm text-gray-600"
+                                  >
+                                    <p>
+                                      {contact.email === user?.email
+                                        ? contact.name
+                                        : ""}
+                                      {booking.bookedFor.contact.length > 1
+                                        ? ` +${
+                                            booking.bookedFor.contact.length - 1
+                                          } recipient(s)`
+                                        : ""}
+                                    </p>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        )}
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>{" "}
+            {/* ======== the dashed line after each container ======= */}
+            <div className="w-[86%] mx-auto">
+              <hr className="border-t  border-gray-400"></hr>
+            </div>
+            {/* ============ The Additional Info Container ========= */}
+            <div>
+              {(booking.reason ||
+                booking.bookedFor ||
+                booking.redemptionMode ||
+                booking.tags) && (
+                <div className="bg-white p-3">
+                  <h3 className="mx-auto flex items-center justify-center text-lg font-medium text-gray-900 mb-1">
+                    Additional Information
+                  </h3>
+                  <div className="space-y-2 ml-4 mt-0">
+                    {/* ==== Restaurant Info and adress ===== */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-bold text-gray-700">
+                        {restaurant?.category === "restaurant"
+                          ? "Restaurant's Name :"
+                          : "Store's Name :"}
+                        <span className="text-sm font-bold text-gray-700 capitalize ml-3">
+                          {/* {booking.redemptionMode} */}
+                          {isLoading
+                            ? "Loading..."
+                            : restaurant?.name || "Restaurant"}
+                        </span>
+                      </p>
+                      <p className="text-sm flex font-bold text-gray-700">
+                        {restaurant.category === "restaurant"
+                          ? "Restaurant's Address :"
+                          : "Store's Address :"}
+                        {restaurant?.address && (
+                          <span className="font-medium capitalize text-gray-600 flex items-center ml-3 gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {restaurant.address}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm flex font-bold text-gray-700">
+                        {restaurant.category === "restaurant"
+                          ? "Restaurant's Contact :"
+                          : "Store's Contact :"}
+                        {restaurant?.phone_number && (
+                          <span className="font-medium capitalize text-gray-600 flex items-center ml-3 gap-1">
+                            <Phone className="h-4 w-4" />
+                            {restaurant.phone_number}
+                          </span>
+                        )}
+                      </p>
+                    </div>
 
-            {/* Meal Package Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    {/* ========== See More or Less container ========= */}
+                    <div>
+                      <button
+                        onClick={() => setSeeMoreInfo(!seeMoreInfo)}
+                        className="text-sm text-gray-700 mx-auto flex justify-center"
+                      >
+                        {seeMoreInfo ? (
+                          <div className="flex items-center gap-1 bg-gray-100 p-1 px-2 rounded-xl">
+                            <span className="font-medium capitalize text-gray-600">
+                              See less
+                            </span>
+                            <ChevronUp className="w-4 h-4" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-gray-100 p-1 px-2 rounded-xl">
+                            <span className="font-medium capitalize text-gray-600">
+                              See more
+                            </span>
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        )}
+                      </button>
+
+                      {seeMoreInfo && (
+                        <>
+                          {/* ======= The less relevant additional infomartion ======== */}
+                          {booking.reason && (
+                            <div className="mt-1">
+                              <p className="text-sm font-bold text-gray-700">
+                                Reason :
+                                <span className=" font-medium text-gray-600 ml-3">
+                                  {booking.reason}
+                                </span>
+                              </p>
+                              <p></p>
+                            </div>
+                          )}
+                          {booking.redemptionMode && (
+                            <div>
+                              <p className="mt-1 text-sm font-bold text-gray-700">
+                                Redemption Mode :
+                                <span className="text-sm font-medium text-gray-600 capitalize ml-3">
+                                  {booking.redemptionMode}
+                                </span>
+                              </p>
+                            </div>
+                          )}
+                          {booking.includeUtensils !== undefined && (
+                            <div>
+                              <p className="text-sm font-bold text-gray-700 mt-1">
+                                Include Utensils :
+                                <span className="text-sm font-medium text-gray-600 ml-3">
+                                  {booking.includeUtensils ? "Yes" : "No"}
+                                </span>
+                              </p>
+                            </div>
+                          )}
+                          {booking.tags && booking.tags.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">
+                                Tags
+                              </p>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {booking.tags.map((tag: any, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ======== the dashed line after each container ======= */}
+              <div className="w-[86%] mx-auto">
+                <hr className="border-t  border-gray-400"></hr>
+              </div>
+            </div>
+            {/* ==============Booking Summary Container =========== */}
+            <div className="bg-white p-3">
+              <h3 className="mx-auto flex items-center justify-center text-lg font-medium text-gray-900 mb-2">
+                Booking Summary
+              </h3>
+              <div className="space-y-2 ml-4">
+                {" "}
+                <div className="flex justify-between">
+                  <span className="text-sm font-bold text-gray-600">
+                    Quantity
+                  </span>
+                  <span className="font-medium text-sm">
+                    {booking.numberOfBookings || 1} item(s)
+                  </span>
+                </div>
+                {booking.slotsTaken !== undefined && (
+                  <div className="flex justify-between">
+                    <span className="text-sm font-bold text-gray-600">
+                      Slots Taken
+                    </span>
+                    <span className="font-medium text-sm">
+                      {booking.slotsTaken} / {booking.numberOfBookings || 1}
+                    </span>
+                  </div>
+                )}
+                {/* ==== status ===== */}
+                <div className="flex justify-between">
+                  <span className="text-sm font-bold text-gray-600">
+                    Status
+                  </span>
+                  <div
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${statusDisplay.color}`}
+                  >
+                    {statusDisplay.icon}
+                    {statusDisplay.text}
+                  </div>
+                </div>{" "}
+                {/* ========== See More or Less container for booking summary ========= */}
+                <div>
+                  <button
+                    onClick={() => setSeeMoreSummary(!seeMoreSummary)}
+                    className="text-sm text-gray-700 mx-auto flex justify-center"
+                  >
+                    {seeMoreSummary ? (
+                      <div className="flex items-center gap-1 bg-gray-100 p-1 px-2 rounded-xl">
+                        <span className="font-medium capitalize text-gray-600">
+                          See less
+                        </span>
+                        <ChevronUp className="w-4 h-4" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 bg-gray-100 p-1 px-2 rounded-xl">
+                        <span className="font-medium capitalize text-gray-600">
+                          See more
+                        </span>
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    )}
+                  </button>
+
+                  {seeMoreSummary && (
+                    <>
+                      {/* ======= The less relevant infomartion for booking summary ======== */}
+                      {/* ======= validity container ======== */}
+                      {booking.validityDate && (
+                        <div className="flex justify-between mt-1">
+                          <span className="text-sm font-bold text-gray-600">
+                            Validity Period
+                          </span>
+                          <span className="font-medium text-sm">
+                            {(() => {
+                              if (typeof booking.validityDate === "string") {
+                                const date = new Date(booking.validityDate);
+                                return isNaN(date.getTime())
+                                  ? "N/A"
+                                  : date.toLocaleDateString();
+                              } else if (
+                                booking.validityDate.start &&
+                                booking.validityDate.stop
+                              ) {
+                                const startDate = new Date(
+                                  booking.validityDate.start
+                                );
+                                const stopDate = new Date(
+                                  booking.validityDate.stop
+                                );
+                                if (
+                                  isNaN(startDate.getTime()) ||
+                                  isNaN(stopDate.getTime())
+                                ) {
+                                  return "N/A";
+                                }
+                                return `${startDate.toLocaleDateString()} - ${stopDate.toLocaleDateString()}`;
+                              } else {
+                                const date = new Date(
+                                  booking.validityDate.stop ||
+                                    booking.validityDate.start
+                                );
+                                return isNaN(date.getTime())
+                                  ? "N/A"
+                                  : date.toLocaleDateString();
+                              }
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      {booking.createdAt && (
+                        <div className="flex justify-between mt-1">
+                          <span className="font-bold text-sm text-gray-600">
+                            Created On
+                          </span>
+                          <span className="text-sm font-medium">
+                            {new Date(booking.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      {booking.bookedAt && (
+                        <div className="flex justify-between mt-1">
+                          <span className="text-sm font-bold text-gray-600">
+                            Booked At
+                          </span>
+                          <span className="text-sm font-medium">
+                            {new Date(booking.bookedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}{" "}
+                    </>
+                  )}
+                </div>
+              </div>{" "}
+            </div>
+            {/* ======== the dashed line after each container ======= */}
+            <div className="w-[86%] mx-auto">
+              <hr className="border-t  border-gray-400"></hr>
+            </div>
+            {/* =========== Menu Items Container ======== */}
+            {/* ========== Meal Package Details Container ==========*/}
+            <div className="bg-white mb-0 p-3 pb-0">
+              <h3 className="mx-auto flex items-center justify-center text-lg font-medium text-gray-900 mb-2">
                 Package Details
               </h3>
+              {/* ======= the commented image ========= */}
               <div className="flex gap-4 mb-4 relative">
                 {/* Image Container - Fixed Size with Aspect Ratio */}
-                <div className="flex-shrink-0 relative rounded-lg bg-gray-100 w-full">
+                <div className="shrink-0 relative rounded-lg bg-gray-100 w-[85%] mx-auto">
                   <img
                     src={
                       booking.items[0].product.images[0] || // First meal image if available
-                      booking.images || // Booking-level image
-                      {ActivityHero} // Ultimate fallback
+                      booking.images || { ActivityHero } // Booking-level image // Ultimate fallback
                     }
-                    alt={
-                      allMeals?.[0]?.name || booking.reason || "Meal package"
-                    }
+                    alt={allMeals?.[0]?.name || booking.reason || "Package"}
                     className="w-full aspect-square object-contain"
                     onError={(e) => {
                       e.currentTarget.src = "";
@@ -505,238 +837,23 @@ const BookingDetailView: React.FC = () => {
                 </div>
               )}
             </div>{" "}
-            {/* Additional Details */}
-            {(booking.reason ||
-              booking.bookedFor ||
-              booking.redemptionMode ||
-              booking.tags) && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Additional Information
-                </h3>
-                <div className="space-y-4">
-                  {booking.reason && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        Reason
-                      </p>
-                      <p className="text-gray-600">{booking.reason}</p>
-                    </div>
-                  )}
-                  {booking.bookedFor && booking.bookedFor.type !== "self" && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        Booked For
-                      </p>
-                      <p className="text-gray-600 capitalize">
-                        {booking.bookedFor.type}
-                      </p>
-                      {booking.bookedFor.contact &&
-                        booking.bookedFor.contact.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {booking.bookedFor.contact.map(
-                              (contact: any, index: number) => {
-                                // Only the booker can see full contact info
-                                if (isBookingCreator) {
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="text-sm text-gray-600"
-                                    >
-                                      <p>
-                                        {contact.name} - {contact.email}
-                                      </p>
-                                      {contact.phoneNumber && (
-                                        <p>{contact.phoneNumber}</p>
-                                      )}
-                                      {contact.address && (
-                                        <p>{contact.address}</p>
-                                      )}
-                                    </div>
-                                  );
-                                }
-                                // Others see only name and number of recipients
-                                return (
-                                  <div
-                                    key={index}
-                                    className="text-sm text-gray-600"
-                                  >
-                                    <p>
-                                      {contact.email === user?.email
-                                        ? contact.name
-                                        : ""}
-                                      {booking.bookedFor.contact.length > 1
-                                        ? ` +${
-                                            booking.bookedFor.contact.length - 1
-                                          } recipient(s)`
-                                        : ""}
-                                    </p>
-                                  </div>
-                                );
-                              }
-                            )}
-                          </div>
-                        )}
-                    </div>
-                  )}
-                  {(booking.bookedByName || booking.bookedByUser?.fullName) && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        Booked By
-                      </p>
-                      <div className="text-gray-600">
-                        <p>
-                          {booking.bookedByName ||
-                            booking.bookedByUser?.fullName}
-                        </p>
-                        {booking.bookedByUser?.email && (
-                          <p className="text-sm text-gray-500">
-                            {booking.bookedByUser.email}
-                          </p>
-                        )}
-                        {booking.bookedByUser?.phoneNumber && (
-                          <p className="text-sm text-gray-500">
-                            {booking.bookedByUser.phoneNumber}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {booking.redemptionMode && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        Redemption Mode
-                      </p>
-                      <p className="text-gray-600 capitalize">
-                        {booking.redemptionMode}
-                      </p>
-                    </div>
-                  )}
-                  {booking.includeUtensils !== undefined && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">
-                        Include Utensils
-                      </p>
-                      <p className="text-gray-600">
-                        {booking.includeUtensils ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  )}
-                  {booking.tags && booking.tags.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Tags</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {booking.tags.map((tag: any, index: number) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+          </div>
+
+          {/* ======== the dashed line after each container ======= */}
+          <div className="w-[96%] mx-auto">
+            <hr className="border-t  border-gray-700"></hr>
           </div>
 
           {/* Right Column - Summary */}
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Booking Summary
-              </h3>
-              <div className="space-y-4">
-                {" "}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Quantity</span>
-                  <span className="font-medium text-sm">
-                    {booking.numberOfBookings || 1} item(s)
-                  </span>
-                </div>
-                {booking.slotsTaken !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Slots Taken</span>
-                    <span className="font-medium text-sm">
-                      {booking.slotsTaken} / {booking.numberOfBookings || 1}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span
-                    className={`font-medium text-sm ${
-                      statusDisplay.color.split(" ")[0]
-                    }`}
-                  >
-                    {statusDisplay.text}
-                  </span>
-                </div>{" "}
-                {booking.validityDate && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Validity Period</span>
-                    <span className="font-medium text-sm">
-                      {(() => {
-                        if (typeof booking.validityDate === "string") {
-                          const date = new Date(booking.validityDate);
-                          return isNaN(date.getTime())
-                            ? "N/A"
-                            : date.toLocaleDateString();
-                        } else if (
-                          booking.validityDate.start &&
-                          booking.validityDate.stop
-                        ) {
-                          const startDate = new Date(
-                            booking.validityDate.start
-                          );
-                          const stopDate = new Date(booking.validityDate.stop);
-                          if (
-                            isNaN(startDate.getTime()) ||
-                            isNaN(stopDate.getTime())
-                          ) {
-                            return "N/A";
-                          }
-                          return `${startDate.toLocaleDateString()} - ${stopDate.toLocaleDateString()}`;
-                        } else {
-                          const date = new Date(
-                            booking.validityDate.stop ||
-                              booking.validityDate.start
-                          );
-                          return isNaN(date.getTime())
-                            ? "N/A"
-                            : date.toLocaleDateString();
-                        }
-                      })()}
-                    </span>
-                  </div>
-                )}
-                {booking.createdAt && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Created</span>
-                    <span className="font-medium text-sm">
-                      {new Date(booking.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-                {booking.bookedAt && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Booked At</span>
-                    <span className="font-medium text-sm">
-                      {new Date(booking.bookedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}{" "}
-              </div>{" "}
-            </div>
+            {/* </div> */}
 
             {/* Social Media Style Engagement - Only show for booking creators */}
             {isBookingCreator && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-lg  border-t-0 border border-gray-200 p-4 pt-0 mt-0">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-medium text-gray-900 mx-auto flex items-center gap-2">
                     <Heart className="w-5 h-5 text-red-500" />
                     Ticket Engagement
                   </h3>
@@ -747,9 +864,9 @@ const BookingDetailView: React.FC = () => {
                     className="text-primary hover:text-primary/80"
                   >
                     {showEngagementDetails ? (
-                      <ChevronUp className="w-4 h-4" />
+                      <ChevronUp className="w-5 h-5" />
                     ) : (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-5 h-5" />
                     )}
                   </button>
                 </div>
@@ -765,7 +882,8 @@ const BookingDetailView: React.FC = () => {
                     <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gradient-to-r from-blue-50 to-purple-50">
                       {/* Reaction Summary */}
                       {engagementData.reactionSummary &&
-                        Object.keys(engagementData.reactionSummary).length > 0 && (
+                        Object.keys(engagementData.reactionSummary).length >
+                          0 && (
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-3">
                               <div className="flex -space-x-1">
@@ -791,8 +909,11 @@ const BookingDetailView: React.FC = () => {
                               </div>
                               <div className="text-sm text-gray-600">
                                 <span className="font-medium">
-                                  {Object.values(engagementData.reactionSummary).reduce(
-                                    (total: number, count: unknown) => total + (count as number),
+                                  {Object.values(
+                                    engagementData.reactionSummary
+                                  ).reduce(
+                                    (total: number, count: unknown) =>
+                                      total + (count as number),
                                     0
                                   )}
                                 </span>{" "}
@@ -801,13 +922,13 @@ const BookingDetailView: React.FC = () => {
                             </div>
                             <div className="text-sm text-gray-600">
                               <span className="font-medium">
-                                {
-                                   
-                                  engagementData.data.filter((item: any) => item.message)
-                                    .length || engagementData.data.length || 0
-                                }
+                                {engagementData.data.filter(
+                                  (item: any) => item.message
+                                ).length ||
+                                  engagementData.data.length ||
+                                  0}
                               </span>{" "}
-                              <Mail className="w-4 h-4 inline" /> 
+                              <Mail className="w-4 h-4 inline" />
                             </div>
                           </div>
                         )}
@@ -816,19 +937,25 @@ const BookingDetailView: React.FC = () => {
                       {engagementData.data[0]?.claimedByUser && (
                         <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-green-200 flex-col">
                           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
-                            {engagementData.data[0].claimedByUser.profileImage ? (
+                            {engagementData.data[0].claimedByUser
+                              .profileImage ? (
                               <Avatar
-                                src={engagementData.data[0].claimedByUser.profileImage}
+                                src={
+                                  engagementData.data[0].claimedByUser
+                                    .profileImage
+                                }
                                 fallback={
-                                  engagementData.data[0].claimedByUser.fullName || "User"
+                                  engagementData.data[0].claimedByUser
+                                    .fullName || "User"
                                 }
                                 radius="full"
                                 size="4"
                               />
                             ) : (
                               <span className="text-green-600 font-medium text-sm">
-                                {engagementData.data[0].claimedByUser.fullName?.charAt(0) ||
-                                  "U"}
+                                {engagementData.data[0].claimedByUser.fullName?.charAt(
+                                  0
+                                ) || "U"}
                               </span>
                             )}
                           </div>
@@ -844,7 +971,9 @@ const BookingDetailView: React.FC = () => {
                               </p>
                             )}
                           </div>
-                          <div className="text-xs text-green-600 font-medium">CLAIMED</div>
+                          <div className="text-xs text-green-600 font-medium">
+                            CLAIMED
+                          </div>
                         </div>
                       )}
                     </div>
@@ -852,91 +981,108 @@ const BookingDetailView: React.FC = () => {
                     {/* Scrollable Social Media Chat Feed */}
                     {showEngagementDetails && (
                       <div className="border rounded-lg bg-white max-h-[400px] min-h-[250px] overflow-y-auto flex flex-col p-4 space-y-4">
-                        {engagementData.data.map((engagement: any, index: number) => {
-                          // Determine if the message is from the booking creator or someone else
-                          const isCreator =
-                            engagement.claimedByUser?.id === user?.id ||
-                            engagement.claimedByUser?._id === user?.id;
-                          return (
-                            <div
-                              key={engagement.ticketId || engagement._id || index}
-                              className={`flex ${isCreator ? "justify-end" : "justify-start"}`}
-                            >
+                        {engagementData.data.map(
+                          (engagement: any, index: number) => {
+                            // Determine if the message is from the booking creator or someone else
+                            const isCreator =
+                              engagement.claimedByUser?.id === user?.id ||
+                              engagement.claimedByUser?._id === user?.id;
+                            return (
                               <div
-                                className={`flex items-end gap-2 max-w-[80%] ${
-                                  isCreator
-                                    ? "flex-row-reverse text-right"
-                                    : "flex-row text-left"
+                                key={
+                                  engagement.ticketId || engagement._id || index
+                                }
+                                className={`flex ${
+                                  isCreator ? "justify-end" : "justify-start"
                                 }`}
                               >
-                                {/* Avatar */}
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                                  {engagement.claimedByUser?.profileImage && (
-                                    <Avatar
-                                      src={engagement.claimedByUser.profileImage}
-                                      fallback={
-                                        engagement.claimedByUser.fullName ||
-                                        engagement.claimedByName ||
-                                        "User"
-                                      }
-                                      size="4"
-                                    />
-                                  
-                                  )}
-                                </div>
-                                {/* Message Bubble */}
                                 <div
-                                  className={`rounded-xl px-4 py-3 shadow-sm border ${
+                                  className={`flex items-end gap-2 max-w-[80%] ${
                                     isCreator
-                                      ? "bg-primary/10 border-primary text-primary"
-                                      : "bg-gray-50 border-gray-200 text-gray-700"
+                                      ? "flex-row-reverse text-right"
+                                      : "flex-row text-left"
                                   }`}
                                 >
-                                  <div className=" items-start gap-2 mb-1 inline-flex w-full  justify-between flex-col">
-                                    <span className="text-xs font-semibold w-full ellipsis truncate max-w-[120px]">
-                                      {engagement.claimedByUser?.fullName ||
-                                        engagement.claimedByName ||
-                                        "Anonymous"}
-                                    </span>
-                                   
+                                  {/* Avatar */}
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    {engagement.claimedByUser?.profileImage && (
+                                      <Avatar
+                                        src={
+                                          engagement.claimedByUser.profileImage
+                                        }
+                                        fallback={
+                                          engagement.claimedByUser.fullName ||
+                                          engagement.claimedByName ||
+                                          "User"
+                                        }
+                                        size="4"
+                                      />
+                                    )}
                                   </div>
-                                  {/* Reaction */}
-                                  {engagement.reaction && (
-                                    <div className="mb-1">
-                                      <span className="text-lg">
-                                        {engagement.reaction === "like" && "👍"}
-                                        {engagement.reaction === "love" && "❤️"}
-                                        {engagement.reaction === "laugh" && "😄"}
-                                        {engagement.reaction === "wow" && "😮"}
-                                        {engagement.reaction === "sad" && "😢"}
-                                        {engagement.reaction === "angry" && "😠"}
+                                  {/* Message Bubble */}
+                                  <div
+                                    className={`rounded-xl px-4 py-3 shadow-sm border ${
+                                      isCreator
+                                        ? "bg-primary/10 border-primary text-primary"
+                                        : "bg-gray-50 border-gray-200 text-gray-700"
+                                    }`}
+                                  >
+                                    <div className=" items-start gap-2 mb-1 inline-flex w-full  justify-between flex-col">
+                                      <span className="text-xs font-semibold w-full ellipsis truncate max-w-[120px]">
+                                        {engagement.claimedByUser?.fullName ||
+                                          engagement.claimedByName ||
+                                          "Anonymous"}
                                       </span>
                                     </div>
-                                  )}
-                                  {/* Message/Comment */}
-                                  {engagement.message && (
-                                    <p className="text-sm">{engagement.message}</p>
-                                  )}
-                                  {/* Empty State for Individual Ticket */}
-                                  {!engagement.reaction && !engagement.message && (
-                                    <div className="flex items-center gap-2 text-gray-400 text-xs">
-                                      <Heart className="w-4 h-4" />
-                                      No activity on this ticket yet
-                                    </div>
-                                  )}
-                                   <span className="text-xs text-gray-400">
+                                    {/* Reaction */}
+                                    {engagement.reaction && (
+                                      <div className="mb-1">
+                                        <span className="text-lg">
+                                          {engagement.reaction === "like" &&
+                                            "👍"}
+                                          {engagement.reaction === "love" &&
+                                            "❤️"}
+                                          {engagement.reaction === "laugh" &&
+                                            "😄"}
+                                          {engagement.reaction === "wow" &&
+                                            "😮"}
+                                          {engagement.reaction === "sad" &&
+                                            "😢"}
+                                          {engagement.reaction === "angry" &&
+                                            "😠"}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {/* Message/Comment */}
+                                    {engagement.message && (
+                                      <p className="text-sm">
+                                        {engagement.message}
+                                      </p>
+                                    )}
+                                    {/* Empty State for Individual Ticket */}
+                                    {!engagement.reaction &&
+                                      !engagement.message && (
+                                        <div className="flex items-center gap-2 text-gray-400 text-xs">
+                                          <Heart className="w-4 h-4" />
+                                          No activity on this ticket yet
+                                        </div>
+                                      )}
+                                    <span className="text-xs text-gray-400">
                                       {engagement.claimedAt
-                                        ? new Date(engagement.claimedAt).toLocaleTimeString(
-                                            [],
-                                            { hour: "2-digit", minute: "2-digit" }
-                                          )
+                                        ? new Date(
+                                            engagement.claimedAt
+                                          ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })
                                         : ""}
                                     </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          }
+                        )}
                         {/* If no activities */}
                         {engagementData.data.length === 0 && (
                           <div className="flex items-center justify-center h-full text-gray-400">
@@ -968,7 +1114,10 @@ const BookingDetailView: React.FC = () => {
               const showEditButton = canEditBooking;
               const showDeleteButton = canEditBooking;
               const showClaimButton = canClaim;
-              const showShareButton = isBookingCreator && (booking.status?.toLowerCase() === "paid" || booking.status?.toLowerCase() === "used");
+              const showShareButton =
+                isBookingCreator &&
+                (booking.status?.toLowerCase() === "paid" ||
+                  booking.status?.toLowerCase() === "used");
 
               const showActions =
                 showPayNowButton ||
@@ -1054,10 +1203,21 @@ const BookingDetailView: React.FC = () => {
               title="Share Your BoookBox Experience"
               description="Tell the community about your booking and spread the joy of sharing packages!"
               suggestedTags={[
-                "BoookBox", "FoodSharing", "Community", "packages", 
-                restaurant?.name || "Restaurant", booking?.bookingType || "Booking",
-                "Giving", "Kindness", "FoodForAll", "Support", "Local", "Charity",
-                "GenerousEating", "ShareJoy", "FoodLove"
+                "BoookBox",
+                "FoodSharing",
+                "Community",
+                "packages",
+                restaurant?.name || "Restaurant",
+                booking?.bookingType || "Booking",
+                "Giving",
+                "Kindness",
+                "FoodForAll",
+                "Support",
+                "Local",
+                "Charity",
+                "GenerousEating",
+                "ShareJoy",
+                "FoodLove",
               ]}
             />
           </Dialog.Content>
@@ -1066,12 +1226,11 @@ const BookingDetailView: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog.Root
-      
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
         <Dialog.Portal>
-          <Dialog.Overlay  className="fixed inset-0 bg-black/50 z-40" />
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
           <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg z-50">
             <Dialog.Title className="text-xl font-semibold mb-4 text-red-600">
               Delete Booking

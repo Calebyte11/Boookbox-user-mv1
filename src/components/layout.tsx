@@ -70,10 +70,11 @@ const Layout: FC<LayoutProps> = ({
       {/* Main content area with responsive padding */}
       <main
         className={`
+          bg-gray-50
           flex-grow 
-          md:px-4 px-0 pb-24 
+          md:px-4 px-2 pb-24 
           md:pb-4 md:pl-64 md:pr-4 
-          ${showDefaultHeader || customHeader ? "pt-4" : "pt-8"}
+          ${showDefaultHeader || customHeader ? "pt-0" : "pt-8"}
           mx-auto w-full max-w-7xl
           ${
             location.pathname.startsWith("/map")

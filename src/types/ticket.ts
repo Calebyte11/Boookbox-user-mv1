@@ -137,22 +137,46 @@ export interface ApiTicketResponse {
       badges: any[];
     };
     bookedForRestaurant: {
-    _id: string;
-    name: string;
-    location: {
-      type: string;
-      coordinates: [number, number];
+      _id: string;
+      name: string;
+      location: {
+        type: string;
+        coordinates: [number, number];
+      };
+      phone: string;
+      address: string;
+      city: string;
+      state: string;
+      country: string;
+      profileImage: string;
+      restaurantId: string;
+      items: {
+        product: {
+          _id: string;
+          name: string;
+          price: number;
+          currency: string;
+          images: string[];
+          menuId: string;
+        };
+        quantity: number;
+        _id: string;
+      }[];
     };
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    profileImage: string;
-    restaurantId: string;
-  };
     menuItems: {
       menu: {
+        _id: string;
+        name: string;
+        price: number;
+        currency: string;
+        images: string[];
+        menuId: string;
+      };
+      quantity: number;
+      _id: string;
+    }[];
+    items: {
+      product: {
         _id: string;
         name: string;
         price: number;
@@ -185,6 +209,7 @@ export interface ApiTicketResponse {
     country: string;
     profileImage: string;
     businessId: string;
+    category: string;
   };
   claimedByUser?: {
     _id: string;
