@@ -12,14 +12,13 @@ import {
   Send,
   MoreHorizontal,
   Eye,
-  X,
+  // X,
 } from "lucide-react";
 
 import { Avatar, Skeleton } from "@radix-ui/themes";
 import debounce from "debounce";
 import "swiper/swiper-bundle.css";
 import { useUserProfileQuery } from "@/hooks/useUserQueries";
-// Import hooks and types from the project
 import {
   useGetClips,
   useClipEngagements,
@@ -36,6 +35,7 @@ import useAuthStore from "@/store/authStore";
 import { DropdownMenu } from "radix-ui";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import PostsReelsHeader from "@/components/PostsReelsHeader";
 
 interface ReelData {
   id: string;
@@ -729,18 +729,14 @@ const ReelVideo: React.FC<ReelVideoProps> = ({
 
 const Reel: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [globalMuted, setGlobalMuted] = useState(true); // Shared muted state across all videos
+  const [globalMuted, setGlobalMuted] = useState(true);
   const swiperRef = useRef<SwiperType | null>(null);
   const navigate = useNavigate();
   const { isAuthenticated, loading, isLoggingOut } = useAuthStore();
-  // const { data: currentUser } = useUserProfileQuery();
   const authPending = loading || isLoggingOut;
 
-  // Fetch clips data using the hook
-  const { data: clips, isLoading, error } = useGetClips(1, 20); // Get first 20 clips
-  // console.log("clips data:", clips);
+  const { data: clips, isLoading, error } = useGetClips(1, 20);
 
-  // Transform clips to reel format
   const reels: ReelData[] = Array.isArray(clips)
     ? clips.map(transformClipToReel)
     : [];
@@ -751,12 +747,9 @@ const Reel: React.FC = () => {
 
   const handleVideoEnd = () => {
     if (swiperRef.current) {
-      // Move to next slide if not at the end
       if (activeIndex < reels.length - 1) {
         swiperRef.current.slideNext();
       } else {
-        // Optionally loop back to the first video or stop
-        // swiperRef.current.slideTo(0); // Uncomment to loop back to start
         console.log("Reached end of playlist");
       }
     }
@@ -779,16 +772,11 @@ const Reel: React.FC = () => {
     }
   }, [authPending, isAuthenticated, navigate]);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50">
-        {/* Skeleton for reel loading */}
         <div className="relative w-full h-screen">
-          {/* Video skeleton */}
           <Skeleton className="w-full h-full" />
-
-          {/* User info skeleton - Bottom left */}
           <div className="absolute bottom-0 left-0 right-16 p-4">
             <div className="flex items-center gap-3 mb-2">
               <Skeleton className="w-10 h-10 rounded-full" />
@@ -800,8 +788,6 @@ const Reel: React.FC = () => {
             <Skeleton className="h-4 w-48 mb-2" />
             <Skeleton className="h-3 w-32" />
           </div>
-
-          {/* Action buttons skeleton - Right side */}
           <div className="absolute right-3 bottom-20 flex flex-col gap-6">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex flex-col items-center">
@@ -815,7 +801,6 @@ const Reel: React.FC = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
@@ -827,7 +812,6 @@ const Reel: React.FC = () => {
     );
   }
 
-  // No reels available
   if (!reels.length) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
@@ -843,34 +827,14 @@ const Reel: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black z-50">
-      {/* Desktop wrapper - centers content with mobile aspect ratio */}
-      <div className="flex justify-center items-center h-full w-full">
-        <div className="relative w-full h-full lg:max-w-[400px] xl:max-w-[450px] 2xl:max-w-[500px] mx-auto bg-black">
-          <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-4 pointer-events-none">
-            <div className="flex items-center gap-3 pointer-events-auto">
-              {/* {isAuthenticated && currentUser && (
-            <Avatar.Root className="w-9 h-9 rounded-full border border-white/30 overflow-hidden bg-white/10 backdrop-blur-sm">
-              <Avatar.Image
-                src={currentUser.profileImage || undefined}
-                alt={currentUser.fullName || "Profile"}
-                className="w-full h-full object-cover"
-              />
-              <Avatar.Fallback className="w-full h-full flex items-center justify-center text-white font-semibold bg-gradient-to-br from-orange-500 to-orange-700">
-                {(currentUser.fullName || "B").charAt(0).toUpperCase()}
-              </Avatar.Fallback>
-            </Avatar.Root>
-          )} */}
-            </div>
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={authPending}
-              className="pointer-events-auto absolute top-4 right-4 z-10 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-label={isAuthenticated ? "Close reel" : "Go to login"}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+      {/* Header with segmented control - only show close button in fullscreen */}
+      <div className="absolute top-0 left-0 right-0 z-50">
+        <PostsReelsHeader showCloseButton={true} onClose={handleClose} />
+      </div>
+
+      {/* Desktop wrapper */}
+      <div className="flex justify-center items-center h-full w-full pt-14">
+        <div className="relative w-full h-[calc(100vh-3.5rem)] lg:max-w-[400px] xl:max-w-[450px] 2xl:max-w-[500px] mx-auto bg-black">
           <Swiper
             direction="vertical"
             slidesPerView={1}
@@ -902,6 +866,9 @@ const Reel: React.FC = () => {
             ))}
           </Swiper>
         </div>
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
+        <Navigation />
       </div>
     </div>
   );

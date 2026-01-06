@@ -331,7 +331,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
   };
 
   return (
-    <div className="bg-white border-b border-gray-900 mb-0">
+    <div className=" w-full p-0 border-b border-gray-900 mb-0">
       {/* Post Header */}
       <div className="flex items-center justify-between px-3 py-3">
         <div className="flex items-center gap-3">

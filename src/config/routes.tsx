@@ -23,6 +23,18 @@ import ViewAllRestaurant from "@/pages/ViewAllRestaurant";
 import ViewAllGroceries from "@/pages/ViewAllGroceries";
 import ViewAllFrozenFoods from "@/pages/ViewAllFrozenFoods";
 import ViewAllWineDrinks from "@/pages/ViewAllWineDrinks";
+import ViewAllFoodMarket from "@/pages/ViewAllFoodMarket";
+import ViewAllFruitMarket from "@/pages/ViewAllFruitMarket";
+import ViewAllFreeMarket from "@/pages/ViewAllFreeMarket";
+import ViewAllConfectionery from "@/pages/ViewAllConfectionery";
+import ViewAllTransportTickets from "@/pages/ViewAllTransportTickets";
+import ViewAllHangoutTickets from "@/pages/ViewAllHangoutTickets";
+import ViewAllGiftStores from "@/pages/ViewAllGiftStores";
+import ViewAllPharmaStores from "@/pages/ViewAllPharmaStores";
+import ViewAllMadeInNigeria from "@/pages/ViewAllMadeInNigeria";
+import ViewAllHospitality from "@/pages/ViewAllHospitality";
+import ViewAllBakery from "@/pages/ViewAllBakery";
+import AllCategories from "@/pages/AllCategories";
 
 import ViewAllPublicTickets from "@/pages/ViewAllPublicTickets";
 import BookingDetailView from "@/pages/BookingDetailView";
@@ -132,6 +144,16 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/categories",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="All Categories" headerType="simple">
+          <AllCategories />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
 
   // ====== for all the different categories =======
   {
@@ -228,9 +250,9 @@ export const routes: RouteObject[] = [
     path: "/posts",
     element: (
       <ProtectedRoute>
-        <Layout>
+        <HeaderPageLayout title="Posts" headerType="simple">
           <PostsPage />
-        </Layout>
+        </HeaderPageLayout>
       </ProtectedRoute>
     ),
   },
@@ -386,6 +408,116 @@ export const routes: RouteObject[] = [
       <ProtectedRoute>
         <HeaderPageLayout title="View All Wine & Drinks" headerType="simple">
           <ViewAllWineDrinks />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/food-market/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Food Markets" headerType="simple">
+          <ViewAllFoodMarket />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/fruit-market/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Fruit Markets" headerType="simple">
+          <ViewAllFruitMarket />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/free-market/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Markets" headerType="simple">
+          <ViewAllFreeMarket />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/confectionery/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Confectioneries" headerType="simple">
+          <ViewAllConfectionery />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/transport-tickets/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Transport Tickets" headerType="simple">
+          <ViewAllTransportTickets />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hangout-tickets/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Events" headerType="simple">
+          <ViewAllHangoutTickets />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/gift-stores/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Gift Stores" headerType="simple">
+          <ViewAllGiftStores />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pharma-stores/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Pharmacies" headerType="simple">
+          <ViewAllPharmaStores />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/made-in-nigeria/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Made in Nigeria" headerType="simple">
+          <ViewAllMadeInNigeria />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hospitality/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Hotels" headerType="simple">
+          <ViewAllHospitality />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/bakery/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Bakeries" headerType="simple">
+          <ViewAllBakery />
         </HeaderPageLayout>
       </ProtectedRoute>
     ),

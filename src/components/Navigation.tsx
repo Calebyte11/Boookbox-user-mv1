@@ -1,4 +1,4 @@
-import { Home, Gift, User, LogOut, Clapperboard, MessageSquare } from "lucide-react";
+import { Home, Gift, User, LogOut, MessageSquare, LayoutList } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useAuth } from "@/features/auth/hooks";
@@ -8,9 +8,8 @@ import { useUserProfileQuery } from "@/hooks/useUserQueries";
 
 const NAV_ITEMS = [
   { name: "home", icon: Home, label: "Home", path: "/home" },
-  // { name: "search", icon: Search, label: "Search", path: "/#search" },
+  { name: "categories", icon: LayoutList, label: "Categories", path: "/categories" },
   { name: "gift", icon: Gift, label: "Bookings", path: "/gifts" },
-  { name: "reels", icon: Clapperboard, label: "Reels", path: "/reels" },
   { name: "posts", icon: MessageSquare, label: "Posts", path: "/posts" },
   { name: "profile", icon: User, label: "Profile", path: "/profile" },
 ];
@@ -40,17 +39,17 @@ const Navigation = () => {
     if (itemName === "home") {
       return pathname === "/home" || pathname === "/";
     }
+    if (itemName === "categories") {
+      return pathname === "/categories" || pathname.startsWith("/categories");
+    }
     if (itemName === "gift") {
       return pathname === "/gifts" || pathname.startsWith("/gifts/") || pathname === "/tickets" || pathname.startsWith("/tickets/");
     }
     if (itemName === "posts") {
-      return pathname === "/posts" || pathname.startsWith("/posts/");
+      return pathname === "/posts" || pathname.startsWith("/posts/") || pathname === "/reels" || pathname.startsWith("/reels/");
     }
     if (itemName === "profile") {
       return pathname === "/profile" || pathname.startsWith("/profile/");
-    }
-    if (itemName === "reels") {
-      return pathname === "/reels" || pathname.startsWith("/reels/");
     }
     if (itemName === "search") {
       return pathname.includes("search") || pathname.includes("restaurants");
@@ -59,10 +58,8 @@ const Navigation = () => {
   };
 
   const handleLogout = () => {
-    // Use forceSignOut to prevent race conditions
     if (forceSignOut) {
       forceSignOut();
-      // Navigate after a brief delay to allow state to clear
       setTimeout(() => {
         navigate("/auth/login");
         setActiveNav("login");

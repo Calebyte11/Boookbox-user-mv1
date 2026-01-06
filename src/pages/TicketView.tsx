@@ -242,7 +242,7 @@ const TicketView = () => {
       <div className="flex flex-col ">
         <div className="flex mx-4 items-center my-4">
           <button
-            className="p-2 bg-[#ECE6F0] rounded-lg w-[48px] h-[48px]"
+            className="p-2 bg-[#ECE6F0] rounded-lg w-[48px] h-12"
             onClick={() => navigate(-1)}
           >
             <ChevronLeft className="w-8 h-8" />
@@ -322,7 +322,7 @@ const TicketView = () => {
     <div className="flex flex-col overflow-x-hidden min-h-screen">
       <div className="flex mx-2 items-center my-2">
         <button
-          className="p-2 bg-[#ECE6F0] rounded-lg w-[48px] h-[48px]"
+          className="p-2 bg-[#ECE6F0] rounded-lg w-[48px] h-12"
           onClick={() => navigate(-1)}
         >
           <ChevronLeft className="w-8 h-8" />
@@ -507,7 +507,7 @@ const TicketView = () => {
           </div>
           {/* ======== the dashed line after each container ======= */}
           <div className="w-[86%] mx-auto">
-            <hr className="border-t-1  border-gray-400"></hr>
+            <hr className="border-t  border-gray-400"></hr>
           </div>
           {/*=============  QR Code Section ================= */}
           <div className="mx-4 mt-0">
@@ -694,11 +694,11 @@ const TicketView = () => {
         <div className="bg-white grid gap-2 lg:grid-cols-3 rounded-lg shadow-[0_2px_4px_rgba(0,0,0,0.3)] mx-0">
           {/* ====== Restaurant Basic Info card ======== */}
           <div className="m-0 p-3 pb-0">
-            <div className="flex gap-2 rounded-xl min-h-[96px]">
+            <div className="flex gap-2 rounded-xl min-h-24">
               <img
                 src={restaurant?.profileImage || ActivityHero}
                 alt="meal package"
-                className="w-24 aspect-square object-cover rounded-lg flex-shrink-0"
+                className="w-24 aspect-square object-cover rounded-lg shrink-0"
                 onError={(e) => {
                   e.currentTarget.src = Brand;
                 }}
