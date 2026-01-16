@@ -1,81 +1,132 @@
 import {
   Gift,
-  MapPin,
   Coffee,
   Star,
   Percent,
-  TrendingUp,
   Sparkles,
+  Calendar,
+  MoreHorizontal,
+  TrendingUp,
+  MapPin,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+interface MenuItem {
+  name: string;
+  icon: React.ReactNode;
+  link: string;
+  onClick?: () => void;
+}
+
 const Slider = () => {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
-  const lists = [
+
+  const mainItems: MenuItem[] = [
     {
-      name: "Gift a Meal",
-      icon: <Gift className="h-6 w-6 text-[#FF7A00]" />,
+      name: "Gifts",
+      icon: <Gift className="h-5 w-5 text-white" />,
+      link: "/restaurants/view-all",
+    },
+    {
+      name: "Events",
+      icon: <Calendar className="h-5 w-5 text-white" />,
+      link: "/campaigns",
+      onClick: () => navigate("/campaigns"),
+    },
+    {
+      name: "Order for Self",
+      icon: <Coffee className="h-5 w-5 text-white" />,
       link: "/restaurants/view-all",
     },
     {
       name: "Nearby",
-      icon: <MapPin className="h-6 w-6 text-[#FF7A00]" />,
+      icon: <MapPin className="h-5 w-5 text-white" />,
       link: "/tickets?filter=nearby",
     },
     {
-      name: "Order for Self",
-      icon: <Coffee className="h-6 w-6 text-[#FF7A00]" />,
-      link: "/restaurants/view-all",
-    },
-    {
-      name: "Special Meals",
-      icon: <Sparkles className="h-6 w-6 text-[#FF7A00]" />,
-      link: "/tickets/public/view-all?category=special",
-    },
-    {
-      name: "Discounts",
-      icon: <Percent className="h-6 w-6 text-[#FF7A00]" />,
-      link: "/restaurants/view-all?filter=discounts",
-    },
-    {
       name: "Popular",
-      icon: <Star className="h-6 w-6 text-[#FF7A00]" />,
+      icon: <Star className="h-5 w-5 text-white" />,
       link: "/restaurants/view-all?filter=popular",
-    },
-    {
-      name: "New Offers",
-      icon: <TrendingUp className="h-6 w-6 text-[#FF7A00]" />,
-      link: "/tickets/public/view-all?category=new",
     },
   ];
 
+  const additionalItems: MenuItem[] = [
+    
+    {
+      name: "Special Meals",
+      icon: <Sparkles className="h-5 w-5 text-white" />,
+      link: "/tickets/public/view-all?category=special",
+    },
+    {
+      name: "New Offers",
+      icon: <TrendingUp className="h-5 w-5 text-white" />,
+      link: "/tickets/public/view-all?category=new",
+    },
+    {
+      name: "Discounts",
+      icon: <Percent className="h-5 w-5 text-white" />,
+      link: "/restaurants/view-all?filter=discounts",
+    },
+  ];
+
+  const allItems = isExpanded ? [...mainItems, ...additionalItems] : mainItems;
+  const showMoreButton = !isExpanded;
+
   return (
     <div className="relative w-full mt-6 z-0">
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
-        {(isExpanded ? lists : lists.slice(0, 6)).map((item, index) => (
-          <Link
-            key={index}
-            to={item.link}
-            className="flex items-center p-4 rounded-xl bg-[#FF7A00] gap-3 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
-          >
-            <div className="p-3 bg-white rounded-lg shadow-xs flex-shrink-0">
-              {item.icon}
-            </div>
-            <p className="text-sm md:text-base font-medium text-white font-mf">
-              {item.name}
-            </p>
-          </Link>
-        ))}
+      {/* Main Menu Grid */}
+      <div className="bg-[#FF7A00] rounded-3xl p-3 PT-1 md:p-8 shadow-lg">
+        <div className="grid grid-cols-2 gap-0 md:gap-0">
+          {allItems.map((item, index) => {
+            const isLeftColumn = index % 2 === 0;
+            const isLastRow = Math.floor(index / 2) === Math.ceil(allItems.length / 2) - 1;
+            
+            return (
+            <button
+              key={index}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick();
+                } else {
+                  navigate(item.link);
+                }
+              }}
+              className={`flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 cursor-pointer ${
+                isLeftColumn ? 'border-r' : ''
+              } ${!isLastRow ? 'border-b' : ''} border-gray-400`}
+            >
+              <div className="shrink-0">{item.icon}</div>
+              <span className="text-left">{item.name}</span>
+            </button>
+            );
+          })}
+
+          {/* More/Less Button */}
+          {showMoreButton && (
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 col-span-1 border-gray-600"
+            >
+              <div className="shrink-0">
+                <MoreHorizontal className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-left">More</span>
+            </button>
+          )}
+
+          {/* See Less Button (shown when expanded) */}
+          {isExpanded && (
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 col-span-2 md:col-span-1 justify-center border-t border-gray-600"
+            >
+              <span>See Less</span>
+            </button>
+          )}
+        </div>
       </div>
-      {lists.length > 6 && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-6 px-6 py-2 w-[50%] bg-gray-200 text-gray-700 font-medium rounded-lg hover:shadow-lg transition-all duration-300 w-full"
-        >
-          {isExpanded ? "See Less" : "See More"}
-        </button>
-      )}
     </div>
   );
 };

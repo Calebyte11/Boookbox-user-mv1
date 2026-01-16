@@ -183,6 +183,19 @@ export const API_ENDPOINTS = {
     DELETE: (pid: string) => `/posts/delete/${pid}`, // DELETE
     SHARE: (pid: string) => `/posts/${pid}/share`, //POST
   },
+
+  CAMPAIGNS: {
+    GET_ALL: "/campaigns",
+    GET_RECOMMENDED: (lat: number, lng: number, limit?: number, page?: number) =>
+      `/campaigns/recommended?lat=${lat}&lng=${lng}&limit=${limit || 6}&page=${page || 1}`,
+    GET_TOP: (limit?: number, page?: number) =>
+      `/campaigns/top?limit=${limit || 6}&page=${page || 1}`,
+    GET_ONGOING: (limit?: number, page?: number) =>
+      `/campaigns/ongoing?limit=${limit || 10}&page=${page || 1}`,
+    GET_BY_ID: (cid: string) => `/campaigns/${cid}`,
+    GET_BY_BUSINESS: (bid: string) => `/campaigns/business/${bid}`,
+  },
+
 } as const;
 
 // Type definitions

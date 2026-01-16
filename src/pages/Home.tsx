@@ -2,6 +2,7 @@ import React from "react";
 import SEO from "@/components/SEO";
 import HeroCarousel from "@/components/Hero";
 import Slider from "@/components/Slider";
+import CampaignsSlider from "@/components/CampaignsSlider";
 import RecentGifting from "@/components/RecentGifting";
 import Recomended from "@/components/Recomended";
 import PopularPackages from "@/components/PopularPackages";
@@ -33,8 +34,13 @@ const HomePage: React.FC = () => {
         <div>
           <HeroCarousel />
         </div>
-        <div className="flex justify-between items-center mt-4 ml-4">
+        <div className="flex justify-between items-center mt-4 ">
           <Slider />
+        </div>
+
+        {/* Campaigns Section */}
+        <div className="mb-8">
+          <CampaignsSlider maxItems={6} />
         </div>
 
         {/* Recent Gifting Section */}

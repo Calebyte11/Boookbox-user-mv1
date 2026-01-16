@@ -62,6 +62,8 @@ import AllBookingsPage from "@/pages/AllBookingsPage";
 import VerifyPayment from "@/pages/VerifyPayment";
 import NotFound from "@/pages/NotFound";
 import GiftRequestHandler from "@/components/GiftRequestHandler"; // Add this import
+import ViewAllCampaigns from "@/pages/ViewAllCampaigns";
+import CampaignDashboard from "@/pages/CampaignDashboard";
 
 // ===== for friend request ====
 // import FriendRequestRedirect from "@/components/FriendRequestRedirect";
@@ -252,6 +254,26 @@ export const routes: RouteObject[] = [
       <ProtectedRoute>
         <HeaderPageLayout title="Posts" headerType="simple">
           <PostsPage />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/campaigns",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="All Campaigns" headerType="simple">
+          <ViewAllCampaigns />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/campaigns/:campaignId",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="Campaign" headerType="simple">
+          <CampaignDashboard />
         </HeaderPageLayout>
       </ProtectedRoute>
     ),
