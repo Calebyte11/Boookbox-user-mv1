@@ -19,7 +19,10 @@ export type CategoryId =
   | "bakery"
   | "pharma-stores"
   | "made-in-nigeria"
-  | "hospitality";
+  | "hospitality"
+  | "car-parking-services"
+  | "nightlife"
+  | "vegetable-market";
 
 export interface CategoryConfig {
   id: CategoryId;
@@ -202,6 +205,39 @@ export const CATEGORY_REGISTRY: Record<CategoryId, CategoryConfig> = {
     defaultMaxPrice: 500000,
     detailField: "hospitalityDetails",
     idField: "hospitalityId",
+    imageField: "profileImage",
+    nameField: "name",
+  },
+  "car-parking-services": {
+    id: "car-parking-services",
+    label: "Car Parking Services",
+    path: "car-parking-services",
+    defaultMinPrice: 500,
+    defaultMaxPrice: 50000,
+    detailField: "carParkingDetails",
+    idField: "carParkingServiceId",
+    imageField: "profileImage",
+    nameField: "name",
+  },
+  nightlife: {
+    id: "nightlife",
+    label: "Night Life",
+    path: "nightlife",
+    defaultMinPrice: 1000,
+    defaultMaxPrice: 100000,
+    detailField: "nightlifeDetails",
+    idField: "nightlifeVenueId",
+    imageField: "profileImage",
+    nameField: "name",
+  },
+  "vegetable-market": {
+    id: "vegetable-market",
+    label: "Vegetable Market",
+    path: "vegetable-market",
+    defaultMinPrice: 100,
+    defaultMaxPrice: 30000,
+    detailField: "vegetableMarketDetails",
+    idField: "vegetableMarketId",
     imageField: "profileImage",
     nameField: "name",
   },

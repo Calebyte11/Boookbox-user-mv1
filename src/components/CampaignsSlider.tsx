@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,  useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
 import { useNavigate } from "react-router-dom";
-import { useTopCampaignsQuery } from "@/hooks/useCampaignQueries";
+import { useRecommendedCampaignsQuery } from "@/hooks/useCampaignQueries";
 import { ListSkeleton } from "@/components/SkeletonLoader";
 import type { Campaign } from "@/services/campaignService";
 import { ArrowRight } from "lucide-react";
+import { useLocationStore } from "@/store/locationStore";
 
 interface CampaignsSliderProps {
   maxItems?: number;
@@ -15,13 +16,33 @@ interface CampaignsSliderProps {
 const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
   const navigate = useNavigate();
   const [isMounted, setIsMounted] = useState(false);
+    const locationStore = useLocationStore();
+
+  // Resolve coordinates
+    const coords = useMemo(() => {
+      const manual = locationStore.manualLocation?.position;
+      const gps = locationStore.position;
+      if (manual?.latitude && manual?.longitude) {
+        return { lat: manual.latitude, lng: manual.longitude } as const;
+      }
+      if (gps?.latitude && gps?.longitude) {
+        return { lat: gps.latitude, lng: gps.longitude } as const;
+      }
+      return null;
+    }, [locationStore.manualLocation, locationStore.position]);
+    
 
   // Fetch top campaigns (doesn't require location)
   const {
     data: campaigns = [],
     isLoading,
     isError,
-  } = useTopCampaignsQuery(maxItems, 1);
+  } = useRecommendedCampaignsQuery(
+    coords?.lat,
+    coords?.lng,
+    maxItems,
+    1,
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,7 +54,7 @@ const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-            Campaigns
+            Events
           </h2>
         </div>
         <ListSkeleton count={6} />
@@ -111,7 +132,7 @@ const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
               >
                 {/* Background Image */}
                 <img
-                  src={campaign.image || campaign.businessImage || campaign.profileImage}
+                  src={campaign.image || campaign.profileImage}
                   alt={campaign.name || campaign.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

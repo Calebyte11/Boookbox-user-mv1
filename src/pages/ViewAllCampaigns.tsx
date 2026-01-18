@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container } from "@radix-ui/themes";
 import {
@@ -7,11 +7,11 @@ import {
   useTopCampaignsQuery,
   useOngoingCampaignsQuery,
 } from "@/hooks/useCampaignQueries";
-import { useLocationService } from "@/hooks/useLocationService";
 import { ListSkeleton } from "@/components/SkeletonLoader";
 import type { Campaign } from "@/services/campaignService";
 import { ArrowLeft } from "lucide-react";
 import SEO from "@/components/SEO";
+import { useLocationStore } from "@/store/locationStore";
 
 interface TabConfig {
   id: "recommended" | "top" | "ongoing";
@@ -21,22 +21,34 @@ interface TabConfig {
 
 const ViewAllCampaigns: React.FC = () => {
   const navigate = useNavigate();
-  const locationService = useLocationService() as any;
-  const latitude = locationService?.latitude;
-  const longitude = locationService?.longitude;
+  const locationStore = useLocationStore();
   const [activeTab, setActiveTab] = useState<"recommended" | "top" | "ongoing">(
     "recommended"
   );
   const [page, setPage] = useState(1);
   const pageLimit = 12;
 
+  // Resolve coordinates
+  const coords = useMemo(() => {
+    const manual = locationStore.manualLocation?.position;
+    const gps = locationStore.position;
+    if (manual?.latitude && manual?.longitude) {
+      return { lat: manual.latitude, lng: manual.longitude } as const;
+    }
+    if (gps?.latitude && gps?.longitude) {
+      return { lat: gps.latitude, lng: gps.longitude } as const;
+    }
+    return null;
+  }, [locationStore.manualLocation, locationStore.position]);
+
   // Fetch campaigns data for all tabs
   const {
     data: recommendedCampaigns = [],
     isLoading: isRecommendedLoading,
     isError: isRecommendedError,
-  } = useRecommendedCampaignsQuery(latitude, longitude, pageLimit, page, {
-    enabled: latitude !== null && longitude !== null,
+  } = useRecommendedCampaignsQuery(
+    coords?.lat, coords?.lng, pageLimit, page, {
+    enabled: coords !== null,
   });
 
   const {
@@ -95,8 +107,8 @@ const ViewAllCampaigns: React.FC = () => {
   // Tab configuration
   const tabs: TabConfig[] = [
     { id: "recommended", label: "Recommended For You", count: recommendedCampaigns.length },
-    { id: "top", label: "Top Campaigns", count: topCampaigns.length },
-    { id: "ongoing", label: "Ongoing Campaigns", count: ongoingCampaigns.length },
+    { id: "ongoing", label: "Ongoing Events", count: ongoingCampaigns.length },
+    { id: "top", label: "Top Events", count: topCampaigns.length },
   ];
 
   const handleCampaignClick = (campaign: Campaign) => {
@@ -128,10 +140,10 @@ const ViewAllCampaigns: React.FC = () => {
 
         {/* Page Title */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-          All Campaigns
+          All Events
         </h1>
         <p className="text-gray-600 mb-8">
-          Discover amazing campaigns and special offers from your favorite businesses.
+          Discover amazing events and special offers from your favorite businesses.
         </p>
 
         {/* Tabs */}
@@ -169,7 +181,7 @@ const ViewAllCampaigns: React.FC = () => {
                 Something went wrong
               </h2>
               <p className="text-gray-600 mb-4">
-                We couldn't load the campaigns. Please try again later.
+                We couldn't load the events. Please try again later.
               </p>
               <button
                 onClick={() => window.location.reload()}
@@ -186,16 +198,16 @@ const ViewAllCampaigns: React.FC = () => {
           <div className="flex flex-col items-center justify-center py-12">
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-800 mb-2">
-                No campaigns found
+                No events found
               </h2>
               <p className="text-gray-600">
-                There are currently no {activeTab} campaigns available.
+                There are currently no {activeTab} events available.
               </p>
             </div>
           </div>
         )}
 
-        {/* Campaigns Grid */}
+        {/* Events Grid */}
         {!isLoading && !isError && activeCampaigns.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeCampaigns.map((campaign) => (
@@ -252,7 +264,7 @@ const ViewAllCampaigns: React.FC = () => {
                     <div className="mt-2">
                       <span
                         className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                          campaign.status === "ongoing"
+                          campaign.status === "active"
                             ? "bg-green-500/80 text-white"
                             : campaign.status === "upcoming"
                             ? "bg-blue-500/80 text-white"

@@ -34,6 +34,9 @@ import ViewAllPharmaStores from "@/pages/ViewAllPharmaStores";
 import ViewAllMadeInNigeria from "@/pages/ViewAllMadeInNigeria";
 import ViewAllHospitality from "@/pages/ViewAllHospitality";
 import ViewAllBakery from "@/pages/ViewAllBakery";
+import ViewAllCarParking from "@/pages/ViewAllCarParking";
+import ViewAllNightlife from "@/pages/ViewAllNightlife";
+import ViewAllVegetableMarket from "@/pages/ViewAllVegetableMarket";
 import AllCategories from "@/pages/AllCategories";
 
 import ViewAllPublicTickets from "@/pages/ViewAllPublicTickets";
@@ -540,6 +543,36 @@ export const routes: RouteObject[] = [
       <ProtectedRoute>
         <HeaderPageLayout title="View All Bakeries" headerType="simple">
           <ViewAllBakery />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/car-parking-services/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Car Parking Services" headerType="simple">
+          <ViewAllCarParking />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/nightlife/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Night Life Venues" headerType="simple">
+          <ViewAllNightlife />
+        </HeaderPageLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/vegetable-market/view-all",
+    element: (
+      <ProtectedRoute>
+        <HeaderPageLayout title="View All Vegetable Markets" headerType="simple">
+          <ViewAllVegetableMarket />
         </HeaderPageLayout>
       </ProtectedRoute>
     ),

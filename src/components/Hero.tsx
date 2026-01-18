@@ -247,7 +247,7 @@ const HeroCarousel = () => {
         items.push({
           type: "image" as const,
           src: spotlightImage1.url,
-          title: "",
+          title: spotlightImage1.name || "",
           isSpotlight: true,
         });
       }
@@ -313,10 +313,10 @@ const HeroCarousel = () => {
   const shouldEnableLoop = carouselItems.length >= 2;
 
   return (
-    <div className="relative w-full z-0">
+    <div className="relative w-full mt-0 mb-0 z-0">
       {/* Show loading indicator if needed */}
       {isLoading && (
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-2 right-4 z-10">
           <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
         </div>
       )}
@@ -332,7 +332,7 @@ const HeroCarousel = () => {
           bulletActiveClass: "!bg-primary !w-3 !h-3",
         }}
         loop={shouldEnableLoop}
-        className="h-[300px] md:h-[500px] w-full"
+        className="h-[230px] md:h-[470px] w-full"
         onSlideChange={(swiper) => {
           setActiveSlideIndex(swiper.realIndex);
         }}
@@ -346,7 +346,7 @@ const HeroCarousel = () => {
               {item.type === "video" ? (
                 <VideoWithLoading
                   src={item.src}
-                  className="h-full w-full lg:object-fill rounded-lg"
+                  className="h-full mt-0 p-0  w-full lg:object-fill rounded-lg"
                   autoPlay
                   loop
                   playsInline
@@ -373,7 +373,7 @@ const HeroCarousel = () => {
       </Swiper>
 
       {/* Custom pagination container - positioned below the swiper */}
-      <div className="custom-pagination mt-4 flex justify-center gap-6">
+      <div className="custom-pagination mt-3 mb-0 flex justify-center gap-6">
         {/* Dynamic pagination bullets based on actual slide count */}
         {carouselItems.map((_, index) => (
           <div key={index} className="swiper-pagination-bullet"></div>

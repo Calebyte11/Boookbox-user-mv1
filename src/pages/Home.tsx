@@ -31,10 +31,10 @@ const HomePage: React.FC = () => {
         ogImage="/pwa-192x192.png"
       />{" "}
       <div className="container mx-auto py-4">
-        <div>
+        <div className="">
           <HeroCarousel />
         </div>
-        <div className="flex justify-between items-center mt-4 ">
+        <div className="flex justify-between items-center mb-4 mt-2">
           <Slider />
         </div>
 
@@ -45,7 +45,7 @@ const HomePage: React.FC = () => {
 
         {/* Recent Gifting Section */}
         <div className="mb-8">
-          <RecentGifting maxItems={8} />
+          <RecentGifting maxItems={4} />
         </div>
 
         <Recomended />

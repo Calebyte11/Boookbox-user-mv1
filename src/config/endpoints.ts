@@ -160,12 +160,6 @@ export const API_ENDPOINTS = {
 
     // Get the active spotlight image (public)
     GET_IMAGE: (imid : number) => `/spotlight/image?id=${imid}`,
-
-    // Update the spotlight video (admin)
-    // UPDATE_VIDEO: "/files/upload/spotlight/video",
-
-    // Update the spotlight image (admin)
-    // UPDATE_IMAGE: "/files/upload/spotlight/image",
   },
 
   // POST
@@ -191,8 +185,8 @@ export const API_ENDPOINTS = {
     GET_TOP: (limit?: number, page?: number) =>
       `/campaigns/top?limit=${limit || 6}&page=${page || 1}`,
     GET_ONGOING: (limit?: number, page?: number) =>
-      `/campaigns/ongoing?limit=${limit || 10}&page=${page || 1}`,
-    GET_BY_ID: (cid: string) => `/campaigns/${cid}`,
+      `/campaigns?status=active&limit=${limit || 10}&page=${page || 1}`,
+    GET_BY_ID: (cid: string) => `/campaigns/view/${cid}`,
     GET_BY_BUSINESS: (bid: string) => `/campaigns/business/${bid}`,
   },
 

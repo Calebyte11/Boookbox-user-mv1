@@ -16,7 +16,7 @@ interface RestaurantCardProps {
   city?: string;
   state?: string;
   // New props for dynamic behavior
-  category?: "restaurant" | "groceries" | "frozenfoods" | "winedrinks";
+  category?: "restaurant" | "groceries" | "frozenfoods" | "winedrinks" | "foodmarket" | "fruitmarket" | "freemarket" | "bakery" | "confectioneries" |"pharmastores" | "hangouttickets" ;
   buttonText?: string;
   navigateUrl?: string;
 }
@@ -57,6 +57,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       groceries: "groceries",
       frozenfoods: "frozenfoods",
       winedrinks: "winedrinks",
+      foodmarket: "foodmarket",
+      fruitmarket: "fruit-market",
+      freemarket: "free-market",
+      bakery: "bakery",
+      confectioneries: "confectioneries",
+      pharmastores: "pharma-stores",
+      hangouttickets: "hangout-tickets" 
     };
     
     const categoryParam = categoryQueryMap[category] || "restaurant";
@@ -70,6 +77,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       groceries: "Order items",
       frozenfoods: "Order items",
       winedrinks: "Order items",
+      foodmarket: "Order items",
+      fruitmarket: "Order items",
+      freemarket: "Order items",
+      bakery: "Order items",
+      confectioneries: "Order items",
+      pharmastores: "Order items",
+      hangouttickets: "Order items" 
     };
 
     return categoryButtonTexts[category];

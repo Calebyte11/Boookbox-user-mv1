@@ -1,6 +1,25 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import {
+  UtensilsCrossed,
+  ShoppingCart,
+  Snowflake,
+  Wine,
+  ChefHat,
+  Apple,
+  Store,
+  Cake,
+  Bus,
+  PartyPopper,
+  Gift,
+  Croissant,
+  Pill,
+  Flag,
+  Hotel,
+  ParkingCircle,
+  Music,
+  Leaf,
+} from "lucide-react";
 import SEO from "@/components/SEO";
 import { CATEGORY_REGISTRY, type CategoryId } from "@/config/categoryConfig";
 
@@ -10,7 +29,9 @@ const AllCategories: React.FC = () => {
   const categories = Object.values(CATEGORY_REGISTRY);
 
   const handleCategoryClick = (category: CategoryId) => {
-    navigate(`/${category}/view-all`);
+    navigate(
+      category === "restaurant" ? '/restaurants/view-all' : `/${category}/view-all`
+    );
   };
 
   return (
@@ -40,47 +61,23 @@ const AllCategories: React.FC = () => {
             </p>
           </div>
 
-          {/* Categories Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Categories Grid - 4 columns responsive */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {categories.map((category) => (
               <div
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className="group cursor-pointer bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
+                className="group cursor-pointer flex flex-col items-center justify-start p-4 md:p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
               >
-                {/* Category Card */}
-                <div className="h-40 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center relative overflow-hidden">
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-2 right-2 w-20 h-20 bg-white rounded-full"></div>
-                    <div className="absolute -bottom-5 -left-5 w-32 h-32 bg-white rounded-full"></div>
-                  </div>
-
-                  {/* Category Label */}
-                  <div className="relative text-center">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white">
-                      {getCategoryEmoji(category.id)}
-                    </h2>
-                  </div>
+                {/* Icon Container */}
+                <div className="mb-3 md:mb-4 p-3 md:p-4 bg-gray-100 rounded-lg group-hover:bg-orange-100 transition-colors">
+                  {getCategoryIcon(category.id, "w-6 h-6 md:w-8 md:h-8 text-gray-700 group-hover:text-orange-600")}
                 </div>
 
-                {/* Category Info */}
-                <div className="p-4 md:p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {category.label}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    { "Browse and discover"}
-                  </p>
-
-                  {/* CTA Button */}
-                  <button
-                    className="w-full flex items-center justify-between px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors font-medium text-sm group-hover:translate-x-1 transition-transform"
-                  >
-                    <span>View All</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
+                {/* Category Label */}
+                <h3 className="text-center text-sm md:text-base font-semibold text-gray-900">
+                  {category.label}
+                </h3>
               </div>
             ))}
           </div>
@@ -90,26 +87,32 @@ const AllCategories: React.FC = () => {
   );
 };
 
-// Helper function to get emoji for each category
-function getCategoryEmoji(categoryId: CategoryId): string {
-  const emojiMap: Record<CategoryId, string> = {
-    restaurant: "🍽️",
-    groceries: "🛒",
-    "frozen-foods": "🧊",
-    "wine-drinks": "🍷",
-    "food-market": "🥘",
-    "fruit-market": "🍎",
-    "free-market": "🏪",
-    confectionery: "🍰",
-    "transport-tickets": "🚌",
-    "hangout-tickets": "🎉",
-    "gift-stores": "🎁",
-    bakery: "🥐",
-    "pharma-stores": "💊",
-    "made-in-nigeria": "🇳🇬",
-    hospitality: "🏨",
+// Helper function to get icon for each category
+function getCategoryIcon(categoryId: CategoryId, className: string): React.ReactNode {
+  const iconProps = { className, strokeWidth: 1.5 };
+
+  const iconMap: Record<CategoryId, React.ReactNode> = {
+    restaurant: <UtensilsCrossed {...iconProps} />,
+    groceries: <ShoppingCart {...iconProps} />,
+    "frozen-foods": <Snowflake {...iconProps} />,
+    "wine-drinks": <Wine {...iconProps} />,
+    "food-market": <ChefHat {...iconProps} />,
+    "fruit-market": <Apple {...iconProps} />,
+    "free-market": <Store {...iconProps} />,
+    confectionery: <Cake {...iconProps} />,
+    "transport-tickets": <Bus {...iconProps} />,
+    "hangout-tickets": <PartyPopper {...iconProps} />,
+    "gift-stores": <Gift {...iconProps} />,
+    bakery: <Croissant {...iconProps} />,
+    "pharma-stores": <Pill {...iconProps} />,
+    "made-in-nigeria": <Flag {...iconProps} />,
+    hospitality: <Hotel {...iconProps} />,
+    "car-parking-services": <ParkingCircle {...iconProps} />,
+    nightlife: <Music {...iconProps} />,
+    "vegetable-market": <Leaf {...iconProps} />,
   };
-  return emojiMap[categoryId] || "📦";
+
+  return iconMap[categoryId] || <Store {...iconProps} />;
 }
 
 export default AllCategories;

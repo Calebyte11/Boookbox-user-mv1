@@ -75,7 +75,7 @@ const Slider = () => {
   const showMoreButton = !isExpanded;
 
   return (
-    <div className="relative w-full mt-6 z-0">
+    <div className="relative w-full mt-2 mb-2 z-0">
       {/* Main Menu Grid */}
       <div className="bg-[#FF7A00] rounded-3xl p-3 PT-1 md:p-8 shadow-lg">
         <div className="grid grid-cols-2 gap-0 md:gap-0">
@@ -95,7 +95,7 @@ const Slider = () => {
               }}
               className={`flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 cursor-pointer ${
                 isLeftColumn ? 'border-r' : ''
-              } ${!isLastRow ? 'border-b' : ''} border-gray-400`}
+              } ${!isLastRow ? 'border-b' : ''} border-[#00000030]`}
             >
               <div className="shrink-0">{item.icon}</div>
               <span className="text-left">{item.name}</span>
@@ -120,7 +120,7 @@ const Slider = () => {
           {isExpanded && (
             <button
               onClick={() => setIsExpanded(false)}
-              className="flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 col-span-2 md:col-span-1 justify-center border-t border-gray-600"
+              className="flex items-center gap-3 p-4 text-white font-semibold text-sm md:text-base transition-all duration-300 hover:opacity-90 col-span-2 md:col-span-1 justify-center border-t border-[#00000030]"
             >
               <span>See Less</span>
             </button>

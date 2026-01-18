@@ -23,7 +23,7 @@ export interface Campaign {
   startDate: string;
   endDate: string;
   isActive?: boolean;
-  status?: "ongoing" | "upcoming" | "completed";
+  status?: "active" | "upcoming" | "expired";
   createdAt?: string;
   updatedAt?: string;
   [key: string]: any;

@@ -3,7 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Container } from "@radix-ui/themes";
 import { useCampaignDetailQuery } from "@/hooks/useCampaignQueries";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { ArrowLeft, Star, MapPin } from "lucide-react";
+import { ArrowLeft, 
+  // Star, 
+  MapPin } from "lucide-react";
 import SEO from "@/components/SEO";
 
 const CampaignDashboard: React.FC = () => {
@@ -95,7 +97,7 @@ const CampaignDashboard: React.FC = () => {
                 src={
                   campaign.image ||
                   campaign.businessImage ||
-                  campaign.profileImage
+                  campaign.createdBy?.user.profileImage
                 }
                 alt={campaign.name || campaign.title}
                 className="w-full h-full object-cover"
@@ -107,14 +109,14 @@ const CampaignDashboard: React.FC = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="inline-block bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-sm font-semibold mb-3">
-                    {campaign.status === "ongoing"
-                      ? "Val Specials"
+                    {campaign.status === "active"
+                      ? "Ongoing"
                       : campaign.status === "upcoming"
                       ? "Upcoming"
                       : "Completed"}
                   </div>
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                    {campaign.businessName || "Campaign"}
+                    {campaign.name || "Campaign"}
                   </h1>
                 </div>
                 <div className="flex gap-3">
@@ -149,11 +151,11 @@ const CampaignDashboard: React.FC = () => {
 
               {/* Business Details */}
               <div className="flex flex-wrap items-center gap-4 mb-6 text-gray-700">
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <Star size={18} fill="currentColor" className="text-yellow-500" />
                   <span className="font-semibold">4.8</span>
                   <span className="text-sm">• 1.3k ratings</span>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2">
                   <MapPin size={18} />
                   <span className="text-sm">Billingsway Ikeja</span>
