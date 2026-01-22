@@ -13,6 +13,9 @@ interface CampaignsSliderProps {
   maxItems?: number;
 }
 
+const capitalizeWords = (str: string) => 
+  str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
 const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
   const navigate = useNavigate();
   const [isMounted, setIsMounted] = useState(false);
@@ -133,7 +136,7 @@ const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
                 {/* Background Image */}
                 <img
                   src={campaign.image || campaign.profileImage}
-                  alt={campaign.name || campaign.title}
+                  alt={campaign.name || campaign.title || "Campaign Image"}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
 
@@ -144,12 +147,12 @@ const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
                 <div className="absolute inset-0 flex flex-col justify-end p-4">
                   {/* Business Name */}
                   <p className="text-xs md:text-sm font-semibold text-gray-200 mb-1 line-clamp-1">
-                    {campaign.businessName || "Campaign"}
+                    {capitalizeWords(campaign.businessName || "Campaign")}
                   </p>
 
                   {/* Campaign Title */}
                   <h3 className="text-base md:text-lg font-bold text-white mb-2 line-clamp-2">
-                    {campaign.name || campaign.title || "Featured Campaign"}
+                    {capitalizeWords(campaign.name || campaign.title || "Featured Campaign")}
                   </h3>
 
                   {/* Campaign Details Row */}

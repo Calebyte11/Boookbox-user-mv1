@@ -114,7 +114,7 @@ const ViewAllFoodMarket = () => {
     return Array.from(new Set(cities)).sort();
   }, [items]);
 
-  // Filter and sort groceries
+  // Filter and sort food market
  const filteredAndSortedItems = useMemo(() => {
     if (!items) return [];
     let filtered = items;
@@ -177,7 +177,7 @@ const ViewAllFoodMarket = () => {
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A00] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading Groceries...</p>
+            <p className="text-gray-600">Loading Food Market...</p>
           </div>
         </div>
       </section>
@@ -190,7 +190,7 @@ const ViewAllFoodMarket = () => {
       <section className="p-4">
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
-            <p className="text-red-600 mb-4">Failed to load Groceries</p>
+            <p className="text-red-600 mb-4">Failed to load food market</p>
             <Button
               className="bg-[#FF7A00] text-white px-4 py-2 rounded-lg"
               onClick={() => window.location.reload()}
@@ -213,7 +213,7 @@ const ViewAllFoodMarket = () => {
           <ChevronLeft className="h-6 w-6 text-black" />
         </Button>
         <h1 className="text-2xl font-semibold text-center flex-1 md:text-left">
-          All Groceries{" "}
+          All Food Market{" "}
           <span className="bg-primary/10 p-1.5 px-3 rounded-lg">
             {filteredAndSortedItems.length}
           </span>
@@ -224,7 +224,7 @@ const ViewAllFoodMarket = () => {
         <form className="relative" onSubmit={(e) => e.preventDefault()}>
           <input
             type="text"
-            placeholder="Search groceries..."
+            placeholder="Search food market..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-xl bg-[#ECE6F0] py-3 px-10 text-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A00] focus:border-transparent"
@@ -393,11 +393,11 @@ const ViewAllFoodMarket = () => {
         <div className="flex items-center justify-center min-h-[30vh]">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">No groceries found</p>
+            <p className="text-gray-600 mb-2">No food market found</p>
             <p className="text-sm text-gray-500">
               {searchQuery
                 ? "Try adjusting your search terms"
-                : "No groceries available at the moment"}
+                : "No food market available at the moment"}
             </p>
           </div>
         </div>

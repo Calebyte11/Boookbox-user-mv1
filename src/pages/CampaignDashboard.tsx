@@ -3,10 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Container } from "@radix-ui/themes";
 import { useCampaignDetailQuery } from "@/hooks/useCampaignQueries";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { ArrowLeft, 
-  // Star, 
-  MapPin } from "lucide-react";
+import {
+  ArrowLeft,
+  // Star,
+  MapPin,
+} from "lucide-react";
 import SEO from "@/components/SEO";
+
+const capitalizeWords = (str: string) => 
+  str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
 const CampaignDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +29,7 @@ const CampaignDashboard: React.FC = () => {
 
   const handleOrderNow = () => {
     if (campaign?.id || campaign?._id) {
-      navigate(`/order?productId=${campaign.id || campaign._id}`);
+      navigate(`/restaurants/${campaign.createdBy?.user._id}/meals/${campaign.product?._id}`);
     }
   };
 
@@ -58,16 +63,11 @@ const CampaignDashboard: React.FC = () => {
     );
   }
 
-  // Calculate progress percentage
-  const progressPercentage = campaign.targetAmount && campaign.currentAmount
-    ? (campaign.currentAmount / campaign.targetAmount) * 100
-    : 0;
-
   // Calculate days left
   const endDate = new Date(campaign.endDate);
   const today = new Date();
   const daysLeft = Math.ceil(
-    (endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    (endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   return (
@@ -112,11 +112,11 @@ const CampaignDashboard: React.FC = () => {
                     {campaign.status === "active"
                       ? "Ongoing"
                       : campaign.status === "upcoming"
-                      ? "Upcoming"
-                      : "Completed"}
+                        ? "Upcoming"
+                        : "Completed"}
                   </div>
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                    {campaign.name || "Campaign"}
+                    {capitalizeWords(campaign.name || "Campaign")}
                   </h1>
                 </div>
                 <div className="flex gap-3">
@@ -151,58 +151,150 @@ const CampaignDashboard: React.FC = () => {
 
               {/* Business Details */}
               <div className="flex flex-wrap items-center gap-4 mb-6 text-gray-700">
-                {/* <div className="flex items-center gap-2">
-                  <Star size={18} fill="currentColor" className="text-yellow-500" />
-                  <span className="font-semibold">4.8</span>
-                  <span className="text-sm">• 1.3k ratings</span>
-                </div> */}
                 <div className="flex items-center gap-2">
                   <MapPin size={18} />
                   <span className="text-sm">Billingsway Ikeja</span>
                 </div>
               </div>
-
-              {/* Status */}
-              <p className="text-emerald-600 font-bold text-lg">Open now</p>
             </div>
 
             {/* Campaign Title and Description */}
             <div className="mb-8 pb-8 border-b border-gray-200">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                {campaign.name || campaign.title || "Campaign Name"}
-              </h2>
               <p className="text-gray-700 leading-relaxed text-lg">
-                {campaign.description ||
-                  "This is an exciting campaign with great offers and benefits. Don't miss out on this opportunity!"}
+                {capitalizeWords(campaign.description ||
+                  "This is an exciting campaign with great offers and benefits. Don't miss out on this opportunity!")}
               </p>
             </div>
 
-            {/* Progress Bar */}
-            {campaign.targetAmount && campaign.currentAmount !== undefined && (
-              <div className="mb-8">
-                <div className="mb-2 flex justify-between">
-                  <span className="text-gray-700 font-semibold">
-                    Campaign Progress
-                  </span>
-                  <span className="text-gray-600 text-sm">
-                    ₦{campaign.currentAmount?.toLocaleString()} /₦
-                    {campaign.targetAmount?.toLocaleString()}
-                  </span>
-                </div>
-                <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#FF7A00] transition-all duration-300"
-                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                  />
+            {/* Product Details Section - Card */}
+            <div className="mb-1">
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-md">
+                <div className="flex flex-col md:flex-row p-4">
+                  {/* Left Side - Product Image and Title */}
+                  <div className="w-full md:w-1/3 relative min-h-[200px]">
+                    <img
+                      src={
+                        campaign.product?.images?.[0] ||
+                        campaign.product?.image?.[0] ||
+                        campaign.product?.image
+                      }
+                      alt={`${campaign.product?.name || "Product"}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-r from-black/40 to-transparent flex items-end p-4">
+                      <div>
+                        <div className="inline-block bg-[#FF7A00] text-white px-3 py-1 rounded-full text-xs font-bold mb-2">
+                          Featured
+                        </div>
+                        <h4 className="text-white font-bold text-sm line-clamp-2">
+                          {capitalizeWords(campaign.product?.name ||
+                            campaign.title ||
+                            "Product")}
+                        </h4>
+                      </div>
+                    </div>
+
+                    {/* Discount */}
+                    {campaign.discount && (
+                      <div className="absolute top-0 right-0 flex items-end">
+                        <div className="inline-block bg-[#ff7b00] text-white px-3 py-1  text-xs font-bold mb-2">
+                          <p className="text-xl font-bold text-white">
+                            -{campaign.discount.amount}%
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Side - Product Details and Stats */}
+                  <div className="w-full pt-2 flex flex-col">
+                    {/* Product Name and Description */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        {capitalizeWords(campaign.product?.name || campaign.title || "Product")}
+                      </h3>
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        {capitalizeWords(campaign.product?.description ||
+                          "High-quality product available for order. Don't miss this opportunity!")}
+                      </p>
+                    </div>
+
+                    {/* Additional Product Details */}
+
+                    {/* Product Specifications */}
+                    {/* {campaign.specifications &&
+                      Array.isArray(campaign.specifications) &&
+                      campaign.specifications.length > 0 && ( border-b border-gray-200
+                        <div className="pt-4 mt-4">
+                          <p className="text-xs font-semibold text-gray-600 mb-3">
+                            Key Features:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {campaign.specifications.map(
+                              (spec: string, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className="text-xs bg-[#FF7A00]/10 text-[#FF7A00] px-2 py-1 rounded font-medium"
+                                >
+                                  {spec}
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      )} */}
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 pb-2">
+                    {/* Category */}
+                    <div>
+                      <p className="text-xs text-gray-600 font-semibold mb-1">
+                        Category
+                      </p>
+                      <p className="text-sm font-bold text-gray-900">
+                        {campaign.category || "N/A"}
+                      </p>
+                    </div>
+
+                    {/* Unit Price */}
+                    <div>
+                      <p className="text-xs text-gray-600 font-semibold mb-1">
+                        Unit Price
+                      </p>
+                      <p className="text-sm font-bold text-gray-900">
+                        {campaign.product.price ? `₦ ${campaign.product.price}` : "N/A"}
+                      </p>
+                    </div>
+
+                    {/* Availability */}
+                    <div>
+                      <p className="text-xs text-gray-600 font-semibold mb-1">
+                        Availability
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={
+                            campaign.inStock !== false
+                              ? "w-2 h-2 bg-emerald-500 rounded-full"
+                              : "w-2 h-2 bg-red-500 rounded-full"
+                          }
+                        ></div>
+                        <p className="text-sm font-bold text-gray-900">
+                          {campaign.inStock !== false
+                            ? "In Stock"
+                            : "Out of Stock"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Right Column - Campaign Stats and CTA */}
           <div className="lg:col-span-1">
             {/* Stats Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 sticky top-20">
+            <div className="bg-white rounded-2xl border shadow-sm border-gray-200 p-6 mb-6 sticky top-20">
               {/* Campaign Stats Grid */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -232,19 +324,19 @@ const CampaignDashboard: React.FC = () => {
               </div>
 
               {/* Discount Badge */}
-              {campaign.discountPercentage && (
-                <div className="bg-[#FF7A00] text-white rounded-xl p-4 mb-6 text-center">
+              {/* {campaign.discount && (
+                <div className="bg-[#FF7A00] text-white rounded-xl p-2 mb-6 text-center">
                   <p className="text-4xl font-bold">
-                    {campaign.discountPercentage}%
+                    {campaign.discount.amount}%
                   </p>
                   <p className="text-sm mt-1">Discount Available</p>
                 </div>
-              )}
+              )} */}
 
               {/* Order Now Button */}
               <button
                 onClick={handleOrderNow}
-                className="w-full bg-[#FF7A00] text-white font-bold py-4 rounded-full hover:bg-[#ff6a00] transition-all duration-300 transform hover:scale-105 shadow-lg"
+                className="w-full bg-[#FF7A00] text-white font-bold py-4 rounded-xl hover:bg-[#ff6a00] transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Order Now
               </button>

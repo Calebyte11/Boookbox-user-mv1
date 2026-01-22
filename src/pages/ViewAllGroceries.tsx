@@ -114,7 +114,7 @@ const ViewAllGroceries = () => {
       
       return {
         id,
-        title: groceries.name || groceries.restaurantName || "Restaurant",
+        title: groceries.name || groceries.restaurantName || "Groceries",
         image: groceries.image || groceries.profileImage || "",
         rating: averageRating,
         paymentCurrency,

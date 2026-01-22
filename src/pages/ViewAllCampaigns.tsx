@@ -19,6 +19,9 @@ interface TabConfig {
   count: number;
 }
 
+const capitalizeWords = (str: string) => 
+  str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
 const ViewAllCampaigns: React.FC = () => {
   const navigate = useNavigate();
   const locationStore = useLocationStore();
@@ -235,7 +238,7 @@ const ViewAllCampaigns: React.FC = () => {
 
                   {/* Campaign Title */}
                   <h3 className="text-base md:text-lg font-bold text-white mb-3 line-clamp-2">
-                    {campaign.name || campaign.title || "Featured Campaign"}
+                    {capitalizeWords(campaign.name || campaign.title || "Featured Campaign")}
                   </h3>
 
                   {/* Campaign Details Row */}

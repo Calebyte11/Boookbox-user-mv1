@@ -15,7 +15,7 @@ export interface Campaign {
   businessImage?: string;
   profileImage?: string;
   discountPercentage?: number;
-  discount?: number;
+  discount?: number | any;
   targetAmount?: number;
   currentAmount?: number;
   numberOfOrders?: number;

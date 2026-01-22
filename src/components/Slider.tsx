@@ -8,6 +8,9 @@ import {
   MoreHorizontal,
   TrendingUp,
   MapPin,
+  ChefHat,
+  Apple,
+
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -30,7 +33,7 @@ const Slider = () => {
       link: "/restaurants/view-all",
     },
     {
-      name: "Events",
+      name: "Events/Campaigns",
       icon: <Calendar className="h-5 w-5 text-white" />,
       link: "/campaigns",
       onClick: () => navigate("/campaigns"),
@@ -41,19 +44,34 @@ const Slider = () => {
       link: "/restaurants/view-all",
     },
     {
-      name: "Nearby",
-      icon: <MapPin className="h-5 w-5 text-white" />,
-      link: "/tickets?filter=nearby",
-    },
-    {
       name: "Popular",
       icon: <Star className="h-5 w-5 text-white" />,
       link: "/restaurants/view-all?filter=popular",
+    },
+    {
+      name: "Food Market",
+      icon: <ChefHat className="h-5 w-5 text-white" />,
+      link: "/food-market/view-all",
+    },
+    {
+      name: "Fruit Market",
+      icon: <Apple className="h-5 w-5 text-white" />,
+      link: "/fruit-market/view-all"
+    },
+    {
+      name: "Nearby",
+      icon: <MapPin className="h-5 w-5 text-white" />,
+      link: "/tickets?filter=nearby",
     },
   ];
 
   const additionalItems: MenuItem[] = [
     
+    {
+      name: "Nearby",
+      icon: <MapPin className="h-5 w-5 text-white" />,
+      link: "/tickets?filter=nearby",
+    },
     {
       name: "Special Meals",
       icon: <Sparkles className="h-5 w-5 text-white" />,
