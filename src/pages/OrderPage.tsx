@@ -15,7 +15,7 @@ import { useBookingDetailQuery } from "@/hooks/useUserQueries";
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "@/utils/formatCurrency";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import type { GiftRequestData } from "@/services/giftRequestService"; // Add this import
+import type { GiftRequestDataAuth } from "@/services/giftRequestService"; // Add this import
 
 const OrderPage = () => {
   const { items, removeItem, getCurrentRestaurantId } = useCartStore(
@@ -29,7 +29,7 @@ const OrderPage = () => {
   // NEW: Check if this is a gift request
   const giftRequestId = searchParams.get("giftRequest");
   const isGiftRequest = !!giftRequestId;
-  const [giftRequestData, setGiftRequestData] = useState<GiftRequestData | null>(null);
+  const [giftRequestData, setGiftRequestData] = useState<GiftRequestDataAuth | null>(null);
   
   // Check if we're in edit mode
   const editBookingId = searchParams.get("editBooking");
@@ -45,7 +45,7 @@ const OrderPage = () => {
       const storedData = sessionStorage.getItem("giftRequestData");
       if (storedData) {
         try {
-          const parsedData: GiftRequestData = JSON.parse(storedData);
+          const parsedData: GiftRequestDataAuth = JSON.parse(storedData);
           setGiftRequestData(parsedData);
         } catch (error) {
           console.error("Failed to parse gift request data:", error);

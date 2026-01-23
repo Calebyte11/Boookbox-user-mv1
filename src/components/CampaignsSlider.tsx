@@ -89,7 +89,7 @@ const CampaignsSlider: React.FC<CampaignsSliderProps> = ({ maxItems = 6 }) => {
       {/* Header Section */}
       <div className="flex justify-between items-center mb-4 ml-1 md:ml-0">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-          Campaigns
+          Events
         </h2>
         <button
           onClick={handleViewAll}

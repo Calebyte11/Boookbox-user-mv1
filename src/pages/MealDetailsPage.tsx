@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo, useEffect } from "react";
 import refuel from "@/assets/images/refuel.png";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Plus, Minus, ChevronDown, Check } from "lucide-react";
 import Button from "@/components/Button";
 import * as Accordion from "@radix-ui/react-accordion";
@@ -39,14 +39,18 @@ interface MealInfo {
 const ProductDetailsPage: React.FC = () => {
   const addItem = useCartStore((state) => state.addItem);
   const navigate = useNavigate();
+  const location = useLocation();
   const { restaurantId, mealId } = useParams<{
     restaurantId: string;
     mealId: string;
   }>();
   const { toast } = useToast();
-  // State for quantity counter
-  const [quantity, setQuantity] = useState(1);
-  // State for UX feedback
+
+  // Get minOrder from location state if navigated from CampaignDashboard
+  const campaignMinOrder = (location.state as any)?.minOrder || null;
+
+  // State for quantity counter - initialize with minOrder if available
+  const [quantity, setQuantity] = useState(campaignMinOrder || 1);
 
   // Fetch meal details using the restaurantId and mealId, with caching (only supported options)
   const { data: mealData, isLoading: isMealLoading } = useRestaurantMenuInfoQuery(
@@ -163,9 +167,11 @@ const ProductDetailsPage: React.FC = () => {
   };
 
   // Handle quantity increment and decrement
-  const incrementQuantity = () => setQuantity((prev) => prev + 1);
-  const decrementQuantity = () =>
-    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const incrementQuantity = () => setQuantity((prev: number) => prev + 1);
+  const decrementQuantity = () => {
+    const minimumQuantity = campaignMinOrder || 1;
+    setQuantity((prev: number) => (prev > minimumQuantity ? prev - 1 : minimumQuantity));
+  };
 
   const renderCustomizationItem = (
     customization: Customization,
@@ -342,9 +348,9 @@ const ProductDetailsPage: React.FC = () => {
           <div className="inline-flex p-3 border gap-3 py-2 rounded-full">
             <Button
               onClick={decrementQuantity}
-              disabled={quantity <= 1}
+              disabled={quantity <= (campaignMinOrder || 1)}
               className={`${
-                quantity <= 1 ? "opacity-50 cursor-not-allowed" : ""
+                quantity <= (campaignMinOrder || 1) ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               <Minus />

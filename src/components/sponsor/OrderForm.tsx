@@ -2206,7 +2206,7 @@ const handleBookingSubmit = async (data: any) => {
                 </div>
                 <Circle
                   fill="#ff7a00"
-                  className="rounded-full ring-primary ring text-primary p-1 border border-primary rounded-full"
+                  className="rounded-full ring-primary ring text-primary p-1 border border-primary"
                 />
               </div>
             )}
@@ -2331,7 +2331,7 @@ const handleBookingSubmit = async (data: any) => {
             <Controller
               name="autoGenerateTicket"
               control={control}
-              render={({ field }) => (
+              render={() => (
                 <div className="space-y-3">
                   <div
                     className={`flex p-4 border rounded-lg items-center gap-4 cursor-not-allowed opacity-75 border-primary bg-primary/5`}

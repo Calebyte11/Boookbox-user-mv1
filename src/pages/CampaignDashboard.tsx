@@ -29,7 +29,15 @@ const CampaignDashboard: React.FC = () => {
 
   const handleOrderNow = () => {
     if (campaign?.id || campaign?._id) {
-      navigate(`/restaurants/${campaign.createdBy?.user._id}/meals/${campaign.product?._id}`);
+      navigate(
+        `/restaurants/${campaign.createdBy?.user._id}/meals/${campaign.product?._id}`,
+        {
+          state: {
+            minOrder: campaign.minOrder,
+            campaignId: campaign?.id || campaign?._id,
+          },
+        }
+      );
     }
   };
 
@@ -220,29 +228,7 @@ const CampaignDashboard: React.FC = () => {
                     </div>
 
                     {/* Additional Product Details */}
-
-                    {/* Product Specifications */}
-                    {/* {campaign.specifications &&
-                      Array.isArray(campaign.specifications) &&
-                      campaign.specifications.length > 0 && ( border-b border-gray-200
-                        <div className="pt-4 mt-4">
-                          <p className="text-xs font-semibold text-gray-600 mb-3">
-                            Key Features:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {campaign.specifications.map(
-                              (spec: string, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="text-xs bg-[#FF7A00]/10 text-[#FF7A00] px-2 py-1 rounded font-medium"
-                                >
-                                  {spec}
-                                </span>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      )} */}
+                    
                   </div>
                   <div className="grid grid-cols-3 gap-4 pb-2">
                     {/* Category */}
