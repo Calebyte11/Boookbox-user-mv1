@@ -26,6 +26,14 @@ const OrderPage = () => {
   const [searchParams] = useSearchParams();
   const { businessId: urlBusinessId } = useParams<{ businessId: string }>();
   
+  // NEW: Check if this is a campaign order
+  const [campaignOrderData, setCampaignOrderData] = useState<{
+    campaignId: string;
+    minOrder: number;
+    maxOrder?: number;
+  } | null>(null);
+  const isCampaignOrder = !!campaignOrderData;
+  
   // NEW: Check if this is a gift request
   const giftRequestId = searchParams.get("giftRequest");
   const isGiftRequest = !!giftRequestId;
@@ -38,6 +46,19 @@ const OrderPage = () => {
   // Get current restaurant ID from cart or URL (for edit mode)
   const cartRestaurantId = getCurrentRestaurantId();
   const currentRestaurantId = isEditMode ? urlBusinessId : cartRestaurantId;
+
+  // NEW: Load campaign order data from sessionStorage
+  useEffect(() => {
+    const storedData = sessionStorage.getItem("campaignOrderData");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        setCampaignOrderData(parsedData);
+      } catch (error) {
+        console.error("Failed to parse campaign order data:", error);
+      }
+    }
+  }, []);
 
   // NEW: Load gift request data from sessionStorage
   useEffect(() => {
@@ -84,6 +105,11 @@ const OrderPage = () => {
   
   const handleDelete = (itemId: string) => {
     removeItem(itemId);
+    
+    // NEW: Clear campaign order data if cart becomes empty
+    if (items.length === 1 && isCampaignOrder) {
+      sessionStorage.removeItem("campaignOrderData");
+    }
     
     // NEW: Clear gift request data if cart becomes empty
     if (items.length === 1 && isGiftRequest) {
@@ -223,11 +249,12 @@ const OrderPage = () => {
       
       <div className="border-t border-gray-300 py-3" />
       
-      {/* Order details - NEW: Pass gift request data */}
+      {/* Order details - NEW: Pass gift request and campaign data */}
       <OrderForm 
         onSubmit={handleSubmit} 
         restaurantId={restaurantInfo.id}
-        giftRequestData={giftRequestData} // Pass gift request data to form
+        giftRequestData={giftRequestData}
+        campaignOrderData={campaignOrderData}
       />
     </section>
   );

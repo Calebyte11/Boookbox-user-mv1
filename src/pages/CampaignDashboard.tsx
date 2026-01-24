@@ -34,6 +34,7 @@ const CampaignDashboard: React.FC = () => {
         {
           state: {
             minOrder: campaign.minOrder,
+            maxOrder: campaign.maxOrder,
             campaignId: campaign?.id || campaign?._id,
           },
         }

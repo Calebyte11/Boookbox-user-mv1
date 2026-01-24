@@ -48,6 +48,22 @@ const ProductDetailsPage: React.FC = () => {
 
   // Get minOrder from location state if navigated from CampaignDashboard
   const campaignMinOrder = (location.state as any)?.minOrder || null;
+  const campaignMaxOrder = (location.state as any)?.maxOrder || null;
+  const campaignId = (location.state as any)?.campaignId || null;
+
+  // Store campaign info in sessionStorage if coming from campaign
+  useEffect(() => {
+    if (campaignId) {
+      sessionStorage.setItem(
+        "campaignOrderData",
+        JSON.stringify({
+          campaignId,
+          minOrder: campaignMinOrder,
+          maxOrder: campaignMaxOrder,
+        })
+      );
+    }
+  }, [campaignId, campaignMinOrder, campaignMaxOrder]);
 
   // State for quantity counter - initialize with minOrder if available
   const [quantity, setQuantity] = useState(campaignMinOrder || 1);
@@ -167,7 +183,10 @@ const ProductDetailsPage: React.FC = () => {
   };
 
   // Handle quantity increment and decrement
-  const incrementQuantity = () => setQuantity((prev: number) => prev + 1);
+  const incrementQuantity = () => {
+    const maximumQuantity = campaignMaxOrder || Infinity;
+    setQuantity((prev: number) => (prev < maximumQuantity ? prev + 1 : maximumQuantity));
+  };
   const decrementQuantity = () => {
     const minimumQuantity = campaignMinOrder || 1;
     setQuantity((prev: number) => (prev > minimumQuantity ? prev - 1 : minimumQuantity));
@@ -356,7 +375,13 @@ const ProductDetailsPage: React.FC = () => {
               <Minus />
             </Button>
             <span className="min-w-[20px] text-center">{quantity}</span>
-            <Button onClick={incrementQuantity}>
+            <Button
+              onClick={incrementQuantity}
+              disabled={campaignMaxOrder !== null && quantity >= campaignMaxOrder}
+              className={`${
+                campaignMaxOrder !== null && quantity >= campaignMaxOrder ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
               <Plus />
             </Button>
           </div>

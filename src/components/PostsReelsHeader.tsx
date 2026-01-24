@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Search, Bell, X } from "lucide-react";
-import Brand from "@/assets/svg/Brand.svg";
+// import Brand from "@/assets/svg/Brand.svg";
 import { useUIStore } from "@/store/uiStore";
 import { useUnreadNotificationsCountQuery } from "@/hooks/useNotificationServices";
 
@@ -40,7 +40,7 @@ const PostsReelsHeader: React.FC<PostsReelsHeaderProps> = ({
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-white shadow-sm ">
+    <div className="sticky top-0 right-0 left-0 z-40 bg-white shadow-sm ">
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         <div className="flex  h-14 items-center justify-between">
           {/* Left: Brand Logo (or close button on mobile) */}
@@ -53,12 +53,17 @@ const PostsReelsHeader: React.FC<PostsReelsHeaderProps> = ({
               <X className="h-5 w-5" />
             </button>
           ) : (
-            <img
-              src={Brand}
-              className="w-[7rem] md:w-[9rem] cursor-pointer"
-              alt="Brand Logo"
-              onClick={() => navigate("/")}
-            />
+            // <img
+            //   src={Brand}
+              // className="w-[7rem] md:w-[9rem] cursor-pointer"
+              // alt="Brand Logo"
+              // onClick={() => navigate("/")}
+            // />
+            <button
+             className="w-[7rem] md:w-[9rem] cursor-pointer text-[#ff7a00] text-xl font-bold p-0"
+              onClick={() => navigate("/")}>
+              BoookBox
+            </button>
           )}
 
           {/* Center: Segmented Control */}

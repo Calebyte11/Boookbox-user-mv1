@@ -51,12 +51,18 @@ import type { GiftRequestDataAuth } from "@/services/giftRequestService";
 // UPDATE THE OrderFormProps INTERFACE
 interface ExtendedOrderFormProps extends OrderFormProps {
   giftRequestData?: GiftRequestDataAuth | null;
+  campaignOrderData?: {
+    campaignId: string;
+    minOrder: number;
+    maxOrder?: number;
+  } | null;
 }
 
 const OrderForm: React.FC<ExtendedOrderFormProps> = ({
   onSubmit,
   restaurantId,
   giftRequestData,
+  campaignOrderData,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -74,6 +80,9 @@ const OrderForm: React.FC<ExtendedOrderFormProps> = ({
 
   // Check if this is a gift request
   const isGiftRequest = !!giftRequestData;
+
+  // NEW: Check if this is a campaign order
+  const isCampaignOrder = !!campaignOrderData;
 
   // Fetch restaurant details
   const { data: restaurantData } = useRestaurantDetailQuery(restaurantId, {
@@ -1064,6 +1073,25 @@ const handleBookingSubmit = async (data: any) => {
       return () => subscription.unsubscribe();
     }
   }, [isGiftRequest, giftRequestData, watch, setValue, toast]);
+
+  // NEW: Effect to log campaign order data
+  useEffect(() => {
+    if (isCampaignOrder && campaignOrderData) {
+      console.log("🎯 Campaign Order Data:", campaignOrderData);
+      
+      // You can add campaign-specific logic here
+      // For example, you might want to set additional fields or validations
+    }
+  }, [isCampaignOrder, campaignOrderData]);
+
+  // NEW: Effect to clear campaign order data on component unmount if order is submitted
+  useEffect(() => {
+    return () => {
+      if (isCampaignOrder) {
+        sessionStorage.removeItem("campaignOrderData");
+      }
+    };
+  }, [isCampaignOrder]);
 
   // Cleanup preview URL on component unmount
   useEffect(() => {
