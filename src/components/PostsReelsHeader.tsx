@@ -62,7 +62,7 @@ const PostsReelsHeader: React.FC<PostsReelsHeaderProps> = ({
           )}
 
           {/* Center: Segmented Control */}
-          <div className="flex-1 flex justify-center">
+          <div className="flex flex justify-center">
             <div className="inline-flex bg-gray-100 rounded-lg p-1 gap-1">
               <button
                 onClick={() => handleSegmentChange("posts")}
