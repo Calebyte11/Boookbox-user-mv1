@@ -20,9 +20,16 @@ export interface BookingDetails {
   isGift: boolean;
   restaurantId?: string;
   restaurantName?: string;
-  location?: string; // Store the complete booking payload for API call
+  location?: string;
   bookingPayload?: Record<string, unknown>;
-  calculatedTotalAmount?: number; // Store the total amount calculated from OrderForm
+  calculatedTotalAmount?: number;
+  campaignId?: string;
+  isCampaignOrder?: boolean;
+  campaignDetails?: {
+    minOrder: number;
+    maxOrder?: number | null;
+    orderQuantity: number;
+  };
 }
 
 export interface BookingState extends BookingDetails {
@@ -48,8 +55,11 @@ const initialState: BookingDetails = {
   deliveryTime: null,
   specialInstructions: "",
   paymentMethod: "",
-  isGift: true, // Default to gift since this is BoookBox
+  isGift: true,
   calculatedTotalAmount: undefined,
+  campaignId: undefined,
+  isCampaignOrder: false,
+  campaignDetails: undefined,
 };
 
 export const useBookingStore = create<BookingState>()(
@@ -111,6 +121,9 @@ export const useBookingStore = create<BookingState>()(
         isGift: state.isGift,
         bookingPayload: state.bookingPayload,
         calculatedTotalAmount: state.calculatedTotalAmount,
+        campaignId: state.campaignId,
+        isCampaignOrder: state.isCampaignOrder,
+        campaignDetails: state.campaignDetails,
       }),
     }
   )

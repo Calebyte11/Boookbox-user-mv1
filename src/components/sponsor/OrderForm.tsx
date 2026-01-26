@@ -667,6 +667,22 @@ const handleBookingSubmit = async (data: any) => {
                 .filter((tag: string) => tag)
             : [],
         }),
+        customImage: uploadedImageUrl || "",
+        supportsMultipleClaims: data.supportsMultipleClaims || false,
+        autoGenerateTicket: data.autoGenerateTicket || false,
+        numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
+        ...(isGiftRequest &&
+          giftRequestData && {
+            giftRequestId: giftRequestData._id,
+            isGiftRequestFulfillment: true,
+            giftRequestDetails: {
+              requesterId: giftRequestData.user._id,
+              requesterName: giftRequestData.user.fullName,
+              requesterEmail: giftRequestData.user.email,
+              originalQuantity: giftRequestData.quantity,
+              originalAmount: giftRequestData.totalAmount,
+            },
+          }),
       };
 
       await updateBookingMutation.mutateAsync(updatePayload);
@@ -748,15 +764,15 @@ const handleBookingSubmit = async (data: any) => {
                                 ? giftRequestData.user.organizationName
                                 : giftRequestData.user.fullName
                               : data.recipientName || "",
-                          phone:
-                            isGiftRequest && giftRequestData
-                              ? giftRequestData.user.phoneNumber
-                              : data.recipientPhone || "",
                           email:
                             isGiftRequest && giftRequestData
                               ? giftRequestData.user.email
                               : data.recipientEmail || "",
-                          message: data.reason || "",
+                          phoneNumber:
+                            isGiftRequest && giftRequestData
+                              ? giftRequestData.user.phoneNumber
+                              : data.recipientPhone || "",
+                          remark: data.recipientRemark || "",
                         },
                       ]
                     : (data.multipleRecipients || []).map(
@@ -801,6 +817,16 @@ const handleBookingSubmit = async (data: any) => {
         supportsMultipleClaims: data.supportsMultipleClaims || false,
         autoGenerateTicket: data.autoGenerateTicket || false,
         numberOfRecipients: parseInt(data.numberOfRecipients || "1", 10),
+        ...(isCampaignOrder &&
+          campaignOrderData && {
+            campaignId: campaignOrderData.campaignId,
+            isCampaignOrder: true,
+            campaignDetails: {
+              minOrder: campaignOrderData.minOrder,
+              maxOrder: campaignOrderData.maxOrder || null,
+              orderQuantity: items.reduce((total, item) => total + item.quantity, 0),
+            },
+          }),
         ...(isGiftRequest &&
           giftRequestData && {
             giftRequestId: giftRequestData._id,
@@ -881,6 +907,11 @@ const handleBookingSubmit = async (data: any) => {
       });
 
       onSubmit(data);
+
+      // NEW: Clear campaign order data after successful submission
+      if (isCampaignOrder) {
+        sessionStorage.removeItem("campaignOrderData");
+      }
 
       if (isGiftRequest) {
         sessionStorage.removeItem("giftRequestData");
@@ -1150,6 +1181,28 @@ const handleBookingSubmit = async (data: any) => {
               <p className="text-purple-600 text-xs mt-2">
                 Recipient details have been pre-filled and locked for this
                 request.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCampaignOrder && campaignOrderData && !isEditMode && (
+        <div className="m-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">🎯</span>
+            <div className="flex-1">
+              <p className="text-amber-800 font-medium">Campaign Order</p>
+              <p className="text-amber-700 text-sm mt-1">
+                You're fulfilling a campaign order with a minimum of{" "}
+                <span className="font-semibold">{campaignOrderData.minOrder}</span>
+                {campaignOrderData.maxOrder && (
+                  <>
+                    {" "}and maximum of{" "}
+                    <span className="font-semibold">{campaignOrderData.maxOrder}</span>
+                  </>
+                )}{" "}
+                items.
               </p>
             </div>
           </div>

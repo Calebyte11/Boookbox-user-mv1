@@ -298,7 +298,7 @@ const CampaignDashboard: React.FC = () => {
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <p className="text-3xl font-bold text-gray-900">
-                    {campaign.numberOfSales || campaign.numberOfOrders || "0"}
+                    {campaign.totalOrders || campaign.numberOfOrders || "0"}
                   </p>
                   <p className="text-xs text-gray-600 mt-1">Completed</p>
                 </div>

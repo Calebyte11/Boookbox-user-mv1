@@ -60,7 +60,7 @@ const PostsReelsHeader: React.FC<PostsReelsHeaderProps> = ({
               // onClick={() => navigate("/")}
             // />
             <button
-             className="w-[7rem] md:w-[9rem] cursor-pointer text-[#ff7a00] text-xl font-bold p-0"
+             className="w-[7rem] md:w-[9rem] cursor-pointer text-[#ff7a00] text-xl font-bold ml-0 p-0"
               onClick={() => navigate("/")}>
               BoookBox
             </button>
