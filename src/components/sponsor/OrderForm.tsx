@@ -700,6 +700,14 @@ const handleBookingSubmit = async (data: any) => {
           menuId: item.mealId,
           quantity: item.quantity,
           instructions: item.userInstruction || "",
+          customizations: item.choices ? Object.entries(item.choices)
+            .filter(([_, value]) => Array.isArray(value) && value.length > 0)
+            .flatMap(([type, values]) => 
+              (values as string[]).map(value => ({
+                type,
+                value
+              }))
+            ) : undefined,
         })),
         reason:
           data.reason ||

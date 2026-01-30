@@ -68,6 +68,11 @@ export interface OrderFormValues {
     name: string;
     price: number;
     currency: string;
+    instructions?: string;
+    customizations?: Array<{
+      type: string;
+      value: string;
+    }>;
   }>;
   restaurantId?: string; // Required
   customImage?: string; // Optional custom image for the ticket

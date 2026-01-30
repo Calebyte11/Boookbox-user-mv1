@@ -73,7 +73,15 @@ export type BookingCreateBody = {
     remark?: string;
   };
   restaurantId: string;
-  menuItems: { menuId: string; quantity: number; instructions?: string }[];
+  menuItems: { 
+    menuId: string; 
+    quantity: number; 
+    instructions?: string;
+    customizations?: Array<{
+      type: string;
+      value: string;
+    }>;
+  }[];
   numberOfBookings: number;
   reason?: string;
   validityDate?: string;

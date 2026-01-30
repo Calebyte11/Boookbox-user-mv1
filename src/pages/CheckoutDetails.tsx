@@ -600,6 +600,9 @@ const CheckoutDetails = () => {
         pid: item.menuId,  // Transform menuId to pid
         quantity: item.quantity,
         instructions: item.instructions,
+        ...(item.customizations && item.customizations.length > 0 && {
+          customizations: item.customizations
+        }),
       })) || [];
 
       const createBookingPayload = {
