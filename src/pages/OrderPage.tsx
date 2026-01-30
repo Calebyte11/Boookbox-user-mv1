@@ -225,6 +225,7 @@ const OrderPage = () => {
               deleteIcon={true}
               itemId={item.id}
               onDelete={() => handleDelete(item.id)}
+              minimumCampaignOrder={campaignOrderData?.minOrder}
             />
           </div>
           {index < items.length - 1 && (
