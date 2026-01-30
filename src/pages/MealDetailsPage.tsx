@@ -18,8 +18,9 @@ interface MealChoicesForm {
   userInstruction: string;
 }
 interface Customization {
-  name: string;
-  items: string[];
+  id: string;
+  type: string;
+  value: string;
 }
 
 interface MealInfo {
@@ -193,10 +194,11 @@ const ProductDetailsPage: React.FC = () => {
   };
 
   const renderCustomizationItem = (
-    customization: Customization,
+    type: string,
+    customizations: Customization[],
     index: number
   ) => {
-    const fieldName = customization.name;
+    const fieldName = type;
 
     return (
       <Accordion.Item
@@ -209,7 +211,7 @@ const ProductDetailsPage: React.FC = () => {
           <Accordion.Trigger tabIndex={-1} className="flex justify-between items-start w-full py-4 group transition-all">
             <div className="flex flex-col items-start">
               <span className="font-medium text-black">
-                {customization.name}
+                {type}
               </span>
               <span className="font-medium text-gray-400 text-sm">
                 Select your preferences
@@ -226,57 +228,57 @@ const ProductDetailsPage: React.FC = () => {
             render={({ field, fieldState: { error } }) => (
               <div className="space-y-3">
                 <div className="flex flex-col gap-y-1">
-                  {customization.items.map((item) => (
-                    <Button
-                      key={item}
-                      type="button"
-                      onClick={() => {
-                        const currentSelections =
-                          (field.value as string[]) || [];
-                        const itemValue = item;
-                        let newSelections: string[];
+                  {customizations.map((customization) => {
+                    const isChecked = Array.isArray(field.value)
+                      ? field.value.includes(customization.value)
+                      : false;
 
-                        // Handle special "none" option logic if it exists
-                        if (itemValue === "none") {
-                          if (currentSelections.includes("none")) {
-                            newSelections = [];
+                    return (
+                      <Button
+                        key={customization.id}
+                        type="button"
+                        onClick={() => {
+                          const currentSelections =
+                            (field.value as string[]) || [];
+                          const itemValue = customization.value;
+                          let newSelections: string[];
+
+                          // Handle special "none" option logic if it exists
+                          if (itemValue === "none") {
+                            if (currentSelections.includes("none")) {
+                              newSelections = [];
+                            } else {
+                              newSelections = ["none"];
+                            }
                           } else {
-                            newSelections = ["none"];
+                            if (currentSelections.includes(itemValue)) {
+                              newSelections = currentSelections.filter(
+                                (selectedItem) => selectedItem !== itemValue
+                              );
+                            } else {
+                              newSelections = [
+                                ...currentSelections.filter(
+                                  (selectedItem) => selectedItem !== "none"
+                                ),
+                                itemValue,
+                              ];
+                            }
                           }
-                        } else {
-                          if (currentSelections.includes(itemValue)) {
-                            newSelections = currentSelections.filter(
-                              (selectedItem) => selectedItem !== itemValue
-                            );
-                          } else {
-                            newSelections = [
-                              ...currentSelections.filter(
-                                (selectedItem) => selectedItem !== "none"
-                              ),
-                              itemValue,
-                            ];
-                          }
-                        }
-                        field.onChange(newSelections);
-                      }}
-                      className="flex items-center justify-between w-full text-left p-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 cursor-pointer transition-all"
-                    >
-                      {item !== null && (
-                        <>
-                          <span className="text-sm text-black">{item}</span>
-                          <Check
-                            className={`border rounded-md p-0.5 w-6 h-6 transition-colors ${
-                              field.value &&
-                              Array.isArray(field.value) &&
-                              field.value.includes(item)
-                                ? "bg-primary text-white border-primary"
-                                : "bg-white text-gray-400 border-gray-300"
-                            }`}
-                          />
-                        </>
-                      )}
-                    </Button>
-                  ))}
+                          field.onChange(newSelections);
+                        }}
+                        className="flex items-center justify-between w-full text-left p-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-100 cursor-pointer transition-all"
+                      >
+                        <span className="text-sm text-black capitalize">{customization.value}</span>
+                        <Check
+                          className={`border rounded-md p-0.5 w-6 h-6 transition-colors ${
+                            isChecked
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-400 border-gray-300"
+                          }`}
+                        />
+                      </Button>
+                    );
+                  })}
                 </div>
                 {error && (
                   <p className="text-red-600 text-sm mt-1">{error.message}</p>
@@ -393,18 +395,33 @@ const ProductDetailsPage: React.FC = () => {
           {mealInfos?.[0]?.customizations &&
           Array.isArray(mealInfos[0].customizations) &&
           mealInfos[0].customizations.length > 0 ? (
-            <Accordion.Root
-              type="single"
-              collapsible
-              defaultValue={mealInfos[0].customizations[0]?.name}
-              tabIndex={-1}
-              className="w-full space-y-3 capitalize"
-              onValueChange={() => {}} // override focus behavior
-            >
-              {mealInfos[0].customizations.map((customization, index) =>
-                renderCustomizationItem(customization, index)
-              )}
-            </Accordion.Root>
+            (() => {
+              // Group customizations by type
+              const groupedCustomizations = mealInfos[0].customizations.reduce(
+                (acc, customization) => {
+                  if (!acc[customization.type]) {
+                    acc[customization.type] = [];
+                  }
+                  acc[customization.type].push(customization);
+                  return acc;
+                },
+                {} as Record<string, Customization[]>
+              );
+
+              return (
+                <Accordion.Root
+                  type="multiple"
+                  tabIndex={-1}
+                  className="w-full space-y-3 capitalize"
+                  onValueChange={() => {}} // override focus behavior
+                >
+                  {Object.entries(groupedCustomizations).map(
+                    ([type, customizations], index) =>
+                      renderCustomizationItem(type, customizations, index)
+                  )}
+                </Accordion.Root>
+              );
+            })()
           ) : (
             <div className="text-center text-gray-500 py-6">
               No customization options available for this meal.
