@@ -43,12 +43,13 @@ const HomePage: React.FC = () => {
           <CampaignsSlider maxItems={6} />
         </div>
 
+        <Recomended />
+        
         {/* Recent Gifting Section */}
         <div className="mb-8">
-          <RecentGifting maxItems={4} />
+          <RecentGifting maxItems={3} />
         </div>
 
-        <Recomended />
         <div>
           <PopularPackages />
         </div>
