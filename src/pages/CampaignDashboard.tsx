@@ -294,7 +294,7 @@ const CampaignDashboard: React.FC = () => {
                   <p className="text-3xl font-bold text-gray-900">
                     {campaign.maxOrder || "N/A"}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">Max Order</p>
+                  <p className="text-xs text-gray-600 mt-1">Total Max Orders</p>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-xl">
                   <p className="text-3xl font-bold text-gray-900">
