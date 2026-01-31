@@ -1,150 +1,184 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
-import type { UseQueryResult } from "@tanstack/react-query";
 import {
   nightlifeService,
-  type NightlifeVenue,
-  type NightlifeMenu,
   type LocationFilters,
   type NearbyParams,
 } from "@/services/nightlifeService";
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+export const nightlifeQueryKeys = {
+  nightlifeVenues: {
+    all: ["nightlife"] as const,
+    list: (filters?: any) => ["nightlife", "list", filters] as const,
+    detail: (id: string) => ["nightlife", "detail", id] as const,
+    nearby: (params: any) => ["nightlife", "nearby", params] as const,
+    byLocation: (filters: any) => ["nightlife", "byLocation", filters] as const,
+    products: (rid: string) => ["nightlife", rid, "products"] as const,
+    product: (rid: string, mid: string) =>
+      ["nightlife", rid, "product", mid] as const,
+    popularMenus: ["nightlife", "popularMenus"] as const,
+    popularMenusByNightlife: (rid: string) =>
+      ["nightlife", rid, "popularMenus"] as const,
+    recommended: (lat: number, lng: number, category?: string, limit?: number, page?: number) =>
+      ["nightlife", "recommended", { lat, lng, category, limit, page }] as const,
+  },
+};
 
-export const useGetAllNightlifeVenues = (): UseQueryResult<NightlifeVenue[], Error> => {
+export function useAllNightlifeVenuesQuery(options?: { enabled?: boolean; staleTimeMs?: number }) {
   return useQuery({
-    queryKey: ["nightlifeVenues"],
+    queryKey: nightlifeQueryKeys.nightlifeVenues.all,
     queryFn: () => nightlifeService.getAllNightlifeVenues("nightlife"),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: options?.enabled !== false,
+    staleTime: options?.staleTimeMs ?? 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
-};
+}
 
-export const useGetNightlifeVenueById = (
-  nightlifeVenueId: string
-): UseQueryResult<NightlifeVenue | null, Error> => {
-  return useQuery({
-    queryKey: ["nightlifeVenue", nightlifeVenueId],
-    queryFn: () => nightlifeService.getNightlifeVenueById(nightlifeVenueId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!nightlifeVenueId,
-  });
-};
-
-export const useGetNightlifeVenueMenus = (
-  nightlifeVenueId: string
-): UseQueryResult<NightlifeMenu[], Error> => {
-  return useQuery({
-    queryKey: ["nightlifeVenueMenus", nightlifeVenueId],
-    queryFn: () => nightlifeService.getNightlifeVenueMenus(nightlifeVenueId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!nightlifeVenueId,
-  });
-};
-
-export const useGetNightlifeVenueMenu = (
-  nightlifeVenueId: string,
-  menuId: string
-): UseQueryResult<NightlifeMenu | null, Error> => {
-  return useQuery({
-    queryKey: ["nightlifeVenueMenu", nightlifeVenueId, menuId],
-    queryFn: () =>
-      nightlifeService.getNightlifeVenueMenu(nightlifeVenueId, menuId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!nightlifeVenueId && !!menuId,
-  });
-};
-
-export const useGetNightlifeVenueByLocation = (
-  filters: LocationFilters
-): UseQueryResult<NightlifeVenue[], Error> => {
-  return useQuery({
-    queryKey: ["nightlifeVenueByLocation", filters],
-    queryFn: () => nightlifeService.getNightlifeVenueByLocation(filters),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled:
-      filters.latitude !== undefined &&
-      filters.longitude !== undefined,
-  });
-};
-
-export const useGetNearbyNightlifeVenues = (
-  params: NearbyParams
-): UseQueryResult<NightlifeVenue[], Error> => {
-  return useQuery({
-    queryKey: ["nearbyNightlifeVenues", params],
-    queryFn: () => nightlifeService.getNearbyNightlifeVenues(params),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!params.latitude && !!params.longitude,
-  });
-};
-
-export const useGetPopularNightlifeMenus = (): UseQueryResult<
-  NightlifeMenu[],
-  Error
-> => {
-  return useQuery({
-    queryKey: ["popularNightlifeMenus"],
-    queryFn: () => nightlifeService.getPopularMenus(),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
-};
-
-export const useGetPopularNightlifeMenusByVenue = (
-  nightlifeVenueId: string
-): UseQueryResult<NightlifeMenu[], Error> => {
-  return useQuery({
-    queryKey: ["popularNightlifeMenus", nightlifeVenueId],
-    queryFn: () =>
-      nightlifeService.getPopularMenusByNightlifeVenue(nightlifeVenueId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!nightlifeVenueId,
-  });
-};
-
-export const useGetRecommendedNightlifeVenues = (
-  lat: number,
-  lng: number,
+export function useRecommendedNightlifeVenuesQuery(
+  lat?: number,
+  lng?: number,
   category?: string,
   limit?: number,
-  page?: number
-): UseQueryResult<NightlifeVenue[], Error> => {
+  page?: number,
+  options?: { enabled?: boolean; staleTimeMs?: number }
+) {
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
   return useQuery({
-    queryKey: ["recommendedNightlifeVenues", lat, lng, category, limit, page],
+    queryKey: nightlifeQueryKeys.nightlifeVenues.recommended(
+      hasCoords ? (lat as number) : 0,
+      hasCoords ? (lng as number) : 0,
+      category || undefined,
+      limit || undefined,
+      page || undefined
+    ),
     queryFn: () =>
       nightlifeService.getRecommendedNightlifeVenues(
-        lat,
-        lng,
-        category,
+        lat as number,
+        lng as number,
+        category as string,
         limit,
         page
       ),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!lat && !!lng,
+    enabled: options?.enabled ?? hasCoords,
+    staleTime: options?.staleTimeMs ?? 1000 * 60 * 5,
   });
-};
+}
+
+export function useNightlifeVenuesByLocationQuery(
+  filters: LocationFilters,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.byLocation(filters),
+    queryFn: () => nightlifeService.getNightlifeVenuesByLocation(filters),
+    enabled: options?.enabled !== false,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNearbyNightlifeVenuesQuery(
+  params: NearbyParams,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.nearby(params),
+    queryFn: () => nightlifeService.getNearbyNightlifeVenues(params),
+    enabled:
+      options?.enabled !== false && !!params.latitude && !!params.longitude,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNightlifeVenueDetailQuery(
+  nightlifeVenueId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.detail(nightlifeVenueId),
+    queryFn: () => nightlifeService.getNightlifeVenueById(nightlifeVenueId),
+    enabled: options?.enabled !== undefined ? options.enabled : !!nightlifeVenueId,
+    staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      if (
+        error instanceof Error &&
+        (error.message.includes("404") || error.message.includes("not found"))
+      ) {
+        return false;
+      }
+      if (
+        error instanceof Error &&
+        (error.message.includes("authentication") ||
+          error.message.includes("401"))
+      ) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
+}
+
+export function useNightlifeVenuesQuery(
+  nightlifeVenueId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.products(nightlifeVenueId),
+    queryFn: () => nightlifeService.getNightlifeVenueMenus(nightlifeVenueId),
+    enabled: options?.enabled !== false && !!nightlifeVenueId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNightlifeVenueMenuInfoQuery(
+  nightlifeVenueId: string,
+  menuId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.product(nightlifeVenueId, menuId),
+    queryFn: () => nightlifeService.getNightlifeVenueMenu(nightlifeVenueId, menuId),
+    enabled: options?.enabled !== false && !!nightlifeVenueId && !!menuId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNightlifePopularMenusQuery() {
+  return useQuery({
+    queryKey: nightlifeQueryKeys.nightlifeVenues.popularMenus,
+    queryFn: nightlifeService.getPopularMenus,
+  });
+}
+
+export function usePopularMenusByNightlifeQuery(
+  nightlifeVenueId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey:
+      nightlifeQueryKeys.nightlifeVenues.popularMenusByNightlife(nightlifeVenueId),
+    queryFn: () => nightlifeService.getPopularMenusByNightlifeVenue(nightlifeVenueId),
+    enabled: options?.enabled !== false && !!nightlifeVenueId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export const useNightlifeReservedProduct = (
+  nightlifeVenueId?: string,
+  reservationCode?: string
+) =>
+  useQuery({
+    queryKey: ["reservedProduct", nightlifeVenueId ?? "", reservationCode ?? ""],
+    queryFn: async () => {
+      const res = await nightlifeService.findReservedMenu(
+        nightlifeVenueId ?? "",
+        reservationCode ?? ""
+      );
+      return res && (res as any).data !== undefined ? (res as any).data : res;
+    },
+    enabled:
+      !!nightlifeVenueId &&
+      !!reservationCode &&
+      String(reservationCode).trim().length > 0,
+  });

@@ -16,7 +16,7 @@ interface RestaurantCardProps {
   city?: string;
   state?: string;
   // New props for dynamic behavior
-  category?: "restaurant" | "groceries" | "frozenfoods" | "winedrinks" | "foodmarket" | "fruitmarket" | "freemarket" | "bakery" | "confectioneries" | "pharmastores" | "hangouttickets" | "transporttickets" | "giftstores" | "madeinnigeria" | "hospitality";
+  category?: "restaurant" | "groceries" | "frozenfoods" | "winedrinks" | "foodmarket" | "fruitmarket" | "freemarket" | "bakery" | "confectioneries" | "pharmastores" | "hangouttickets" | "transporttickets" | "giftstores" | "madeinnigeria" | "hospitality" | "nightlife" | "carparkservices" | "vegetablemarket";
   buttonText?: string;
   navigateUrl?: string;
 }
@@ -68,6 +68,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       giftstores: "gift-stores",
       madeinnigeria: "made-in-nigeria",
       hospitality: "hospitality",
+      nightlife: "nightlife",
+      carparkservices: "car-park-services",
+      vegetablemarket: "vegetable-market",
     };
     
     const categoryParam = categoryQueryMap[category] || "restaurant";
@@ -92,6 +95,9 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       giftstores: "Order items",
       madeinnigeria: "Order items",
       hospitality: "Book a stay",
+      nightlife: "Book a venue",
+      carparkservices: "Book a spot",
+      vegetablemarket: "Order items",
     };
 
     return categoryButtonTexts[category];

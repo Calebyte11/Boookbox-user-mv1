@@ -1,150 +1,185 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
-import type { UseQueryResult } from "@tanstack/react-query";
 import {
   carParkingServiceService,
-  type CarParkingService,
-  type CarParkingServiceMenu,
   type LocationFilters,
   type NearbyParams,
 } from "@/services/carParkingServiceService";
+// import { nightlifeQueryKeys } from "./useNightlifeQueries";
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+export const carParkingQueryKeys = {
+  carParkingServices: {
+    all: ["carParking"] as const,
+    list: (filters?: any) => ["carParking", "list", filters] as const,
+    detail: (id: string) => ["carParking", "detail", id] as const,
+    nearby: (params: any) => ["carParking", "nearby", params] as const,
+    byLocation: (filters: any) => ["carParking", "byLocation", filters] as const,
+    menus: (serviceId: string) => ["carParking", serviceId, "menus"] as const,
+    menu: (serviceId: string, menuId: string) =>
+      ["carParking", serviceId, "menu", menuId] as const,
+    popularMenus: ["carParking", "popularMenus"] as const,
+    popularMenusByCarParking: (serviceId: string) =>
+      ["carParking", serviceId, "popularMenus"] as const,
+    recommended: (lat: number, lng: number, category?: string, limit?: number, page?: number) =>
+      ["carParking", "recommended", { lat, lng, category, limit, page }] as const,
+  },
+};
 
-export const useGetAllCarParkingServices = (): UseQueryResult<CarParkingService[], Error> => {
+export function useAllCarParkingServicesQuery(options?: { enabled?: boolean; staleTimeMs?: number }) {
   return useQuery({
-    queryKey: ["carParkingServices"],
+    queryKey: carParkingQueryKeys.carParkingServices.all,
     queryFn: () => carParkingServiceService.getAllCarParkingServices("car-parking-services"),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: options?.enabled !== false,
+    staleTime: options?.staleTimeMs ?? 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
-};
+}
 
-export const useGetCarParkingServiceById = (
-  carParkingServiceId: string
-): UseQueryResult<CarParkingService | null, Error> => {
-  return useQuery({
-    queryKey: ["carParkingService", carParkingServiceId],
-    queryFn: () => carParkingServiceService.getCarParkingServiceById(carParkingServiceId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!carParkingServiceId,
-  });
-};
-
-export const useGetCarParkingServiceMenus = (
-  carParkingServiceId: string
-): UseQueryResult<CarParkingServiceMenu[], Error> => {
-  return useQuery({
-    queryKey: ["carParkingServiceMenus", carParkingServiceId],
-    queryFn: () => carParkingServiceService.getCarParkingServiceMenus(carParkingServiceId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!carParkingServiceId,
-  });
-};
-
-export const useGetCarParkingServiceMenu = (
-  carParkingServiceId: string,
-  menuId: string
-): UseQueryResult<CarParkingServiceMenu | null, Error> => {
-  return useQuery({
-    queryKey: ["carParkingServiceMenu", carParkingServiceId, menuId],
-    queryFn: () =>
-      carParkingServiceService.getCarParkingServiceMenu(carParkingServiceId, menuId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!carParkingServiceId && !!menuId,
-  });
-};
-
-export const useGetCarParkingServiceByLocation = (
-  filters: LocationFilters
-): UseQueryResult<CarParkingService[], Error> => {
-  return useQuery({
-    queryKey: ["carParkingServiceByLocation", filters],
-    queryFn: () => carParkingServiceService.getCarParkingServiceByLocation(filters),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled:
-      filters.latitude !== undefined &&
-      filters.longitude !== undefined,
-  });
-};
-
-export const useGetNearbyCarParkingServices = (
-  params: NearbyParams
-): UseQueryResult<CarParkingService[], Error> => {
-  return useQuery({
-    queryKey: ["nearbyCarParkingServices", params],
-    queryFn: () => carParkingServiceService.getNearbyCarParkingServices(params),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!params.latitude && !!params.longitude,
-  });
-};
-
-export const useGetPopularCarParkingMenus = (): UseQueryResult<
-  CarParkingServiceMenu[],
-  Error
-> => {
-  return useQuery({
-    queryKey: ["popularCarParkingMenus"],
-    queryFn: () => carParkingServiceService.getPopularMenus(),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
-};
-
-export const useGetPopularCarParkingMenusByService = (
-  carParkingServiceId: string
-): UseQueryResult<CarParkingServiceMenu[], Error> => {
-  return useQuery({
-    queryKey: ["popularCarParkingMenus", carParkingServiceId],
-    queryFn: () =>
-      carParkingServiceService.getPopularMenusByCarParkingService(carParkingServiceId),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!carParkingServiceId,
-  });
-};
-
-export const useGetRecommendedCarParkingServices = (
-  lat: number,
-  lng: number,
+export function useRecommendedCarParkingServicesQuery(
+  lat?: number,
+  lng?: number,
   category?: string,
   limit?: number,
-  page?: number
-): UseQueryResult<CarParkingService[], Error> => {
+  page?: number,
+  options?: { enabled?: boolean; staleTimeMs?: number }
+) {
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
   return useQuery({
-    queryKey: ["recommendedCarParkingServices", lat, lng, category, limit, page],
+    queryKey: carParkingQueryKeys.carParkingServices.recommended(
+      hasCoords ? (lat as number) : 0,
+      hasCoords ? (lng as number) : 0,
+      category || undefined,
+      limit || undefined,
+      page || undefined
+    ),
     queryFn: () =>
       carParkingServiceService.getRecommendedCarParkingServices(
-        lat,
-        lng,
-        category,
+        lat as number,
+        lng as number,
+        category as string,
         limit,
         page
       ),
-    staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    enabled: !!lat && !!lng,
+    enabled: options?.enabled ?? hasCoords,
+    staleTime: options?.staleTimeMs ?? 1000 * 60 * 5,
   });
-};
+}
+
+export function useCarParkingServicesByLocationQuery(
+  filters: LocationFilters,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.byLocation(filters),
+    queryFn: () => carParkingServiceService.getCarParkingServiceByLocation(filters),
+    enabled: options?.enabled !== false,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useNearbyCarParkingServicesQuery(
+  params: NearbyParams,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.nearby(params),
+    queryFn: () => carParkingServiceService.getNearbyCarParkingServices(params),
+    enabled:
+      options?.enabled !== false && !!params.latitude && !!params.longitude,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCarParkingServiceDetailQuery(
+  carParkingServiceId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.detail(carParkingServiceId),
+    queryFn: () => carParkingServiceService.getCarParkingServiceById(carParkingServiceId),
+    enabled: options?.enabled !== undefined ? options.enabled : !!carParkingServiceId,
+    staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      if (
+        error instanceof Error &&
+        (error.message.includes("404") || error.message.includes("not found"))
+      ) {
+        return false;
+      }
+      if (
+        error instanceof Error &&
+        (error.message.includes("authentication") ||
+          error.message.includes("401"))
+      ) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
+}
+
+export function useCarParkingServicesQuery(
+  carParkingServiceId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.menus(carParkingServiceId),
+    queryFn: () => carParkingServiceService.getCarParkingServiceMenus(carParkingServiceId),
+    enabled: options?.enabled !== false && !!carParkingServiceId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCarParkingServiceMenuInfoQuery(
+  carParkingServiceId: string,
+  menuId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.menu(carParkingServiceId, menuId),
+    queryFn: () => carParkingServiceService.getCarParkingServiceMenu(carParkingServiceId, menuId),
+    enabled: options?.enabled !== false && !!carParkingServiceId && !!menuId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useCarParkingPopularMenusQuery() {
+  return useQuery({
+    queryKey: carParkingQueryKeys.carParkingServices.popularMenus,
+    queryFn: carParkingServiceService.getPopularMenus,
+  });
+}
+
+export function usePopularMenusByCarParkingQuery(
+  carParkingServiceId: string,
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey:
+      carParkingQueryKeys.carParkingServices.popularMenusByCarParking(carParkingServiceId),
+    queryFn: () => carParkingServiceService.getPopularMenusByCarParkingService(carParkingServiceId),
+    enabled: options?.enabled !== false && !!carParkingServiceId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export const useCarParkingReservedProduct = (
+  carParkingServiceId?: string,
+  reservationCode?: string
+) =>
+  useQuery({
+    queryKey: ["reservedProduct", carParkingServiceId ?? "", reservationCode ?? ""],
+    queryFn: async () => {
+      const res = await carParkingServiceService.findReservedMenu(
+        carParkingServiceId ?? "",
+        reservationCode ?? ""
+      );
+      return res && (res as any).data !== undefined ? (res as any).data : res;
+    },
+    enabled:
+      !!carParkingServiceId &&
+      !!reservationCode &&
+      String(reservationCode).trim().length > 0,
+  });

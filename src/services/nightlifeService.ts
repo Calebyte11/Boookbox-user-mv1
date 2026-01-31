@@ -88,7 +88,7 @@ export const nightlifeService = {
     return Array.isArray(response.data) ? response.data : [];
   },
 
-  getNightlifeVenueByLocation: async (
+  getNightlifeVenuesByLocation: async (
     filters: LocationFilters
   ): Promise<NightlifeVenue[]> => {
     const queryParams = new URLSearchParams();

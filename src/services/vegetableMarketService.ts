@@ -176,7 +176,7 @@ export const vegetableMarketService = {
     }
   },
 
-  getPopularProductsByMarket: async (vegetableMarketId: string): Promise<VegetableMarketProduct[]> => {
+  getPopularProductsByVegetableMarket: async (vegetableMarketId: string): Promise<VegetableMarketProduct[]> => {
     try {
       const response = await apiClient.get<VegetableMarketProduct[]>(
         `${API_ENDPOINTS.BUSINESSES.GET_POPULAR_PRODUCTS_BY_BUSINESS(vegetableMarketId)}?category=vegetable-market`

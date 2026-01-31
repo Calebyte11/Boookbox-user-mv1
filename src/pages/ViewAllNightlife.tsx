@@ -3,9 +3,12 @@ import { useState, useMemo } from "react";
 import { AlertCircle, Search, ChevronLeft } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Button from "@/components/Button";
-import NightlifeCard from "@/components/NightlifeCard";
+import RestaurantCard from "@/components/RestaurantCard";
 import { useNavigate } from "react-router-dom";
-import { useGetAllNightlifeVenues, useGetRecommendedNightlifeVenues } from "@/hooks/useNightlifeQueries";
+// import { useAuth } from "@/features/auth/hooks";
+
+import { useAllNightlifeVenuesQuery, useRecommendedNightlifeVenuesQuery } from "@/hooks/useNightlifeQueries";
+
 import { useLocationStore } from "@/store/locationStore";
 import { formatCurrency } from "@/utils/formatCurrency";
 
@@ -15,17 +18,18 @@ const ViewAllNightlife = () => {
   const [filterBy, setFilterBy] = useState<
     "all" | "recent" | "active" | "inactive" | "city"
   >("all");
+  const [citySearch, setCitySearch] = useState("");
   const [selectedCity, setSelectedCity] = useState<string>("");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
-
+  // const [recommedaton] = useState(true);
   const locationStore = useLocationStore();
 
   const {
-    data: allVenuesData,
+    data: allData,
     isLoading: isLoadingAll,
     error: errorAll,
-  } = useGetAllNightlifeVenues();
+  } = useAllNightlifeVenuesQuery();
 
+  // resolve coordinates: prefer manualLocation, then GPS position
   const coords = useMemo(() => {
     const manual = locationStore.manualLocation?.position;
     const gps = locationStore.position;
@@ -37,247 +41,368 @@ const ViewAllNightlife = () => {
     }
     return null;
   }, [locationStore.manualLocation, locationStore.position]);
-
+  
+  // Fetch recommended gift stores when coordinates are available
   const {
     data: recommendedData,
     isLoading: isLoadingRecommended,
     isError: isRecommendedError,
-  } = useGetRecommendedNightlifeVenues(
-    coords?.lat || 0,
-    coords?.lng || 0,
-    "nightlife"
+  } = useRecommendedNightlifeVenuesQuery (
+    coords?.lat,
+    coords?.lng,
+    "nightlife",
+    undefined,
+    undefined
+    // { enabled: !!coords }
   );
 
-  // Use recommended data if available, otherwise fall back to all data
-  const venues = recommendedData && recommendedData.length > 0 ? recommendedData : allVenuesData || [];
+  // Choose data source: prefer recommended when available, otherwise fallback to all
+  const data = useMemo(() => {
+    if (Array.isArray(recommendedData) && recommendedData.length > 0) {
+      return recommendedData as any;
+    }
+    return allData as any;
+  }, [recommendedData, allData]);
+  
+  // Transform nightlife venue data to proper format for display
+  // Extract unique cities for city filter
+  // Transform nightlife venue data into a uniform array for UI
 
-  // Filter venues
-  const filteredVenues = useMemo(() => {
-    let filtered = venues || [];
+  
+  const items = useMemo(() => {
+    if (!data) return [];
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (venue) =>
-          venue.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          venue.address?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    let itemList: any[] = [];
+    if (Array.isArray(data)) {
+      itemList = data;
+    } else if ((data as any).data && Array.isArray((data as any).data)) {
+      itemList = (data as any).data;
+    } else {
+      return [];
     }
 
-    if (selectedCity) {
-      filtered = filtered.filter(
-        (venue) => venue.city?.toLowerCase() === selectedCity.toLowerCase()
-      );
-    }
+    return itemList.map((item: any) => {
+      const minPrice = item.minPrice ?? 500;
+      const maxPrice = item.maxPrice ?? 50000;
+      const paymentCurrency = item.paymentCurrency || "NGN";
+      const averageRating = item.averageRating ?? item.rating ?? 0;
+      const id = item.nightlifeVenueId || item._id || item.businessId || item.id || "";
 
-    if (filterBy === "recent") {
-      filtered = filtered.sort(
-        (a, b) =>
-          new Date(b.createdAt || "").getTime() -
-          new Date(a.createdAt || "").getTime()
-      );
-    } else if (filterBy === "active") {
-      filtered = filtered.filter((venue) => venue.isActive === true);
-    } else if (filterBy === "inactive") {
-      filtered = filtered.filter((venue) => venue.isActive === false);
-    }
-
-    // Apply price range filter if price data is available
-    filtered = filtered.filter((venue) => {
-      if (venue.priceRange) {
-        const price = parseInt(venue.priceRange.toString());
-        return price >= priceRange[0] && price <= priceRange[1];
-      }
-      return true;
+      return {
+        id,
+        title: item.name || "Nightlife Venue",
+        image: item.image || item.profileImage || "",
+        rating: averageRating,
+        paymentCurrency,
+        minPrice,
+        maxPrice,
+        city: item.city || "",
+        state: item.state || "",
+        status: item.isActive ? "active" : "inactive",
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+        price: `${formatCurrency(minPrice, paymentCurrency)} - ${formatCurrency(
+          maxPrice,
+          paymentCurrency
+        )}`,
+      };
     });
+  }, [data]);
+
+  const cityList = useMemo(() => {
+    const cities = items.map((r: any) => r.city?.trim()).filter(Boolean);
+    return Array.from(new Set(cities)).sort();
+  }, [items]);
+
+  // Filter and sort nightlife venues based on user selections
+ const filteredAndSortedItems = useMemo(() => {
+    if (!items) return [];
+    let filtered = items;
+
+    if (filterBy === "city") {
+      let cityFiltered = items;
+      if (citySearch.trim()) {
+        const cityQuery = citySearch.toLowerCase().trim();
+        cityFiltered = cityFiltered.filter((r: any) =>
+          r.city.toLowerCase().includes(cityQuery)
+        );
+      }
+      if (selectedCity) {
+        cityFiltered = cityFiltered.filter(
+          (r: any) => r.city.toLowerCase() === selectedCity.toLowerCase()
+        );
+      }
+      filtered = cityFiltered;
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (item: any) =>
+          item.title.toLowerCase().includes(query) ||
+          item.price.toLowerCase().includes(query)
+      );
+    }
+
+    if (filterBy === "active") {
+      filtered = filtered.filter((item: any) => item.status === "active");
+    } else if (filterBy === "inactive") {
+      filtered = filtered.filter((item: any) => item.status === "inactive");
+    }
+
+    if (filterBy === "recent" || filterBy === "all") {
+      filtered = [...filtered].sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || "").getTime();
+        const dateB = new Date(b.createdAt || b.updatedAt || "").getTime();
+
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+
+        return dateB - dateA;
+      });
+    }
 
     return filtered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venues, searchQuery, selectedCity, filterBy, priceRange]);
+  }, [items, searchQuery, filterBy, citySearch, selectedCity]);
 
-  // Get unique cities for dropdown
-  const cities = useMemo(() => {
-    const uniqueCities = new Set<string>();
-    venues?.forEach((venue) => {
-      if (venue.city) {
-        uniqueCities.add(venue.city);
-      }
-    });
-    return Array.from(uniqueCities).sort();
-  }, [venues]);
+  const handleClearSearch = () => {
+    setSearchQuery("");
+  };
+  const isInitialLoading =
+    !items.length && (isLoadingAll || isLoadingRecommended);
+  if (isInitialLoading) {
+    return (
+      <section className="p-4">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A00] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading Nightlife Venues...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  const isLoading = isLoadingAll || isLoadingRecommended;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 transition-colors"
+  const showError = !items.length && (errorAll || isRecommendedError);
+  if (showError) {
+    return (
+      <section className="p-4">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load nightlife venues</p>
+            <Button
+              className="bg-[#FF7A00] text-white px-4 py-2 rounded-lg"
+              onClick={() => window.location.reload()}
             >
-              <ChevronLeft size={24} className="text-slate-700" />
-            </button>
-            <h1 className="text-2xl font-bold text-slate-900">Night Life Venues</h1>
-          </div>
-
-          {/* Search Bar */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
-              <Search size={20} className="absolute left-3 top-3 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by name or address..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Filters Section */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* Filter by Status */}
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <Button
-                variant="outline"
-                className="w-full"
-                size="md"
-              >
-                Filter: {filterBy === "all" ? "All" : filterBy.charAt(0).toUpperCase() + filterBy.slice(1)}
-              </Button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content
-              className="bg-white rounded-lg shadow-lg border border-slate-200 p-2 min-w-[200px] z-50"
-              align="start"
-            >
-              {["all", "recent", "active", "inactive", "city"].map((option) => (
-                <DropdownMenu.Item
-                  key={option}
-                  onClick={() => setFilterBy(option as typeof filterBy)}
-                  className="px-4 py-2 hover:bg-blue-50 cursor-pointer rounded text-sm capitalize"
-                >
-                  {option === "all" ? "All Venues" : option.charAt(0).toUpperCase() + option.slice(1)}
-                </DropdownMenu.Item>
-              ))}
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-
-          {/* Filter by City */}
-          {filterBy === "city" && (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size="md"
-                >
-                  City: {selectedCity || "Select"}
-                </Button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content
-                className="bg-white rounded-lg shadow-lg border border-slate-200 p-2 min-w-[200px] z-50 max-h-[300px] overflow-y-auto"
-                align="start"
-              >
-                {cities.map((city) => (
-                  <DropdownMenu.Item
-                    key={city}
-                    onClick={() => setSelectedCity(city)}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer rounded text-sm"
-                  >
-                    {city}
-                  </DropdownMenu.Item>
-                ))}
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
-          )}
-
-          {/* Price Range Filter */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-700">
-              Price Range: {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="200000"
-              step="1000"
-              value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-              className="w-full"
-            />
-          </div>
-        </div>
-
-        {/* Results Summary */}
-        <div className="mb-6">
-          <p className="text-slate-600">
-            Showing <span className="font-semibold text-slate-900">{filteredVenues.length}</span> night life{" "}
-            {filteredVenues.length === 1 ? "venue" : "venues"}
-          </p>
-        </div>
-
-        {/* Error State */}
-        {errorAll && !isLoadingAll && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
-            <AlertCircle size={20} className="text-red-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-red-900">Error loading venues</h3>
-              <p className="text-red-700 text-sm">Failed to load night life venues. Please try again.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Recommended Error (non-blocking) */}
-        {isRecommendedError && !isLoadingRecommended && (
-          <div className="mb-6 p-4 rounded-lg bg-yellow-50 border border-yellow-200 flex items-start gap-3">
-            <AlertCircle size={20} className="text-yellow-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-yellow-900">Showing all venues</h3>
-              <p className="text-yellow-700 text-sm">Unable to load location-based recommendations.</p>
-            </div>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-lg h-80 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : filteredVenues.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVenues.map((venue) => (
-              <NightlifeCard
-                key={venue._id}
-                venue={venue}
-                onClick={() => navigate(`/nightlife/${venue._id}`)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <AlertCircle size={48} className="mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No venues found</h3>
-            <p className="text-slate-600 mb-4">
-              Try adjusting your search filters or explore other categories.
-            </p>
-            <Button onClick={() => navigate(-1)} variant="primary" size="md">
-              Go Back
+              Retry
             </Button>
           </div>
-        )}
+        </div>
+      </section>
+    );
+  }
+  return (
+    <section className="p-4">
+      {/* Header */}
+      <div className="flex items-center mb-4 md:block">
+        <Button
+          className="rounded-xl p-2 bg-[#ECE6F0] mr-4 md:mr-0 md:mb-4"
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeft className="h-6 w-6 text-black" />
+        </Button>
+        <h1 className="text-2xl font-semibold text-center flex-1 md:text-left">
+          All Gift Stores{" "}
+          <span className="bg-primary/10 p-1.5 px-3 rounded-lg">
+            {filteredAndSortedItems.length}
+          </span>
+        </h1>
       </div>
-    </div>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <form className="relative" onSubmit={(e) => e.preventDefault()}>
+          <input
+            type="text"
+            placeholder="Search gift stores..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl bg-[#ECE6F0] py-3 px-10 text-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A00] focus:border-transparent"
+          />
+          <Search className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 text-[#49454F]" />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#49454F] hover:text-[#FF7A00]"
+            >
+              ✕
+            </button>
+          )}
+        </form>
+      </div>
+      {/* Filter Tabs */}
+      <div className="flex gap-2 mb-6 overflow-x-auto">
+        {[
+          { key: "all", label: "All", count: items.length },
+          { key: "recent", label: "Recent", count: items.length },
+          {
+            key: "active",
+            label: "Active",
+            count: items.filter(
+              (r: { status: string }) => r.status === "active"
+            ).length,
+          },
+          {
+            key: "inactive",
+            label: "Inactive",
+            count: items.filter(
+              (r: { status: string }) => r.status === "inactive"
+            ).length,
+          },
+          {
+            key: "city",
+            label: "City",
+            count: cityList.length,
+          },
+        ].map((filter) => (
+          <button
+            key={filter.key}
+            onClick={() => {
+              setFilterBy(filter.key as typeof filterBy);
+              if (filter.key !== "city") {
+                setSelectedCity("");
+                setCitySearch("");
+              }
+            }}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              filterBy === filter.key
+                ? "bg-[#FF7A00] text-white"
+                : "bg-[#ECE6F0] text-black hover:bg-[#FF7A00]/10"
+            }`}
+          >
+            {filter.label}{" "}
+            <span className="bg-primary/10 py-1.5 px-3 rounded-lg ">
+              {filter.count}
+            </span>
+          </button>
+        ))}
+      </div>
+      {/* City Search Input */}
+      {filterBy === "city" && (
+        <div className="mb-4 flex flex-col gap-2">
+          <input
+            type="text"
+            placeholder="Search city..."
+            value={citySearch}
+            onChange={(e) => {
+              setCitySearch(e.target.value);
+              setSelectedCity("");
+            }}
+            className="w-full rounded-xl bg-[#ECE6F0] py-2 px-4 text-base focus:outline-none focus:ring-2 focus:ring-[#FF7A00] focus:border-transparent"
+          />
+          {/* City List Dropdown */}
+          {citySearch.trim() && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button
+                  type="button"
+                  className="w-full text-left bg-white border rounded-lg shadow p-2 focus:outline-none"
+                >
+                  <span className="text-gray-700">Select city</span>
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className="bg-white border rounded-lg shadow p-2 max-h-40 overflow-y-auto min-w-[180px] z-50"
+                  sideOffset={4}
+                >
+                  {cityList
+                    .filter((city) =>
+                      city.toLowerCase().includes(citySearch.toLowerCase())
+                    )
+                    .map((city) => (
+                      <DropdownMenu.Item
+                        key={city}
+                        className={`block w-full text-left px-3 py-1 rounded cursor-pointer select-none outline-none transition-colors ${
+                          selectedCity === city
+                            ? "bg-[#FF7A00] text-white"
+                            : "hover:bg-[#FF7A00]/10 text-black"
+                        }`}
+                        onSelect={() => setSelectedCity(city)}
+                      >
+                        {city}
+                      </DropdownMenu.Item>
+                    ))}
+                  {cityList.filter((city) =>
+                    city.toLowerCase().includes(citySearch.toLowerCase())
+                  ).length === 0 && (
+                    <div className="text-gray-400 px-3 py-1">
+                      No cities found
+                    </div>
+                  )}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          )}
+          {/* Selected City Indicator */}
+          {selectedCity && (
+            <div className="text-sm text-gray-700 mt-1">
+              Filtering by city:{" "}
+              <span className="font-semibold">{selectedCity}</span>
+              <button
+                className="ml-2 text-xs text-red-500 underline"
+                onClick={() => setSelectedCity("")}
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Search Results Indicator */}
+      {searchQuery && (
+        <div className="mb-4 p-3 bg-[#E3F5FF] rounded-lg">
+          <p className="text-sm text-gray-700">
+            Showing {filteredAndSortedItems.length} result(s) for "
+            {searchQuery}"
+          </p>
+        </div>
+      )}{" "}
+      {/* Restaurant Cards Grid */}
+      {filteredAndSortedItems.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredAndSortedItems.map(
+            (item: any, index: number) => (
+              <RestaurantCard
+                key={index}
+                id={item.id || item.title}
+                title={item.title}
+                image={item.image}
+                rating={item.rating || 0}
+                price={item.price}
+                status={item.status as "active" | "inactive"}
+                city={item.city}
+                state={item.state}
+                category="nightlife"
+              />
+            )
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center min-h-[30vh]">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">No nightlife venues found</p>
+            <p className="text-sm text-gray-500">
+              {searchQuery
+                ? "Try adjusting your search terms"
+                : "No nightlife venues available at the moment"}
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
 
