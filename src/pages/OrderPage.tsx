@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCartStore } from "@/store/cartStore";
 import { ChevronLeft } from "lucide-react";
 import Quantity from "../components/sponsor/Quantity";
@@ -46,6 +47,11 @@ const OrderPage = () => {
   // Get current restaurant ID from cart or URL (for edit mode)
   const cartRestaurantId = getCurrentRestaurantId();
   const currentRestaurantId = isEditMode ? urlBusinessId : cartRestaurantId;
+
+  // Helper function to check if item has bulk pricing applied
+  const isBulkPricingApplied = (item: any): boolean => {
+    return item.appliedPricingTier && item.appliedPricingTier !== 'unit';
+  };
 
   // NEW: Load campaign order data from sessionStorage
   useEffect(() => {
@@ -225,6 +231,11 @@ const OrderPage = () => {
                 <p className="text-gray-600 text-sm">{item.userInstruction}</p>
               )}
               <p className="py-2">{formatCurrency(item.totalPrice)}</p>
+              {isBulkPricingApplied(item) && (
+                <p className="text-xs text-amber-600 italic">
+                  Bulk pricing applied! {item.quantity} units at {item.appliedPricingTier} rate
+                </p>
+              )}
             </div>
 
             <Quantity

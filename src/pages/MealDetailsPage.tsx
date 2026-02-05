@@ -83,14 +83,16 @@ const ProductDetailsPage: React.FC = () => {
   // State for quantity counter - initialize with minOrder if available
   const [quantity, setQuantity] = useState(campaignMinOrder || 1);
 
-  // Function to get applicable pricing tier
+  // Function to get applicable pricing tier and multiplier for multiples
   const getApplicablePricingTier = (pricingTier: PricingTier | undefined, currentQuantity: number) => {
     if (!pricingTier) return null;
-    if (pricingTier.carton && currentQuantity === pricingTier.carton.quantity) {
-      return { type: 'carton', ...pricingTier.carton };
+    if (pricingTier.carton && currentQuantity % pricingTier.carton.quantity === 0 && currentQuantity >= pricingTier.carton.quantity) {
+      const multiplier = currentQuantity / pricingTier.carton.quantity;
+      return { type: 'carton', price: pricingTier.carton.price * multiplier, quantity: pricingTier.carton.quantity, multiplier };
     }
-    if (pricingTier.dozen && currentQuantity === pricingTier.dozen.quantity) {
-      return { type: 'dozen', ...pricingTier.dozen };
+    if (pricingTier.dozen && currentQuantity % pricingTier.dozen.quantity === 0 && currentQuantity >= pricingTier.dozen.quantity) {
+      const multiplier = currentQuantity / pricingTier.dozen.quantity;
+      return { type: 'dozen', price: pricingTier.dozen.price * multiplier, quantity: pricingTier.dozen.quantity, multiplier };
     }
     return null;
   };
@@ -133,7 +135,7 @@ const ProductDetailsPage: React.FC = () => {
       const customization = meal.customizations?.[0];
       const applicableTier = getApplicablePricingTier(customization?.pricingTier, currentQuantity);
       if (applicableTier) {
-        return applicableTier.price;
+        return applicableTier.price / currentQuantity; // Return unit price
       }
       return meal.price;
     };
@@ -214,6 +216,11 @@ const ProductDetailsPage: React.FC = () => {
       restaurantId: restaurantId!,
       userInstruction: data.userInstruction,
       appliedPricingTier: appliedTier?.type as 'unit' | 'dozen' | 'carton' | undefined,
+      baseUnitPrice: currentMeal.price,
+      pricingTierData: currentMeal.customizations?.[0]?.pricingTier ? {
+        dozen: currentMeal.customizations[0].pricingTier.dozen,
+        carton: currentMeal.customizations[0].pricingTier.carton,
+      } : undefined,
     };
     addItem(cartItem);
     // UX feedback: show added message
@@ -239,12 +246,47 @@ const ProductDetailsPage: React.FC = () => {
     setQuantity((prev: number) => (prev > minimumQuantity ? prev - 1 : minimumQuantity));
   };
 
+  // Quick buy function for bulk pricing tiers
+  const handleQuickBuy = (tierQuantity: number, tierPrice: number, tierType: 'dozen' | 'carton') => {
+    const currentMeal = mealInfos?.[0];
+    if (!currentMeal) return;
+
+    // Get pricing tier data for recalculation in OrderPage
+    const pricingTierData = currentMeal.customizations?.[0]?.pricingTier;
+
+    // Convert dynamic form data to CartItemChoices format (use form values if available)
+    const choices: Record<string, string[]> = {};
+
+    const cartItem = {
+      mealId: currentMeal.mealId,
+      mealName: currentMeal.name,
+      pricePerUnit: tierPrice / tierQuantity, // Store effective unit price
+      quantity: tierQuantity,
+      choices,
+      image: currentMeal.images?.[0] || refuel,
+      restaurantId: restaurantId!,
+      userInstruction: "",
+      appliedPricingTier: tierType,
+      baseUnitPrice: currentMeal.price, // Store base unit price for recalculation
+      pricingTierData, // Store full pricing tier data for recalculation
+    };
+    addItem(cartItem);
+    // UX feedback: show added message
+    toast({
+      title: "Item added to cart!",
+      variant: "success",
+      duration: 2000,
+    });
+    navigate(`/restaurants/${restaurantId}`, { replace: true });
+  };
+
   const renderCustomizationItem = (
     type: string,
     customizations: Customization[],
     index: number
   ) => {
     const fieldName = type;
+
 
     return (
       <Accordion.Item
@@ -256,12 +298,16 @@ const ProductDetailsPage: React.FC = () => {
         <Accordion.Header className="w-full border-b border-gray-200">
           <Accordion.Trigger tabIndex={-1} className="flex justify-between items-start w-full py-4 group transition-all">
             <div className="flex flex-col items-start">
-              <span className="font-medium text-black">
-                {type}
-              </span>
-              <span className="font-medium text-gray-400 text-sm">
-                Select your preferences
-              </span>
+              {type && type.trim() && (
+                <span className="font-medium text-black capitalize">
+                  {type}
+                </span>
+              )}
+              {type && type.trim() && (
+                <span className="font-medium text-gray-400 text-sm">
+                  Select your preferences
+                </span>
+              )}
             </div>
             <ChevronDown className="w-5 h-5 text-gray-600 transition-transform duration-300 group-data-[state=open]:rotate-180" />
           </Accordion.Trigger>
@@ -415,39 +461,69 @@ const ProductDetailsPage: React.FC = () => {
             <div className="mt-4">
               <h3 className="font-semibold text-gray-800 mb-2">Bulk Pricing:</h3>
               <div className="flex flex-col gap-2">
-                {mealInfos[0].customizations[0].pricingTier.dozen && (
+                {mealInfos[0]?.customizations?.[0]?.pricingTier?.dozen && (
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-800">
-                        Dozen Price
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        (Qty: {mealInfos[0].customizations[0].pricingTier.dozen.quantity})
-                      </span>
-                    </div>
-                    <div className="text-lg font-semibold text-primary mt-1">
-                      {formatCurrency(
-                        mealInfos[0].customizations[0].pricingTier.dozen.price,
-                        mealInfos[0].currency
-                      )}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-800">
+                            Dozen Price
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            (Qty: {mealInfos[0]?.customizations?.[0]?.pricingTier?.dozen?.quantity})
+                          </span>
+                        </div>
+                        <div className="text-lg font-semibold text-primary mt-1">
+                          {formatCurrency(
+                            mealInfos[0]?.customizations?.[0]?.pricingTier?.dozen?.price || 0,
+                            mealInfos[0]?.currency || 'NGN'
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => handleQuickBuy(
+                          mealInfos[0]?.customizations?.[0]?.pricingTier?.dozen?.quantity || 0,
+                          mealInfos[0]?.customizations?.[0]?.pricingTier?.dozen?.price || 0,
+                          'dozen'
+                        )}
+                        className="ml-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium whitespace-nowrap"
+                      >
+                        Buy
+                      </Button>
                     </div>
                   </div>
                 )}
-                {mealInfos[0].customizations[0].pricingTier.carton && (
+                {mealInfos[0]?.customizations?.[0]?.pricingTier?.carton && (
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-800">
-                        Carton Price
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        (Qty: {mealInfos[0].customizations[0].pricingTier.carton.quantity})
-                      </span>
-                    </div>
-                    <div className="text-lg font-semibold text-primary mt-1">
-                      {formatCurrency(
-                        mealInfos[0].customizations[0].pricingTier.carton.price,
-                        mealInfos[0].currency
-                      )}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-800">
+                            Carton Price
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            (Qty: {mealInfos[0]?.customizations?.[0]?.pricingTier?.carton?.quantity})
+                          </span>
+                        </div>
+                        <div className="text-lg font-semibold text-primary mt-1">
+                          {formatCurrency(
+                            mealInfos[0]?.customizations?.[0]?.pricingTier?.carton?.price || 0,
+                            mealInfos[0]?.currency || 'NGN'
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => handleQuickBuy(
+                          mealInfos[0]?.customizations?.[0]?.pricingTier?.carton?.quantity || 0,
+                          mealInfos[0]?.customizations?.[0]?.pricingTier?.carton?.price || 0,
+                          'carton'
+                        )}
+                        className="ml-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium whitespace-nowrap"
+                      >
+                        Buy
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -486,8 +562,12 @@ const ProductDetailsPage: React.FC = () => {
           Array.isArray(mealInfos[0].customizations) &&
           mealInfos[0].customizations.length > 0 ? (
             (() => {
-              // Group customizations by type
-              const groupedCustomizations = mealInfos[0].customizations.reduce(
+              // Filter out customizations with undefined or empty type, then group by type
+              const validCustomizations = mealInfos[0].customizations.filter(
+                (customization) => customization.type && customization.type.trim() !== ''
+              );
+              
+              const groupedCustomizations = validCustomizations.reduce(
                 (acc, customization) => {
                   if (!acc[customization.type]) {
                     acc[customization.type] = [];

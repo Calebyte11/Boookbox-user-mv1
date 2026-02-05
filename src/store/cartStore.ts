@@ -23,6 +23,11 @@ export interface CartItem {
   choices: CartItemChoices;
   userInstruction?: string;
   appliedPricingTier?: 'unit' | 'dozen' | 'carton'; // Track which pricing tier was applied
+  baseUnitPrice?: number; // Base price per unit (before bulk pricing)
+  pricingTierData?: {
+    dozen?: { quantity: number; price: number };
+    carton?: { quantity: number; price: number };
+  }; // Pricing tier info for recalculation
 }
 
 export interface CartState {
@@ -165,15 +170,46 @@ export const useCartStore = create<CartState>()(
             };
           }
           return {
-            items: state.items.map((item) =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    quantity: newQuantity,
-                    totalPrice: newQuantity * item.pricePerUnit,
+            items: state.items.map((item) => {
+              if (item.id === itemId) {
+                // Calculate effective price based on bulk pricing tiers if available
+                let effectiveUnitPrice = item.pricePerUnit;
+                let appliedTier: 'unit' | 'dozen' | 'carton' = 'unit';
+                
+                if (item.pricingTierData && item.baseUnitPrice) {
+                  // Check carton first (largest tier)
+                  if (item.pricingTierData.carton && 
+                      newQuantity >= item.pricingTierData.carton.quantity && 
+                      newQuantity % item.pricingTierData.carton.quantity === 0) {
+                    const multiplier = newQuantity / item.pricingTierData.carton.quantity;
+                    effectiveUnitPrice = (item.pricingTierData.carton.price * multiplier) / newQuantity;
+                    appliedTier = 'carton';
                   }
-                : item
-            ),
+                  // Check dozen next
+                  else if (item.pricingTierData.dozen && 
+                      newQuantity >= item.pricingTierData.dozen.quantity && 
+                      newQuantity % item.pricingTierData.dozen.quantity === 0) {
+                    const multiplier = newQuantity / item.pricingTierData.dozen.quantity;
+                    effectiveUnitPrice = (item.pricingTierData.dozen.price * multiplier) / newQuantity;
+                    appliedTier = 'dozen';
+                  }
+                  // Otherwise use base unit price
+                  else {
+                    effectiveUnitPrice = item.baseUnitPrice;
+                    appliedTier = 'unit';
+                  }
+                }
+                
+                return {
+                  ...item,
+                  quantity: newQuantity,
+                  pricePerUnit: effectiveUnitPrice,
+                  totalPrice: newQuantity * effectiveUnitPrice,
+                  appliedPricingTier: appliedTier,
+                };
+              }
+              return item;
+            }),
             currentRestaurantId: state.currentRestaurantId,
           };
         }),
