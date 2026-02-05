@@ -212,8 +212,15 @@ const OrderPage = () => {
       {items.map((item, index) => (
         <div key={item.id}>
           <div className="flex px-4 pt-2 items-center justify-between">
-            <div>
-              <h1 className="capitalize">{item.mealName}</h1>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="capitalize">{item.mealName}</h1>
+                {item.appliedPricingTier && item.appliedPricingTier !== 'unit' && (
+                  <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+                    {item.appliedPricingTier.charAt(0).toUpperCase() + item.appliedPricingTier.slice(1)} Rate
+                  </span>
+                )}
+              </div>
               {item.userInstruction && (
                 <p className="text-gray-600 text-sm">{item.userInstruction}</p>
               )}

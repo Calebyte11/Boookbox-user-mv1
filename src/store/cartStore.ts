@@ -22,6 +22,7 @@ export interface CartItem {
   currency?: string; // Optional: currency for the item
   choices: CartItemChoices;
   userInstruction?: string;
+  appliedPricingTier?: 'unit' | 'dozen' | 'carton'; // Track which pricing tier was applied
 }
 
 export interface CartState {

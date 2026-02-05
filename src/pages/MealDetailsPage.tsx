@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import refuel from "@/assets/images/refuel.png";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Plus, Minus, ChevronDown, Check } from "lucide-react";
@@ -17,10 +18,23 @@ interface MealChoicesForm {
   [key: string]: string[] | string;
   userInstruction: string;
 }
+interface PricingTier {
+  unitPrice: number;
+  dozen?: {
+    price: number;
+    quantity: number;
+  };
+  carton?: {
+    price: number;
+    quantity: number;
+  };
+}
+
 interface Customization {
   id: string;
   type: string;
   value: string;
+  pricingTier?: PricingTier;
 }
 
 interface MealInfo {
@@ -69,6 +83,18 @@ const ProductDetailsPage: React.FC = () => {
   // State for quantity counter - initialize with minOrder if available
   const [quantity, setQuantity] = useState(campaignMinOrder || 1);
 
+  // Function to get applicable pricing tier
+  const getApplicablePricingTier = (pricingTier: PricingTier | undefined, currentQuantity: number) => {
+    if (!pricingTier) return null;
+    if (pricingTier.carton && currentQuantity === pricingTier.carton.quantity) {
+      return { type: 'carton', ...pricingTier.carton };
+    }
+    if (pricingTier.dozen && currentQuantity === pricingTier.dozen.quantity) {
+      return { type: 'dozen', ...pricingTier.dozen };
+    }
+    return null;
+  };
+
   // Fetch meal details using the restaurantId and mealId, with caching (only supported options)
   const { data: mealData, isLoading: isMealLoading } = useRestaurantMenuInfoQuery(
     restaurantId!,
@@ -100,6 +126,19 @@ const ProductDetailsPage: React.FC = () => {
       customizations: item.customizations,
     }));
   }, [mealData]);
+
+  // Memoize the effective unit price based on quantity and pricing tiers
+  const effectiveUnitPrice = useMemo(() => {
+    const getEffectivePrice = (meal: MealInfo, currentQuantity: number) => {
+      const customization = meal.customizations?.[0];
+      const applicableTier = getApplicablePricingTier(customization?.pricingTier, currentQuantity);
+      if (applicableTier) {
+        return applicableTier.price;
+      }
+      return meal.price;
+    };
+    return mealInfos.length > 0 ? getEffectivePrice(mealInfos[0], quantity) : 0;
+  }, [mealInfos, quantity]);
 
   // Set meal header info in zustand store when mealInfos is loaded
   const setMeal = useMealHeaderStore((state) => state.setMeal);
@@ -159,15 +198,22 @@ const ProductDetailsPage: React.FC = () => {
       }
     });
 
+    // Determine which pricing tier was applied
+    const appliedTier = getApplicablePricingTier(
+      currentMeal.customizations?.[0]?.pricingTier,
+      quantity
+    );
+
     const cartItem = {
       mealId: currentMeal.mealId,
       mealName: currentMeal.name,
-      pricePerUnit: currentMeal.price,
+      pricePerUnit: effectiveUnitPrice,
       quantity,
       choices,
       image: currentMeal.images?.[0] || refuel,
       restaurantId: restaurantId!,
       userInstruction: data.userInstruction,
+      appliedPricingTier: appliedTier?.type as 'unit' | 'dozen' | 'carton' | undefined,
     };
     addItem(cartItem);
     // UX feedback: show added message
@@ -363,6 +409,50 @@ const ProductDetailsPage: React.FC = () => {
                 ))}
               </div>
             </div>
+          )}
+          {/* Display pricing tiers if available */}
+          {mealInfos?.[0]?.customizations?.[0]?.pricingTier && (
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-800 mb-2">Bulk Pricing:</h3>
+              <div className="flex flex-col gap-2">
+                {mealInfos[0].customizations[0].pricingTier.dozen && (
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-800">
+                        Dozen Price
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        (Qty: {mealInfos[0].customizations[0].pricingTier.dozen.quantity})
+                      </span>
+                    </div>
+                    <div className="text-lg font-semibold text-primary mt-1">
+                      {formatCurrency(
+                        mealInfos[0].customizations[0].pricingTier.dozen.price,
+                        mealInfos[0].currency
+                      )}
+                    </div>
+                  </div>
+                )}
+                {mealInfos[0].customizations[0].pricingTier.carton && (
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-800">
+                        Carton Price
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        (Qty: {mealInfos[0].customizations[0].pricingTier.carton.quantity})
+                      </span>
+                    </div>
+                    <div className="text-lg font-semibold text-primary mt-1">
+                      {formatCurrency(
+                        mealInfos[0].customizations[0].pricingTier.carton.price,
+                        mealInfos[0].currency
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}{" "}
           {/* Quantity counter*/}
           <p className="py-4">Quantity</p>
@@ -447,18 +537,25 @@ const ProductDetailsPage: React.FC = () => {
           </div>{" "}
           <Button
             type="submit"
-            className="text-white mt-4 w-full items-center rounded-full py-2.5 font-semibold text-base transition-colors inline-flex px-3 gap-2 relative bg-primary hover:bg-orange-600 justify-between mb-8 md:mb-0"
+            className="text-white mt-4 w-full items-center rounded-full py-2.5 font-semibold text-base transition-colors inline-flex px-3 gap-2 relative bg-primary hover:bg-orange-600 justify-between mb-8 md:mb-0 flex-col"
           >
-            <span className="text-primary bg-white w-6 h-6 rounded-full">
-              {quantity}
-            </span>
-            <span className="">Add to Cart</span>
-            <span className="text-white">
-              {formatCurrency(
-                quantity * (mealInfos?.[0]?.price || 0),
-                mealInfos?.[0]?.currency || "NGN"
-              )}
-            </span>
+            <div className="w-full flex items-center justify-between">
+              <span className="text-primary bg-white w-6 h-6 rounded-full">
+                {quantity}
+              </span>
+              <span className="">Add to Cart</span>
+              <span className="text-white">
+                {formatCurrency(
+                  quantity * effectiveUnitPrice,
+                  mealInfos?.[0]?.currency || "NGN"
+                )}
+              </span>
+            </div>
+            {getApplicablePricingTier(mealInfos[0]?.customizations?.[0]?.pricingTier, quantity) && (
+              <span className="text-xs mt-1 text-orange-100 italic">
+                Bulk pricing applied! You're getting {getApplicablePricingTier(mealInfos[0]?.customizations?.[0]?.pricingTier, quantity)?.type} rate
+              </span>
+            )}
           </Button>
         </form>
       </div>
